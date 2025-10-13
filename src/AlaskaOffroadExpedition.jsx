@@ -64,8 +64,8 @@ function TrustBar() {
   return (
     <section className="border-y border-white/5 bg-neutral-900/40">
       <div className="mx-auto max-w-7xl px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-neutral-300">
-        <div>✔ Wilderness-certified guides</div>
-        <div>✔ Expedition-ready-offroad fleet</div>
+        <div>✔ Wilderness certified guides</div>
+        <div>✔ Expedition ready offroad fleet</div>
         <div>✔ Fully insured & permitted</div>
         <div>✔ Customizable itineraries</div>
       </div>
