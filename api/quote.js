@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const INBOX = process.env.BOOKING_INBOX || 'cooper@alaskaoffroadexpedition.com';
+const INBOX = process.env.BOOKING_INBOX || 'cooperdedycker@gmail.com';
 const FROM  = process.env.BOOKING_FROM  || 'Expeditions <bookings@alaskaoffroadexpedition.com>';
 
 export default async function handler(req, res) {
