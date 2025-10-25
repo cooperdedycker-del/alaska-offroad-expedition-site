@@ -1,59 +1,66 @@
 import { useState, useMemo } from "react";
-import { Routes, Route, Link } from "react-router-dom";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 
 export default function AlaskaOffroadExpedition() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
+      <div id="top" className="min-h-screen bg-neutral-950 text-neutral-100">
       <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/70">
         <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-neutral-800 grid place-items-center font-bold">AOE</div>
-            <span className="text-lg font-semibold tracking-wide">Alaska Offroad Expedition</span>
+            <a href="#top" className="h-9 w-9 rounded-lg overflow-hidden">
+  <img
+    src="/images/logo-round.png"
+    alt="Alaska Offroad Expedition logo"
+    className="h-full w-full object-contain"
+  />
+</a>
+            <a
+  href="#top"
+  className="text-lg font-semibold tracking-wide hover:text-white/80 transition"
+>
+  Alaska Offroad Expedition
+</a>
+
+
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm text-neutral-300">
-            <Link to="#experiences" className="hover:text-white">Experiences</Link>
-            <Link to="#fleet" className="hover:text-white">Fleet</Link>
-            <Link to="#trip-builder" className="hover:text-white">Trip Builder</Link>
-            <Link to="#about" className="hover:text-white">About</Link>
-            <Link to="#faq" className="hover:text-white">FAQ</Link>
-            <Link to="#contact" className="hover:text-white">Contact</Link>
+            <a href="#experiences" className="hover:text-white">Experiences</a>
+            <a href="#fleet" className="hover:text-white">Fleet</a>
+            <a href="#trip-builder" className="hover:text-white">Trip Builder</a>
+            <a href="#about" className="hover:text-white">About</a>
+            <a href="#faq" className="hover:text-white">FAQ</a>
+            <a href="#contact" className="hover:text-white">Contact</a>
           </nav>
           <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className="md:hidden text-white">☰</button>
-          <Link to="#trip-builder" className="hidden md:inline-flex items-center gap-2 rounded-2xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition">Book an Expedition</Link>
+          <a href="#trip-builder" className="hidden md:inline-flex items-center gap-2 rounded-2xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition">Book an Expedition</a>
         </div>
         {mobileNavOpen && (
           <nav className="md:hidden flex flex-col items-center gap-4 pb-4 text-sm text-neutral-300">
-            <Link to="#experiences" onClick={() => setMobileNavOpen(false)}>Experiences</Link>
-            <Link to="#fleet" onClick={() => setMobileNavOpen(false)}>Fleet</Link>
-            <Link to="#trip-builder" onClick={() => setMobileNavOpen(false)}>Trip Builder</Link>
-            <Link to="#about" onClick={() => setMobileNavOpen(false)}>About</Link>
-            <Link to="#faq" onClick={() => setMobileNavOpen(false)}>FAQ</Link>
-            <Link to="#contact" onClick={() => setMobileNavOpen(false)}>Contact</Link>
+            <a href="#experiences" onClick={() => setMobileNavOpen(false)}>Experiences</a>
+            <a href="#fleet" onClick={() => setMobileNavOpen(false)}>Fleet</a>
+            <a href="#trip-builder" onClick={() => setMobileNavOpen(false)}>Trip Builder</a>
+            <a href="#about" onClick={() => setMobileNavOpen(false)}>About</a>
+            <a href="#faq" onClick={() => setMobileNavOpen(false)}>FAQ</a>
+            <a href="#contact" onClick={() => setMobileNavOpen(false)}>Contact</a>
           </nav>
         )}
       </header>
 
-      <Routes>
-        <Route path="/" element={
-          <div>
-            <Hero />
-            <TrustBar />
-            <Experiences />
-            <Fleet />
-            <section id="trip-builder" className="relative">
-              <TripBuilder />
-            </section>
-            <About />
-            <FAQ />
-            <Contact />
-            <Footer />
-          </div>
-        } />
-        <Route path="/wrangler" element={<WranglerPage />} />
-        <Route path="/tacoma" element={<TacomaPage />} />
-      </Routes>
+      <Hero />
+      <TrustBar />
+      <Experiences />
+      <Fleet />
+      <section id="trip-builder" className="relative">
+        <TripBuilder />
+      </section>
+      <About />
+      <FAQ />
+      <Contact />
+      <Footer />
     </div>
   );
 }
@@ -62,27 +69,43 @@ export default function AlaskaOffroadExpedition() {
 
 function Hero() {
   return (
-    <section className="relative h-[50vh] md:h-[60vh] w-full flex items-center">
-      <div className="absolute inset-0">
-        <img 
-          src="/images/hero-illustration.png" 
-          alt="Alaska mountains" 
-          className="w-full h-full object-cover object-[50%_80%] opacity-60" 
-          loading="lazy" 
-        />
-      </div>
-      <div className="relative mx-auto max-w-7xl px-4 py-8 md:py-12 w-full flex items-center">
-        <div className="max-w-3xl text-center md:text-left">
-          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">Where Roads End, <span className="text-white/90">Adventure Begins.</span></h1>
-          <p className="mt-5 text-lg text-neutral-200">Premium, guided off-road expeditions across Alaska. Expedition-built offroad vehicles, expert guides, and bucket-list add-ons like glacier treks and helicopter flyovers. We plan it all. You show up.</p>
-          <div className="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
-            <Link to="#trip-builder" className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200">Build Your Trip</Link>
-            <Link to="#experiences" className="rounded-xl border border-white/30 px-5 py-3 font-semibold hover:bg-white/10">See Experiences</Link>
-          </div>
-          <div className="mt-6 text-sm text-neutral-300">Airport pickup & drop-off • Pro guides • All logistics handled</div>
-        </div>
-      </div>
-    </section>
+   <section className="relative h-[50vh] md:h-[60vh] w-full flex items-center justify-center">
+  <div className="absolute inset-0">
+    <img
+      src="/images/hero-illustration.png"
+      alt="Alaska mountains"
+      className="w-full h-full object-cover object-[50%_80%] opacity-60"
+      loading="lazy"
+    />
+  </div>
+
+  <div className="relative max-w-3xl text-center bg-black/50 backdrop-blur-sm rounded-2xl p-6">
+    <h1 className="text-4xl md:text-6xl font-extrabold leading-tight text-white drop-shadow-lg">
+      Where Roads End, <span className="text-white/90">Adventure Begins.</span>
+    </h1>
+    <p className="mt-5 text-lg text-neutral-200">
+      Premium, guided off-road expeditions across Alaska. Expedition-built offroad vehicles, expert guides,
+      and bucket-list add-ons like glacier treks and helicopter flyovers. We plan it all. You show up.
+    </p>
+    <div className="mt-8 flex flex-wrap gap-3 justify-center">
+      <a
+        href="#trip-builder"
+        className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200"
+      >
+        Build Your Trip
+      </a>
+      <a
+        href="#experiences"
+        className="rounded-xl border border-white/30 px-5 py-3 font-semibold hover:bg-white/10"
+      >
+        See Experiences
+      </a>
+    </div>
+    <div className="mt-6 text-sm text-neutral-300">
+      Airport pickup & drop-off • Pro guides • All logistics handled
+    </div>
+  </div>
+</section>
   );
 }
 
@@ -90,10 +113,10 @@ function TrustBar() {
   return (
     <section className="border-y border-white/5 bg-neutral-900/40">
       <div className="mx-auto max-w-7xl px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-neutral-300">
-        <div>Wilderness certified guides</div>
-        <div>Expedition ready offroad fleet</div>
-        <div>Fully insured & permitted</div>
-        <div>Customizable itineraries</div>
+        <div>✔ Wilderness certified guides</div>
+        <div>✔ Expedition ready offroad fleet</div>
+        <div>✔ Fully insured & permitted</div>
+        <div>✔ Customizable itineraries</div>
       </div>
     </section>
   );
@@ -101,9 +124,24 @@ function TrustBar() {
 
 function Experiences() {
   const cards = [
-    { title: "Guided Day Expedition", price: "from $1,200 / day (per couple)", desc: "4–6 hours off-road with a pro guide, lunch included.", img: "/images/guidedday1.png" },
-    { title: "Overnight Remote Camp", price: "from $2,500 – $3,000 / couple", desc: "Two-day off-road push, camp set-up, hot meals, stargazing.", img: "/images/Overnight1.jpg" },
-    { title: "Ultimate 7-Day Expedition", price: "$25,000 – $30,000 / guest", desc: "Helicopter flyover, glacier trek, bush plane segment, lodge nights.", img: "/images/7day.jpg" }
+    {
+      title: "Guided Day Expedition",
+      price: "from $1,200 / day (per couple)",
+      desc: "4–6 hours off-road with a pro guide, lunch included.",
+      img: "/images/guidedday1.png"
+    },
+    {
+      title: "Overnight Remote Camp",
+      price: "from $2,500 – $3,000 / couple",
+      desc: "Two-day off-road push, camp set-up, hot meals, stargazing.",
+      img: "/images/Overnight1.jpg"
+    },
+    {
+      title: "Ultimate 7-Day Expedition",
+      price: "$25,000 – $30,000 / guest",
+      desc: "Helicopter flyover, glacier trek, bush plane segment, lodge nights.",
+      img: "/images/7day.jpg"
+    }
   ];
   return (
     <section id="experiences" className="mx-auto max-w-7xl px-4 py-16">
@@ -117,7 +155,7 @@ function Experiences() {
               <h3 className="text-xl font-semibold">{x.title}</h3>
               <div className="text-sm text-neutral-300 mt-1">{x.price}</div>
               <p className="mt-3 text-neutral-300">{x.desc}</p>
-              <Link to="#trip-builder" className="mt-4 inline-block rounded-xl bg-white text-neutral-900 px-4 py-2 font-semibold hover:bg-neutral-200">Customize</Link>
+              <a href="#trip-builder" className="mt-4 inline-block rounded-xl bg-white text-neutral-900 px-4 py-2 font-semibold hover:bg-neutral-200">Customize</a>
             </div>
           </div>
         ))}
@@ -132,20 +170,20 @@ function Fleet() {
       <h2 className="text-3xl md:text-4xl font-bold">Fleet of Expedition Vehicles</h2>
       <p className="mt-2 text-neutral-300 max-w-3xl">4&quot; lift • 37–40&quot; tires • 1-ton axles • Lockers • Winch • Skids • Roof rack • Fridge • Comms • Recovery kit • Camp systems • Airport pickup & drop-off available.</p>
       <div className="mt-8 grid gap-6 md:grid-cols-2">
-        <Link to="/wrangler" className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40 hover:bg-neutral-900/60 transition">
+        <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
           <img src="/images/Wrangler140.jpg" alt="Jeep on trail" className="h-64 w-full object-cover" loading="lazy" />
           <div className="p-5">
             <h3 className="text-xl font-semibold">Wrangler Expedition Build</h3>
             <p className="mt-2 text-neutral-300">Purpose-built 2025 Jeep Gladiator for Alaska’s toughest terrain.</p>
           </div>
-        </Link>
-        <Link to="/tacoma" className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40 hover:bg-neutral-900/60 transition">
+        </div>
+        <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
           <img src="/images/tacomaone40.jpeg" alt="Camp under northern lights" className="h-64 w-full object-cover" loading="lazy" />
           <div className="p-5">
             <h3 className="text-xl font-semibold">Tacoma Expedition Build</h3>
-            <p className="mt-2 text-neutral-300">2019 Toyota Tacoma, 37&quot; Tires and a 6 inch lift, Insulated tents, warm meals, safety gear, and satellite comms for true off-grid comfort.</p>
+            <p className="mt-2 text-neutral-300">This is a 2019 Toyota Tacoma, 37&quot; Tires and a 6 inch lift, Insulated tents, warm meals, safety gear, and satellite comms for true off-grid comfort.</p>
           </div>
-        </Link>
+        </div>
       </div>
     </section>
   );
@@ -175,10 +213,10 @@ function About() {
 
 function FAQ() {
   const qa = [
-    {q: "Do I need off-road experience?", a: "No—our guides coach you on trail. We tailor obstacles to your comfort level and conditions."},
-    {q: "What’s included on overnights?", a: "Camp setup, three meals per day, hot drinks, and all safety gear. Bring personal layers and boots."},
-    {q: "Can you pick us up at the airport?", a: "Yes. Airport pickup / drop-off and hotel transfers are available."},
-    {q: "What about weather & safety?", a: "We monitor conditions, carry satellite comms, and build conservative go/no-go plans for each route."}
+    { q: "Do I need off-road experience?", a: "No—our guides coach you on trail. We tailor obstacles to your comfort level and conditions." },
+    { q: "What’s included on overnights?", a: "Camp setup, three meals per day, hot drinks, and all safety gear. Bring personal layers and boots." },
+    { q: "Can you pick us up at the airport?", a: "Yes. Airport pickup / drop-off and hotel transfers are available." },
+    { q: "What about weather & safety?", a: "We monitor conditions, carry satellite comms, and build conservative go/no-go plans for each route." }
   ];
   return (
     <section id="faq" className="mx-auto max-w-7xl px-4 py-16">
@@ -202,10 +240,10 @@ function Contact() {
         <h2 className="text-3xl md:text-4xl font-bold">Talk to an Expedition Planner</h2>
         <p className="mt-2 text-neutral-300">Tell us your dates and must-do experiences. We’ll craft a custom itinerary and get permits rolling.</p>
         <form className="mt-6 grid gap-4 md:grid-cols-2">
-          <input className="rounded-xl bg-neutral-800 px-4 py-3" placeholder="Full name"/>
-          <input className="rounded-xl bg-neutral-800 px-4 py-3" placeholder="Email" type="email"/>
-          <input className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2" placeholder="Desired dates (flexible is okay)"/>
-          <textarea className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2" rows={4} placeholder="Tell us what you want to experience (glacier, helicopter, zipline, remote camping, etc.)"/>
+          <input className="rounded-xl bg-neutral-800 px-4 py-3" placeholder="Full name" />
+          <input className="rounded-xl bg-neutral-800 px-4 py-3" placeholder="Email" type="email" />
+          <input className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2" placeholder="Desired dates (flexible is okay)" />
+          <textarea className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2" rows={4} placeholder="Tell us what you want to experience (glacier, helicopter, zipline, remote camping, etc.)" />
           <button type="button" className="rounded-xl bg-white text-neutral-900 px-4 py-3 font-semibold hover:bg-neutral-200 md:col-span-2">Request Itinerary</button>
         </form>
       </div>
@@ -222,12 +260,12 @@ function Footer() {
           <p className="mt-2">Built for the Wild.</p>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <Link to="#experiences" className="hover:text-neutral-200">Experiences</Link>
-          <Link to="#fleet" className="hover:text-neutral-200">Fleet</Link>
-          <Link to="#trip-builder" className="hover:text-neutral-200">Trip Builder</Link>
-          <Link to="#faq" className="hover:text-neutral-200">FAQ</Link>
-          <Link to="#about" className="hover:text-neutral-200">About</Link>
-          <Link to="#contact" className="hover:text-neutral-200">Contact</Link>
+          <a href="#experiences" className="hover:text-neutral-200">Experiences</a>
+          <a href="#fleet" className="hover:text-neutral-200">Fleet</a>
+          <a href="#trip-builder" className="hover:text-neutral-200">Trip Builder</a>
+          <a href="#faq" className="hover:text-neutral-200">FAQ</a>
+          <a href="#about" className="hover:text-neutral-200">About</a>
+          <a href="#contact" className="hover:text-neutral-200">Contact</a>
         </div>
         <div className="text-neutral-500">
           © {new Date().getFullYear()} Alaska Offroad Expedition. All rights reserved.
@@ -237,91 +275,7 @@ function Footer() {
   );
 }
 
-function WranglerPage() {
-  return (
-    <section className="mx-auto max-w-7xl px-4 py-16">
-      <h2 className="text-3xl md:text-4xl font-bold">Wrangler Expedition Build</h2>
-      <p className="mt-2 text-neutral-300 max-w-3xl">Purpose-built 2025 Jeep Gladiator for Alaska’s toughest terrain. 4&quot; lift • 37–40&quot; tires • 1-ton axles • Lockers • Winch • Skids • Roof rack • Fridge • Comms • Recovery kit • Camp systems.</p>
-      <div className="mt-8 grid gap-6 md:grid-cols-3">
-        <img src="/images/Wrangler140.jpg" alt="Wrangler Image 1" className="w-full h-auto rounded-2xl" loading="lazy" />
-        <img src="https://i.ytimg.com/vi/66fNWT-qxKY/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLB-mpzd-IpaIrj8luUsamPs5BEQ_g" alt="Wrangler Image 2" className="w-full h-auto rounded-2xl" loading="lazy" />
-        <img src="https://cdn-ds.com/blogs-media/sites/678/2025/04/15210753/Apr25_Blog05_AkinsFord_a_o_2025_jeep_gladiator_ext_side_fording_stream-1038x450.jpg" alt="Wrangler Image 3" className="w-full h-auto rounded-2xl" loading="lazy" />
-      </div>
-      <h3 className="mt-12 text-2xl font-semibold">Available Add-On Options</h3>
-      <div className="mt-4 grid gap-6 md:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
-          <img src="https://kennicottguides.com/wp-content/uploads/2021/12/jesse-2-scaled.jpg" alt="Glacier Hike" className="w-full h-48 object-cover rounded-xl" loading="lazy" />
-          <h4 className="mt-4 text-xl font-semibold">Glacier Hike</h4>
-          <p className="mt-2 text-neutral-300">+$600. Guided hike on Alaska's glaciers.</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
-          <img src="https://alaskatours.com/wp-content/uploads/2019/10/Yanert-Glacier-comp-3262-hr-.jpg" alt="Helicopter Flight" className="w-full h-48 object-cover rounded-xl" loading="lazy" />
-          <h4 className="mt-4 text-xl font-semibold">Helicopter Flight</h4>
-          <p className="mt-2 text-neutral-300">+$1500. Scenic flight over Alaska mountains.</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
-          <img src="https://alaska-grizzlies.com/wp-content/uploads/2016/11/post-28315-0-91780100-1480172364.jpg" alt="Bush Plane Segment" className="w-full h-48 object-cover rounded-xl" loading="lazy" />
-          <h4 className="mt-4 text-xl font-semibold">Bush Plane Segment</h4>
-          <p className="mt-2 text-neutral-300">+$1500. Flight into remote wilderness.</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
-          <img src="https://uploads.alaska.org/suppliers/activities/A/alpine-zipline-adventure/_960xAUTO_fit_center-center_65_none/alpine-zipline-adventures-DSC_1337.jpg" alt="Zipline" className="w-full h-48 object-cover rounded-xl" loading="lazy" />
-          <h4 className="mt-4 text-xl font-semibold">Zipline</h4>
-          <p className="mt-2 text-neutral-300">+$500. Thrilling zipline through Alaska forest.</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
-          <img src="https://www.princesslodges.com/wp-content/uploads/2025/09/ice-caves-shutterstock_148397504.jpg" alt="Historic Mine/Glacier Tunnel Tour" className="w-full h-48 object-cover rounded-xl" loading="lazy" />
-          <h4 className="mt-4 text-xl font-semibold">Historic Mine/Glacier Tunnel Tour</h4>
-          <p className="mt-2 text-neutral-300">+$1500. Explore historic mines and glacier tunnels.</p>
-        </div>
-      </div>
-      <Link to="/#trip-builder" className="mt-8 inline-block rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200">Build Your Trip with this Rig</Link>
-    </section>
-  );
-}
-
-function TacomaPage() {
-  return (
-    <section className="mx-auto max-w-7xl px-4 py-16">
-      <h2 className="text-3xl md:text-4xl font-bold">Tacoma Expedition Build</h2>
-      <p className="mt-2 text-neutral-300 max-w-3xl">2019 Toyota Tacoma with 37&quot; Tires and a 6 inch lift. Insulated tents, warm meals, safety gear, and satellite comms for true off-grid comfort.</p>
-      <div className="mt-8 grid gap-6 md:grid-cols-3">
-        <img src="/images/tacomaone40.jpeg" alt="Tacoma Image 1" className="w-full h-auto rounded-2xl" loading="lazy" />
-        <img src="https://lookaside.instagram.com/seo/google_widget/crawler/?media_id=3101168371815187945" alt="Tacoma Image 2" className="w-full h-auto rounded-2xl" loading="lazy" />
-        <img src="https://images.customwheeloffset.com/thumb/750268-1-2019-tacoma-toyota-zone-suspension-lift-6in-arkon-off-road-lincoln-black.jpg" alt="Tacoma Image 3" className="w-full h-auto rounded-2xl" loading="lazy" />
-      </div>
-      <h3 className="mt-12 text-2xl font-semibold">Available Add-On Options</h3>
-      <div className="mt-4 grid gap-6 md:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
-          <img src="https://kennicottguides.com/wp-content/uploads/2021/12/jesse-2-scaled.jpg" alt="Glacier Hike" className="w-full h-48 object-cover rounded-xl" loading="lazy" />
-          <h4 className="mt-4 text-xl font-semibold">Glacier Hike</h4>
-          <p className="mt-2 text-neutral-300">+$600. Guided hike on Alaska's glaciers.</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
-          <img src="https://alaskatours.com/wp-content/uploads/2019/10/Yanert-Glacier-comp-3262-hr-.jpg" alt="Helicopter Flight" className="w-full h-48 object-cover rounded-xl" loading="lazy" />
-          <h4 className="mt-4 text-xl font-semibold">Helicopter Flight</h4>
-          <p className="mt-2 text-neutral-300">+$1500. Scenic flight over Alaska mountains.</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
-          <img src="https://alaska-grizzlies.com/wp-content/uploads/2016/11/post-28315-0-91780100-1480172364.jpg" alt="Bush Plane Segment" className="w-full h-48 object-cover rounded-xl" loading="lazy" />
-          <h4 className="mt-4 text-xl font-semibold">Bush Plane Segment</h4>
-          <p className="mt-2 text-neutral-300">+$1500. Flight into remote wilderness.</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
-          <img src="https://uploads.alaska.org/suppliers/activities/A/alpine-zipline-adventure/_960xAUTO_fit_center-center_65_none/alpine-zipline-adventures-DSC_1337.jpg" alt="Zipline" className="w-full h-48 object-cover rounded-xl" loading="lazy" />
-          <h4 className="mt-4 text-xl font-semibold">Zipline</h4>
-          <p className="mt-2 text-neutral-300">+$500. Thrilling zipline through Alaska forest.</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
-          <img src="https://www.princesslodges.com/wp-content/uploads/2025/09/ice-caves-shutterstock_148397504.jpg" alt="Historic Mine/Glacier Tunnel Tour" className="w-full h-48 object-cover rounded-xl" loading="lazy" />
-          <h4 className="mt-4 text-xl font-semibold">Historic Mine/Glacier Tunnel Tour</h4>
-          <p className="mt-2 text-neutral-300">+$1500. Explore historic mines and glacier tunnels.</p>
-        </div>
-      </div>
-      <Link to="/#trip-builder" className="mt-8 inline-block rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200">Build Your Trip with this Rig</Link>
-    </section>
-  );
-}
+/* ---------------- Trip Builder ---------------- */
 
 function TripBuilder() {
   const [step, setStep] = useState(1);
@@ -352,6 +306,34 @@ function TripBuilder() {
   const next = () => setStep((s) => Math.min(4, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));
   const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+const [sending, setSending] = useState(false);
+const submit = async () => {
+  // basic validation
+  if (!form.contact.name || !form.contact.email) {
+    alert("Please enter your name and email in the Contact step.");
+    setStep(4);
+    return;
+  }
+
+  try {
+    setSending(true);
+    const r = await fetch('/api/trip-inquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Failed to submit');
+
+    alert('Request submitted! We’ll email you shortly with availability and next steps.');
+    // optional: reset or keep values
+    // setForm({ ...initial state if you want to clear it... });
+  } catch (e) {
+    alert('Something went wrong sending your request. Please try again.');
+  } finally {
+    setSending(false);
+  }
+};
 
   return (
     <div className="relative">
@@ -376,10 +358,21 @@ function TripBuilder() {
               <div className="flex items-center gap-3">
                 {step > 1 && (<button onClick={back} className="rounded-xl border border-white/20 px-5 py-3 font-semibold hover:bg-white/10">Back</button>)}
                 {step < 4 ? (
-                  <button onClick={next} className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200">Continue</button>
-                ) : (
-                  <button onClick={() => alert("Request submitted. In production this will create a reservation, send deposit/waiver links via email, and place a hold on the selected rig.")} className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200">Request Itinerary</button>
-                )}
+  <button
+    onClick={next}
+    className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200"
+  >
+    Continue
+  </button>
+) : (
+  <button
+    onClick={submit}
+    disabled={sending}
+    className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200 disabled:opacity-60"
+  >
+    {sending ? "Sending..." : "Request Itinerary"}
+  </button>
+)}
               </div>
             </div>
 
@@ -441,10 +434,10 @@ function StepRigAndExtras({ form, set }) {
       <div>
         <label className="text-sm text-neutral-300">Rig selection</label>
         <select value={form.rig} onChange={(e) => set({ rig: e.target.value })} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3">
-          <option value="wrangler-expedition">Wrangler Expedition (40" tires)</option>
-          <option value="wrangler-premium">Wrangler Premium (35" Tires)</option>
-          <option value="Tacoma-expedition">Tacoma Expedition (40" Tires)</option>
-          <option value="Tacoma-premium">Tacoma Premium (35" Tires)</option>
+          <option value="wrangler-expedition">Wrangler Expedition (40&quot; tires)</option>
+          <option value="wrangler-premium">Wrangler Premium (35&quot; Tires)</option>
+          <option value="tacoma-expedition">Tacoma Expedition (40&quot; Tires)</option>
+          <option value="tacoma-premium">Tacoma Premium (35&quot; Tires)</option>
         </select>
       </div>
       <div className="flex items-center gap-3">
@@ -452,7 +445,7 @@ function StepRigAndExtras({ form, set }) {
         <label htmlFor="guideDay" className="text-neutral-200">Add a guided day (+$750)</label>
       </div>
       <div>
-        <label className="text-sm text-neutral-300">Overnight's (includes meals & camp)</label>
+        <label className="text-sm text-neutral-300">Overnights (includes meals & camp)</label>
         <input value={form.overnight} onChange={(e) => set({ overnight: Number(e.target.value) })} type="number" min={0} max={14} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" />
       </div>
     </div>
@@ -465,9 +458,9 @@ function StepAddOns({ form, set }) {
   const items = [
     { key: "glacier", label: "Glacier Hike", note: "+$600" },
     { key: "helicopter", label: "Helicopter Flight", note: "+$1500" },
-    { key: "bushplane", label: "Bush plane segment", note: "+$1500" },
+    { key: "bushplane", label: "Bush Plane Segment", note: "+$1500" },
     { key: "zipline", label: "Zipline", note: "+$500" },
-    { key: "mine", label: "Historic mine/glacier tunnel tour", note: "+$1500" },
+    { key: "mine", label: "Historic Mine/Glacier Tunnel Tour", note: "+$1500" },
   ];
   return (
     <div className="space-y-4">

@@ -10,4 +10,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AlaskaOffroadExpedition />
     </BrowserRouter>
   </React.StrictMode>
+  
 );
