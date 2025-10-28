@@ -170,21 +170,77 @@ function Fleet() {
       <h2 className="text-3xl md:text-4xl font-bold">Fleet of Expedition Vehicles</h2>
       <p className="mt-2 text-neutral-300 max-w-3xl">4&quot; lift • 37–40&quot; tires • 1-ton axles • Lockers • Winch • Skids • Roof rack • Fridge • Comms • Recovery kit • Camp systems • Airport pickup & drop-off available.</p>
       <div className="mt-8 grid gap-6 md:grid-cols-2">
-        <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
-          <img src="/images/Wrangler140.jpg" alt="Jeep on trail" className="h-64 w-full object-cover" loading="lazy" />
-          <div className="p-5">
-            <h3 className="text-xl font-semibold">Wrangler Expedition Build</h3>
-            <p className="mt-2 text-neutral-300">Purpose-built 2025 Jeep Gladiator for Alaska’s toughest terrain.</p>
-          </div>
-        </div>
-        <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
-          <img src="/images/tacomaone40.jpeg" alt="Camp under northern lights" className="h-64 w-full object-cover" loading="lazy" />
-          <div className="p-5">
-            <h3 className="text-xl font-semibold">Tacoma Expedition Build</h3>
-            <p className="mt-2 text-neutral-300">This is a 2019 Toyota Tacoma, 37&quot; Tires and a 6 inch lift, Insulated tents, warm meals, safety gear, and satellite comms for true off-grid comfort.</p>
-          </div>
-        </div>
-      </div>
+  {/* Jeep Gladiator */}
+  <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
+    <img
+      src="/images/Fleet2.jpg"
+      alt="Jeep on trail"
+      className="h-64 w-full object-contain bg-black"
+      loading="lazy"
+    />
+    <div className="p-5">
+      <h3 className="text-xl font-semibold">2025 Jeep Gladiator</h3>
+      <p className="mt-2 text-neutral-300">
+        Purpose-built 2025 Jeep Gladiator for Alaska’s toughest terrain.
+      </p>
+    </div>
+  </div>
+
+  {/* Toyota Tacoma */}
+  <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
+    <img
+      src="/images/Fleet3.jpeg"
+      alt="Tacoma Expedition Build"
+      className="h-64 w-full object-contain bg-black"
+      loading="lazy"
+    />
+    <div className="p-5">
+      <h3 className="text-xl font-semibold">2019 Toyota Tacoma</h3>
+      <p className="mt-2 text-neutral-300">
+        This is a 2019 Toyota Tacoma, 37&quot; tires and a 6-inch lift,
+        insulated tents, warm meals, safety gear, and satellite comms for true
+        off-grid comfort.
+      </p>
+    </div>
+  </div>
+
+  {/* 3rd Rig - Overland XJ */}
+  <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
+    <img
+      src="/images/Fleet5.jpg"
+      alt="Jeep XJ Overland Build"
+      className="h-64 w-full object-contain bg-black"
+      loading="lazy"
+    />
+    <div className="p-5">
+      <h3 className="text-xl font-semibold">2000 Jeep XJ</h3>
+      <p className="mt-2 text-neutral-300">
+        Fully built Jeep Cherokee XJ on 35s with a roof tent, dual battery
+        system, and complete trail recovery gear. Compact, capable, and ready
+        for the wild.
+      </p>
+    </div>
+  </div>
+
+  {/* 4th Rig - Ram Power Wagon */}
+  <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
+    <img
+      src="/images/Fleet4.jpeg"
+      alt="Ram Power Wagon Expedition Rig"
+      className="h-64 w-full object-contain bg-black"
+      loading="lazy"
+    />
+    <div className="p-5">
+      <h3 className="text-xl font-semibold">2025 Ram Power Wagon Expedition Rig</h3>
+      <p className="mt-2 text-neutral-300">
+        Heavy-duty Ram Power Wagon with onboard air, winch, full-size rooftop
+        tent, and cold-weather overland setup — ideal for long-range Alaska
+        expeditions.
+      </p>
+    </div>
+  </div>
+</div>
+
     </section>
   );
 }
