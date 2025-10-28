@@ -1,4 +1,3 @@
-// api/trip-inquiry.js
 import { Resend } from "resend";
 
 export default async function handler(req, res) {
@@ -11,19 +10,26 @@ export default async function handler(req, res) {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     // --- Parse and normalize payload ---------------------------------------
-    const { form = {}, pricing } = req.body || {};
+    const body = req.body || {};
+    const { form = {}, pricing } = body;
 
-    // Temporary diagnostics (safe to keep while verifying prod)
-    console.log("TRIP-INQUIRY BODY KEYS:", Object.keys(form || {}));
+    // Diagnostics in Vercel logs
+    console.log("TRIP-INQUIRY BODY KEYS:", Object.keys(body || {}));
+    console.log("FORM KEYS:", Object.keys(form || {}));
     if (form?.contact) console.log("CONTACT KEYS:", Object.keys(form.contact));
+    else console.log("CONTACT KEYS: (no nested contact, using flat fields if present)");
 
     // Accept both nested and flat contact shapes
     const contactName  = form?.contact?.name  ?? form?.contactName  ?? form?.name  ?? "";
     const contactEmail = form?.contact?.email ?? form?.contactEmail ?? form?.email ?? "";
     const contactPhone = form?.contact?.phone ?? form?.contactPhone ?? form?.phone ?? "";
 
-    if (!contactName || !contactEmail) {
-      return res.status(400).json({ ok: false, error: "Missing name/email" });
+    // Do NOT 400 here; allow through so we can inspect logs in prod
+    const missingFields = [];
+    if (!contactName) missingFields.push("name");
+    if (!contactEmail) missingFields.push("email");
+    if (missingFields.length) {
+      console.warn("Trip inquiry missing fields:", missingFields.join(", "));
     }
 
     // Pull the rest with sane defaults
@@ -35,9 +41,7 @@ export default async function handler(req, res) {
     const overnight = form?.overnight ?? 0;
     const notes     = form?.notes ?? "";
     const addOnsRaw = form?.addOns;
-
-    const addOns =
-      addOnsRaw && typeof addOnsRaw === "object" ? addOnsRaw : {};
+    const addOns    = addOnsRaw && typeof addOnsRaw === "object" ? addOnsRaw : {};
 
     const addOnList = Object.entries(addOns)
       .map(([k, v]) => `${k}: ${typeof v === "boolean" ? (v ? "Yes" : "No") : v}`)
@@ -46,21 +50,22 @@ export default async function handler(req, res) {
     const totalStr =
       typeof pricing?.total === "number"
         ? `$${pricing.total.toLocaleString()}`
-        : pricing?.total ?? "N/A";
+        : (pricing?.total ?? "N/A");
 
     const contact = { name: contactName, email: contactEmail, phone: contactPhone };
 
     // --- Build email --------------------------------------------------------
-    const subject = `New Trip Inquiry: ${contact.name} • ${start || "TBD"} → ${end || "TBD"}`;
+    // Use HTML entities to avoid mojibake on some clients/encodings
+    const subject = `New Trip Inquiry: ${contact.name || "Unnamed"} &bull; ${start || "TBD"} &rarr; ${end || "TBD"}`;
 
     const html = `
       <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.5;">
         <h2>New Trip Inquiry</h2>
         <table style="width:100%; border-collapse: collapse;">
-          <tr><td><strong>Name</strong></td><td>${escapeHtml(contact.name)}</td></tr>
-          <tr><td><strong>Email</strong></td><td>${escapeHtml(contact.email)}</td></tr>
+          <tr><td><strong>Name</strong></td><td>${escapeHtml(contact.name || "(not provided)")}</td></tr>
+          <tr><td><strong>Email</strong></td><td>${escapeHtml(contact.email || "(not provided)")}</td></tr>
           <tr><td><strong>Phone</strong></td><td>${escapeHtml(contact.phone || "")}</td></tr>
-          <tr><td><strong>Dates</strong></td><td>${escapeHtml(start || "TBD")} → ${escapeHtml(end || "TBD")}</td></tr>
+          <tr><td><strong>Dates</strong></td><td>${escapeHtml(start || "TBD")} &rarr; ${escapeHtml(end || "TBD")}</td></tr>
           <tr><td><strong>Party Size</strong></td><td>${escapeHtml(String(party ?? ""))}</td></tr>
           <tr><td><strong>Rig</strong></td><td>${escapeHtml(String(rig ?? ""))}</td></tr>
           <tr><td><strong>Guide for Day</strong></td><td>${guideDay ? "Yes" : "No"}</td></tr>
@@ -81,23 +86,29 @@ export default async function handler(req, res) {
     console.log("SENDING FROM:", fromEmail);
     console.log("SENDING TO:", toEmail);
 
+    // Only set replyTo if a valid email exists
+    const hasValidReply =
+      contact.email && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact.email);
+
     const { data, error } = await resend.emails.send({
       from: `Alaska Offroad Expedition <${fromEmail}>`,
       to: [toEmail],
       subject,
       html,
-      replyTo: contact.email,
+      ...(hasValidReply ? { replyTo: contact.email } : {}),
+      headers: { "X-AOE-Endpoint": "trip-inquiry" },
     });
 
     if (error) {
       console.error("Resend error:", error);
-      return res.status(500).json({ ok: false, error: "Email failed to send" });
+      return res.status(200).json({ ok: false, error: "Email failed to send" });
     }
 
-    return res.status(200).json({ ok: true, id: data?.id || null });
+    console.log("RESEND RESPONSE:", data);
+    return res.status(200).json({ ok: true, id: data?.id || null, missing: missingFields });
   } catch (err) {
     console.error("API error:", err);
-    return res.status(500).json({ ok: false, error: "Server error" });
+    return res.status(200).json({ ok: false, error: "Server error" });
   }
 }
 
