@@ -37,29 +37,43 @@ export default async function handler(req, res) {
     const subject = `AOE Trip Inquiry — ${contact.name || "No Name"} — ${start || "?"} → ${end || "?"}`;
 
     const html = `
-      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.5">
-        <h2>Alaska Offroad Expedition — Trip Inquiry</h2>
-        <p><strong>Name:</strong> ${escapeHtml(contact.name || "N/A")}<br/>
-           <strong>Email:</strong> ${escapeHtml(contact.email || "N/A")}<br/>
-           <strong>Phone:</strong> ${escapeHtml(contact.phone || "N/A")}</p>
+  <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color:#222;">
+    <h2 style="margin-bottom:8px;">Alaska Offroad Expedition — Trip Inquiry</h2>
+    <table style="border-collapse:collapse;width:100%;max-width:600px;">
+      <tr><td style="padding:4px 8px;"><strong>Name:</strong></td><td>${escapeHtml(contact.name || "N/A")}</td></tr>
+      <tr><td style="padding:4px 8px;"><strong>Email:</strong></td><td>${escapeHtml(contact.email || "N/A")}</td></tr>
+      <tr><td style="padding:4px 8px;"><strong>Phone:</strong></td><td>${escapeHtml(contact.phone || "N/A")}</td></tr>
+      <tr><td style="padding:4px 8px;"><strong>Dates:</strong></td><td>${escapeHtml(start || "N/A")} → ${escapeHtml(end || "N/A")}</td></tr>
+      <tr><td style="padding:4px 8px;"><strong>Party Size:</strong></td><td>${escapeHtml(String(party || "N/A"))}</td></tr>
+      <tr><td style="padding:4px 8px;"><strong>Rig:</strong></td><td>${escapeHtml(rig || "N/A")}</td></tr>
+      <tr><td style="padding:4px 8px;"><strong>Guide Day:</strong></td><td>${guideDay ? "Yes" : "No"}</td></tr>
+      <tr><td style="padding:4px 8px;"><strong>Overnights:</strong></td><td>${escapeHtml(String(overnight || 0))}</td></tr>
+    </table>
 
-        <p><strong>Dates:</strong> ${escapeHtml(start || "N/A")} → ${escapeHtml(end || "N/A")}<br/>
-           <strong>Party Size:</strong> ${escapeHtml(String(party || "N/A"))}<br/>
-           <strong>Rig:</strong> ${escapeHtml(rig || "N/A")}<br/>
-           <strong>Guide Day:</strong> ${guideDay ? "Yes" : "No"}<br/>
-           <strong>Overnights:</strong> ${escapeHtml(String(overnight || 0))}</p>
+    <h3 style="margin-top:20px;">Add-Ons</h3>
+    <ul style="margin:0;padding-left:20px;">
+      ${Object.entries(addOns)
+        .filter(([key, val]) => val && val !== 0)
+        .map(([key, val]) => `<li><strong>${escapeHtml(key)}</strong>${typeof val === "number" ? ` × ${val}` : ""}</li>`)
+        .join("") || "<li>None selected</li>"}
+    </ul>
 
-        <h3>Add-Ons</h3>
-        <pre style="white-space:pre-wrap;background:#f6f6f6;padding:10px;border-radius:8px">
-${escapeHtml(JSON.stringify(addOns, null, 2))}
-        </pre>
+    <h3 style="margin-top:20px;">Pricing Summary</h3>
+    <table style="border-collapse:collapse;width:100%;max-width:400px;">
+      <tr><td style="padding:4px 8px;">Rental:</td><td>$${pricing?.rentalTotal?.toLocaleString?.() || 0}</td></tr>
+      <tr><td style="padding:4px 8px;">Guide:</td><td>$${pricing?.guideTotal?.toLocaleString?.() || 0}</td></tr>
+      <tr><td style="padding:4px 8px;">Overnights:</td><td>$${pricing?.overnightAdd?.toLocaleString?.() || 0}</td></tr>
+      <tr><td style="padding:4px 8px;">Add-Ons:</td><td>$${pricing?.addOnSum?.toLocaleString?.() || 0}</td></tr>
+      <tr><td style="padding:4px 8px;">Lodge:</td><td>$${pricing?.lodgeCost?.toLocaleString?.() || 0}</td></tr>
+      <tr style="border-top:1px solid #ccc;font-weight:bold;"><td style="padding:4px 8px;">Total:</td><td>$${pricing?.total?.toLocaleString?.() || 0}</td></tr>
+    </table>
 
-        <h3>Pricing (raw)</h3>
-        <pre style="white-space:pre-wrap;background:#f6f6f6;padding:10px;border-radius:8px">
-${escapeHtml(JSON.stringify(pricing, null, 2))}
-        </pre>
-      </div>
-    `;
+    <p style="margin-top:16px;font-size:13px;color:#666;">
+      Submitted from the <strong>Trip Builder</strong> form on the website.
+    </p>
+  </div>
+`;
+
 
     // Build message (only set reply_to if we have an email)
     const message = {
