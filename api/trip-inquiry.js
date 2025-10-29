@@ -1,3 +1,4 @@
+// /api/trip-inquiry.js
 import { Resend } from "resend";
 
 export default async function handler(req, res) {
@@ -9,115 +10,86 @@ export default async function handler(req, res) {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    // --- Parse and normalize payload ---------------------------------------
-    const body = req.body || {};
-    const { form = {}, pricing } = body;
+    const { form = {}, pricing = {} } = req.body || {};
 
-    // Diagnostics in Vercel logs
-    console.log("TRIP-INQUIRY BODY KEYS:", Object.keys(body || {}));
-    console.log("FORM KEYS:", Object.keys(form || {}));
-    if (form?.contact) console.log("CONTACT KEYS:", Object.keys(form.contact));
-    else console.log("CONTACT KEYS: (no nested contact, using flat fields if present)");
+    // Helpful diagnostics in Vercel -> Functions -> trip-inquiry -> Logs
+    try {
+      console.log("TRIP-INQUIRY BODY KEYS:", Object.keys(req.body || {}));
+      console.log("CONTACT KEYS:", Object.keys(form?.contact || {}));
+    } catch {}
 
-    // Accept both nested and flat contact shapes
-    const contactName  = form?.contact?.name  ?? form?.contactName  ?? form?.name  ?? "";
-    const contactEmail = form?.contact?.email ?? form?.contactEmail ?? form?.email ?? "";
-    const contactPhone = form?.contact?.phone ?? form?.contactPhone ?? form?.phone ?? "";
+    // Normalize shape (handles flat and nested contact fields)
+    const contact = {
+      name: form?.contact?.name ?? form?.name ?? "",
+      email: form?.contact?.email ?? form?.email ?? "",
+      phone: form?.contact?.phone ?? form?.phone ?? "",
+    };
 
-    // Do NOT 400 here; allow through so we can inspect logs in prod
-    const missingFields = [];
-    if (!contactName) missingFields.push("name");
-    if (!contactEmail) missingFields.push("email");
-    if (missingFields.length) {
-      console.warn("Trip inquiry missing fields:", missingFields.join(", "));
-    }
-
-    // Pull the rest with sane defaults
-    const start     = form?.start ?? null;
-    const end       = form?.end ?? null;
-    const party     = form?.party ?? null;
-    const rig       = form?.rig ?? null;
-    const guideDay  = !!form?.guideDay;
+    // Optional fields that might not exist yet (don't 400 on these)
+    const start = form?.start || "";
+    const end = form?.end || "";
+    const party = form?.party ?? "";
+    const rig = form?.rig || "";
+    const addOns = form?.addOns || {};
+    const guideDay = !!form?.guideDay;
     const overnight = form?.overnight ?? 0;
-    const notes     = form?.notes ?? "";
-    const addOnsRaw = form?.addOns;
-    const addOns    = addOnsRaw && typeof addOnsRaw === "object" ? addOnsRaw : {};
 
-    const addOnList = Object.entries(addOns)
-      .map(([k, v]) => `${k}: ${typeof v === "boolean" ? (v ? "Yes" : "No") : v}`)
-      .join(", ");
-
-    const totalStr =
-      typeof pricing?.total === "number"
-        ? `$${pricing.total.toLocaleString()}`
-        : (pricing?.total ?? "N/A");
-
-    const contact = { name: contactName, email: contactEmail, phone: contactPhone };
-
-    // --- Build email --------------------------------------------------------
-    // Use HTML entities to avoid mojibake on some clients/encodings
-    const subject = `New Trip Inquiry: ${contact.name || "Unnamed"} &bull; ${start || "TBD"} &rarr; ${end || "TBD"}`;
+    const subject = `AOE Trip Inquiry — ${contact.name || "No Name"} — ${start || "?"} → ${end || "?"}`;
 
     const html = `
-      <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.5;">
-        <h2>New Trip Inquiry</h2>
-        <table style="width:100%; border-collapse: collapse;">
-          <tr><td><strong>Name</strong></td><td>${escapeHtml(contact.name || "(not provided)")}</td></tr>
-          <tr><td><strong>Email</strong></td><td>${escapeHtml(contact.email || "(not provided)")}</td></tr>
-          <tr><td><strong>Phone</strong></td><td>${escapeHtml(contact.phone || "")}</td></tr>
-          <tr><td><strong>Dates</strong></td><td>${escapeHtml(start || "TBD")} &rarr; ${escapeHtml(end || "TBD")}</td></tr>
-          <tr><td><strong>Party Size</strong></td><td>${escapeHtml(String(party ?? ""))}</td></tr>
-          <tr><td><strong>Rig</strong></td><td>${escapeHtml(String(rig ?? ""))}</td></tr>
-          <tr><td><strong>Guide for Day</strong></td><td>${guideDay ? "Yes" : "No"}</td></tr>
-          <tr><td><strong>Overnights</strong></td><td>${escapeHtml(String(overnight ?? 0))}</td></tr>
-          <tr><td><strong>Add-Ons</strong></td><td>${escapeHtml(addOnList || "None")}</td></tr>
-          <tr><td><strong>Quoted Total</strong></td><td>${escapeHtml(totalStr)}</td></tr>
-        </table>
-        ${notes ? `<p><strong>Notes:</strong><br/>${escapeHtml(notes)}</p>` : ""}
-        <hr/>
-        <p style="font-size:12px;color:#666;">Submitted from the website Trip Builder.</p>
+      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.5">
+        <h2>Alaska Offroad Expedition — Trip Inquiry</h2>
+        <p><strong>Name:</strong> ${escapeHtml(contact.name || "N/A")}<br/>
+           <strong>Email:</strong> ${escapeHtml(contact.email || "N/A")}<br/>
+           <strong>Phone:</strong> ${escapeHtml(contact.phone || "N/A")}</p>
+
+        <p><strong>Dates:</strong> ${escapeHtml(start || "N/A")} → ${escapeHtml(end || "N/A")}<br/>
+           <strong>Party Size:</strong> ${escapeHtml(String(party || "N/A"))}<br/>
+           <strong>Rig:</strong> ${escapeHtml(rig || "N/A")}<br/>
+           <strong>Guide Day:</strong> ${guideDay ? "Yes" : "No"}<br/>
+           <strong>Overnights:</strong> ${escapeHtml(String(overnight || 0))}</p>
+
+        <h3>Add-Ons</h3>
+        <pre style="white-space:pre-wrap;background:#f6f6f6;padding:10px;border-radius:8px">
+${escapeHtml(JSON.stringify(addOns, null, 2))}
+        </pre>
+
+        <h3>Pricing (raw)</h3>
+        <pre style="white-space:pre-wrap;background:#f6f6f6;padding:10px;border-radius:8px">
+${escapeHtml(JSON.stringify(pricing, null, 2))}
+        </pre>
       </div>
     `;
 
-    // --- Env + send ---------------------------------------------------------
-    const fromEmail = process.env.EMAIL_FROM || "bookings@alaskaoffroadexpedition.com";
-    const toEmail   = process.env.SALES_INBOX_EMAIL || "cooper@alaskaoffroadexpedition.com";
-
-    console.log("SENDING FROM:", fromEmail);
-    console.log("SENDING TO:", toEmail);
-
-    // Only set replyTo if a valid email exists
-    const hasValidReply =
-      contact.email && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact.email);
-
-    const { data, error } = await resend.emails.send({
-      from: `Alaska Offroad Expedition <${fromEmail}>`,
-      to: [toEmail],
+    // Build message (only set reply_to if we have an email)
+    const message = {
+      from: process.env.EMAIL_FROM,           // e.g., "AOE <no-reply@yourdomain.com>"
+      to: process.env.SALES_INBOX_EMAIL,      // e.g., "sales@yourdomain.com"
       subject,
       html,
-      ...(hasValidReply ? { replyTo: contact.email } : {}),
-      headers: { "X-AOE-Endpoint": "trip-inquiry" },
-    });
+    };
+    if (contact.email) message.reply_to = contact.email; // Resend supports `reply_to`
+
+    const { data, error } = await resend.emails.send(message);
 
     if (error) {
-      console.error("Resend error:", error);
-      return res.status(200).json({ ok: false, error: "Email failed to send" });
+      console.error("RESEND ERROR:", error);
+      return res.status(500).json({ ok: false, error: error.message || "Email send failed" });
     }
 
-    console.log("RESEND RESPONSE:", data);
-    return res.status(200).json({ ok: true, id: data?.id || null, missing: missingFields });
+    console.log("RESEND OK:", data);
+    return res.status(200).json({ ok: true, id: data?.id || null });
   } catch (err) {
-    console.error("API error:", err);
-    return res.status(200).json({ ok: false, error: "Server error" });
+    console.error("TRIP-INQUIRY ERROR:", err);
+    return res.status(500).json({ ok: false, error: "Unexpected server error" });
   }
 }
 
-// Escape HTML to prevent injection
-function escapeHtml(str) {
-  return String(str ?? "")
+/** Basic HTML escaper to avoid weird characters in the email body */
+function escapeHtml(s) {
+  return String(s)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+    .replaceAll('"', "&quot;");
 }

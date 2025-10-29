@@ -376,20 +376,29 @@ const submit = async () => {
     const r = await fetch('/api/trip-inquiry', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      // 🔧 CHANGE: send an object with { form, pricing }
+      body: JSON.stringify({ form, pricing: price }),
     });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'Failed to submit');
+
+    // Better error surfacing
+    let data;
+    try { data = await r.json(); } catch (_) { data = null; }
+
+    if (!r.ok || !data?.ok) {
+      const msg = data?.error || r.statusText || 'Failed to submit';
+      throw new Error(msg);
+    }
 
     alert('Request submitted! We’ll email you shortly with availability and next steps.');
-    // optional: reset or keep values
-    // setForm({ ...initial state if you want to clear it... });
+    // optional: reset form here if desired
   } catch (e) {
-    alert('Something went wrong sending your request. Please try again.');
+    console.error('submit error:', e);
+    alert(`Something went wrong sending your request: ${e.message}`);
   } finally {
     setSending(false);
   }
 };
+
 
   return (
     <div className="relative">
