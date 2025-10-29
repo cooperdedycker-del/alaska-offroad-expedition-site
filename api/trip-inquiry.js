@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const { form = {}, pricing = {} } = req.body || {};
 
-    // Normalize shape (handles flat and nested contact fields)
+    // Normalize (flat or nested)
     const contact = {
       name: form?.contact?.name ?? form?.name ?? "",
       email: form?.contact?.email ?? form?.email ?? "",
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
     const subject = `AOE Trip Inquiry — ${contact.name || "No Name"} — ${start || "?"} → ${end || "?"}`;
 
-    // ---------- ADMIN EMAIL (full details restored) ----------
+    // ---------- ADMIN EMAIL (full details) ----------
     const adminHtml = `
   <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color:#222;">
     <h2 style="margin-bottom:8px;">Alaska Offroad Expedition — Trip Inquiry</h2>
@@ -62,14 +62,12 @@ export default async function handler(req, res) {
       <tr style="border-top:1px solid #ccc;font-weight:bold;"><td style="padding:4px 8px;">Total:</td><td>$${pricing?.total?.toLocaleString?.() || 0}</td></tr>
     </table>
 
-    <p style="margin-top:16px;font-size:13px;color:#666;">
-      Submitted from the <strong>Trip Builder</strong> form on the website.
-    </p>
+    <p style="margin-top:16px;font-size:13px;color:#666;">Submitted from the <strong>Trip Builder</strong> form on the website.</p>
   </div>
 `;
 
     const adminMessage = {
-      from: "Alaska Offroad Expedition <cooper@alaskaoffroadexpedition.com>", // updated sender
+      from: "Alaska Offroad Expedition <cooper@alaskaoffroadexpedition.com>",
       to: process.env.SALES_INBOX_EMAIL,
       subject,
       html: adminHtml,
@@ -82,42 +80,49 @@ export default async function handler(req, res) {
       return res.status(500).json({ ok: false, error: adminError.message || "Admin email send failed" });
     }
 
-    // ---------- CUSTOMER CONFIRMATION (kept concise; adds add-ons list) ----------
+    // ---------- CUSTOMER CONFIRMATION (with branded logo header) ----------
     let customerId = null;
     if (contact.email) {
       try {
+        const baseUrl = process.env.PUBLIC_BASE_URL || inferBaseUrl(req);
+        // handle the space in "Logo 1.png"
+        const logoUrl = `${baseUrl}/images/${encodeURIComponent("Logo 1.png")}`;
+
         const customerAddOns = Object.entries(addOns)
           .filter(([_, val]) => val && val !== 0)
           .map(([key, val]) => `${escapeHtml(key)}${typeof val === "number" ? ` × ${val}` : ""}`)
           .join(", ") || "None";
 
         const customerHtml = `
-        <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; line-height:1.6; color:#222;">
-          <h2 style="margin:0 0 8px;">Thanks ${escapeHtml(contact.name || "there")} — we received your request!</h2>
-          <p>Your itinerary request has been successfully received by the <strong>Alaska Offroad Expedition</strong> team.</p>
-          <p>We’ll review your trip details and contact you within 24 hours to finalize your itinerary and confirm your reservation.</p>
+  <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; line-height:1.6; color:#222;">
+    <div style="text-align:center; padding:16px 0;">
+      <img src="${logoUrl}" alt="Alaska Offroad Expedition" style="max-width:180px; height:auto; display:inline-block;" />
+    </div>
 
-          <h3 style="margin:16px 0 8px;">Your Request Summary</h3>
-          <ul style="margin:0 0 12px 18px;">
-            <li><strong>Dates:</strong> ${escapeHtml(start || "TBD")} → ${escapeHtml(end || "TBD")}</li>
-            <li><strong>Party Size:</strong> ${escapeHtml(String(party || "TBD"))}</li>
-            <li><strong>Rig:</strong> ${escapeHtml(rig || "TBD")}</li>
-            <li><strong>Guide Day:</strong> ${guideDay ? "Yes" : "No"}</li>
-            <li><strong>Overnights:</strong> ${escapeHtml(String(overnight || 0))}</li>
-            <li><strong>Add-Ons:</strong> ${customerAddOns}</li>
-          </ul>
+    <h2 style="margin:8px 0 8px;">Thanks ${escapeHtml(contact.name || "there")} — we received your request!</h2>
+    <p>Your itinerary request has been received by the <strong>Alaska Offroad Expedition</strong> team. We’ll review your trip details and contact you within 24 hours to finalize your itinerary and confirm your reservation.</p>
 
-          <p style="margin:0 0 12px;">If you need to make any changes, simply reply to this email or call us at <strong>(907) 406-7901</strong>.</p>
-          <p style="margin:0;">— The Alaska Offroad Expedition Team<br/>Phone: (907) 406-7901</p>
-          <hr style="margin:16px 0;border:none;border-top:1px solid #eee;">
-          <p style="font-size:12px;color:#777;">Sent from AlaskaOffroadExpedition.com</p>
-        </div>
-        `;
+    <h3 style="margin:16px 0 8px;">Your Request Summary</h3>
+    <ul style="margin:0 0 12px 18px;">
+      <li><strong>Dates:</strong> ${escapeHtml(start || "TBD")} → ${escapeHtml(end || "TBD")}</li>
+      <li><strong>Party Size:</strong> ${escapeHtml(String(party || "TBD"))}</li>
+      <li><strong>Rig:</strong> ${escapeHtml(rig || "TBD")}</li>
+      <li><strong>Guide Day:</strong> ${guideDay ? "Yes" : "No"}</li>
+      <li><strong>Overnights:</strong> ${escapeHtml(String(overnight || 0))}</li>
+      <li><strong>Add-Ons:</strong> ${customerAddOns}</li>
+    </ul>
+
+    <p style="margin:0 0 12px;">Questions or changes? Reply to this email or call us at <strong>(907) 406-7901</strong>.</p>
+    <p style="margin:0;">— The Alaska Offroad Expedition Team<br/>Phone: (907) 406-7901</p>
+    <hr style="margin:16px 0;border:none;border-top:1px solid #eee;">
+    <p style="font-size:12px;color:#777;">Sent from AlaskaOffroadExpedition.com</p>
+  </div>
+`;
 
         const { data: custData, error: custError } = await resend.emails.send({
-          from: "Alaska Offroad Expedition <cooper@alaskaoffroadexpedition.com>", // updated sender
+          from: "Alaska Offroad Expedition <cooper@alaskaoffroadexpedition.com>",
           to: contact.email,
-          subject: "Alaska Offroad Expedition Itinerary", // updated subject
+          subject: "Alaska Offroad Expedition Itinerary",
           html: customerHtml,
         });
 
@@ -133,6 +138,13 @@ export default async function handler(req, res) {
     console.error("TRIP-INQUIRY ERROR:", err);
     return res.status(500).json({ ok: false, error: "Unexpected server error" });
   }
+}
+
+/** Make an absolute site URL from the incoming request (or fallback). */
+function inferBaseUrl(req) {
+  const proto = req?.headers?.["x-forwarded-proto"] || "https";
+  const host = req?.headers?.host || "www.alaskaoffroadexpedition.com";
+  return `${proto}://${host}`;
 }
 
 /** Basic HTML escaper to avoid weird characters in the email body */
