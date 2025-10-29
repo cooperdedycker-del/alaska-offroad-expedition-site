@@ -13,7 +13,7 @@ export default function AlaskaOffroadExpedition() {
           <div className="flex items-center gap-3">
             <a href="#top" className="h-9 w-9 rounded-lg overflow-hidden">
   <img
-    src="/images/logo-round.png"
+    src="/images/logo1.png"
     alt="Alaska Offroad Expedition logo"
     className="h-full w-full object-contain"
   />
