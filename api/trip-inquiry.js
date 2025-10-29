@@ -74,26 +74,65 @@ export default async function handler(req, res) {
   </div>
 `;
 
-
-    // Build message (only set reply_to if we have an email)
-    const message = {
-      from: process.env.EMAIL_FROM,           // e.g., "AOE <no-reply@yourdomain.com>"
-      to: process.env.SALES_INBOX_EMAIL,      // e.g., "sales@yourdomain.com"
+    // --- ADMIN EMAIL (existing behavior) ---
+    const adminMessage = {
+      from: process.env.EMAIL_FROM,          // e.g., "AOE <no-reply@yourdomain.com>"
+      to: process.env.SALES_INBOX_EMAIL,     // e.g., "sales@yourdomain.com"
       subject,
       html,
     };
-    if (contact.email) message.reply_to = contact.email; // Resend supports `reply_to`
+    if (contact.email) adminMessage.reply_to = contact.email; // Resend supports `reply_to`
 
-    const { data, error } = await resend.emails.send(message);
+    const { data: adminData, error: adminError } = await resend.emails.send(adminMessage);
 
-    if (error) {
-      console.error("RESEND ERROR:", error);
-      return res.status(500).json({ ok: false, error: error.message || "Email send failed" });
+    if (adminError) {
+      console.error("RESEND ADMIN ERROR:", adminError);
+      return res.status(500).json({ ok: false, error: adminError.message || "Admin email send failed" });
     }
 
-    console.log("RESEND OK:", data);
-    
-    return res.status(200).json({ ok: true, id: data?.id || null });
+    // --- CUSTOMER CONFIRMATION EMAIL (new) ---
+    let customerId = null;
+    if (contact.email) {
+      try {
+        const customerHtml = `
+        <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; line-height:1.6; color:#222;">
+          <h2 style="margin:0 0 8px;">Thanks ${escapeHtml(contact.name || "there")} — we received your request!</h2>
+          <p>Our team at <strong>Alaska Offroad Expedition</strong> is reviewing your itinerary details now. You’ll get a follow-up with your personalized plan and deposit info.</p>
+          <h3 style="margin:16px 0 8px;">Your Request (Quick Summary)</h3>
+          <ul style="margin:0 0 12px 18px;">
+            <li><strong>Dates:</strong> ${escapeHtml(start || "TBD")} → ${escapeHtml(end || "TBD")}</li>
+            <li><strong>Party Size:</strong> ${escapeHtml(String(party || "TBD"))}</li>
+            <li><strong>Rig:</strong> ${escapeHtml(rig || "TBD")}</li>
+            <li><strong>Guide Day:</strong> ${guideDay ? "Yes" : "No"}</li>
+            <li><strong>Overnights:</strong> ${escapeHtml(String(overnight || 0))}</li>
+          </ul>
+          <p style="margin:0 0 12px;">If you need to tweak anything, just reply to this email and we’ll take care of it.</p>
+          <p style="margin:0;">— The AOE Team<br/>Phone: (907) 123-4567</p>
+          <hr style="margin:16px 0;border:none;border-top:1px solid #eee;">
+          <p style="font-size:12px;color:#777;">Sent from AlaskaOffroadExpedition.com</p>
+        </div>
+        `;
+
+        const { data: custData, error: custError } = await resend.emails.send({
+          from: process.env.EMAIL_FROM,    // same verified sender
+          to: contact.email,
+          subject: "We received your itinerary request — Alaska Offroad Expedition",
+          html: customerHtml,
+        });
+
+        if (custError) {
+          console.error("RESEND CUSTOMER ERROR:", custError);
+        } else {
+          customerId = custData?.id || null;
+        }
+      } catch (custSendErr) {
+        console.error("CUSTOMER SEND TRY/CATCH ERROR:", custSendErr);
+      }
+    }
+
+    console.log("RESEND OK: adminId=", adminData?.id || null, " customerId=", customerId);
+
+    return res.status(200).json({ ok: true, adminId: adminData?.id || null, customerId });
   } catch (err) {
     console.error("TRIP-INQUIRY ERROR:", err);
     return res.status(500).json({ ok: false, error: "Unexpected server error" });
