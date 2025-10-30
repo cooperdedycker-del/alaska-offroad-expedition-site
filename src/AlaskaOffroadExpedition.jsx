@@ -289,22 +289,109 @@ function FAQ() {
   );
 }
 
+import { useState } from "react";
+
 function Contact() {
+  const [planner, setPlanner] = useState({
+    name: "",
+    email: "",
+    dates: "",
+    message: "",
+  });
+  const [sending, setSending] = useState(false);
+
+  async function handlePlannerSubmit(e) {
+    e.preventDefault();
+    setSending(true);
+
+    const payload = {
+      name: planner.name,
+      email: planner.email,
+      phone: "", // no phone field in this form
+      message: `Desired dates: ${planner.dates}\n\n${planner.message}`,
+      sourceUrl: window.location.href,
+    };
+
+    try {
+      const resp = await fetch("/api/contact-planner", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok || !data.ok) {
+        alert(`There was a problem sending your message. ${data?.error || ""}`);
+      } else {
+        alert("Thanks! An expedition planner will reach out shortly.");
+        setPlanner({ name: "", email: "", dates: "", message: "" });
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong while sending your message.");
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <section id="contact" className="mx-auto max-w-7xl px-4 py-16">
       <div className="rounded-3xl border border-white/10 bg-neutral-900/50 p-8 md:p-12">
         <h2 className="text-3xl md:text-4xl font-bold">Talk to an Expedition Planner</h2>
-        <p className="mt-2 text-neutral-300">Tell us your dates and must-do experiences. We’ll craft a custom itinerary and get permits rolling.</p>
-        <form className="mt-6 grid gap-4 md:grid-cols-2">
-          <input className="rounded-xl bg-neutral-800 px-4 py-3" placeholder="Full name" />
-          <input className="rounded-xl bg-neutral-800 px-4 py-3" placeholder="Email" type="email" />
-          <input className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2" placeholder="Desired dates (flexible is okay)" />
-          <textarea className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2" rows={4} placeholder="Tell us what you want to experience (glacier, helicopter, zipline, remote camping, etc.)" />
-          <button type="button" className="rounded-xl bg-white text-neutral-900 px-4 py-3 font-semibold hover:bg-neutral-200 md:col-span-2">Request Itinerary</button>
+        <p className="mt-2 text-neutral-300">
+          Tell us your dates and must-do experiences. We’ll craft a custom itinerary and get permits rolling.
+        </p>
+
+        <form
+          onSubmit={handlePlannerSubmit}
+          className="mt-6 grid gap-4 md:grid-cols-2"
+        >
+          <input
+            className="rounded-xl bg-neutral-800 px-4 py-3"
+            placeholder="Full name"
+            value={planner.name}
+            onChange={(e) => setPlanner((p) => ({ ...p, name: e.target.value }))}
+            required
+          />
+          <input
+            className="rounded-xl bg-neutral-800 px-4 py-3"
+            placeholder="Email"
+            type="email"
+            value={planner.email}
+            onChange={(e) => setPlanner((p) => ({ ...p, email: e.target.value }))}
+            required
+          />
+          <input
+            className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2"
+            placeholder="Desired dates (flexible is okay)"
+            value={planner.dates}
+            onChange={(e) => setPlanner((p) => ({ ...p, dates: e.target.value }))}
+          />
+          <textarea
+            className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2"
+            rows={4}
+            placeholder="Tell us what you want to experience (glacier, helicopter, zipline, remote camping, etc.)"
+            value={planner.message}
+            onChange={(e) => setPlanner((p) => ({ ...p, message: e.target.value }))}
+            required
+          />
+          <button
+            type="submit"
+            disabled={sending}
+            className={`rounded-xl bg-white text-neutral-900 px-4 py-3 font-semibold hover:bg-neutral-200 md:col-span-2 ${
+              sending ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {sending ? "Sending..." : "Request Itinerary"}
+          </button>
         </form>
       </div>
     </section>
   );
+}
+
+export default Contact;
+
 }
 
 function Footer() {
