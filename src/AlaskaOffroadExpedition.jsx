@@ -417,19 +417,29 @@ function Footer() {
 /* ---------------- Trip Builder ---------------- */
 
 function TripBuilder() {
-  const [sending, setSending] = useState(false);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-
-
-    start: "", end: "", party: 2, rig: "wrangler-expedition", guideDay: false, overnight: 0,
-    addOns: { glacier: false, helicopter: false, bushplane: false, zipline: false, mine: false, lodgeNights: 0 },
+    start: "",
+    end: "",
+    party: 2,
+    rig: "wrangler-expedition",
+    guideDay: false,
+    overnight: 0,
+    addOns: {
+      glacier: false,
+      helicopter: false,
+      bushplane: false,
+      zipline: false,
+      mine: false,
+      lodgeNights: 0,
+    },
     contact: { name: "", email: "", phone: "" },
   });
 
   const nights = useMemo(() => {
     if (!form.start || !form.end) return 0;
-    const s = new Date(form.start), e = new Date(form.end);
+    const s = new Date(form.start),
+      e = new Date(form.end);
     return Math.max(0, Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)));
   }, [form.start, form.end]);
 
@@ -438,7 +448,9 @@ function TripBuilder() {
     const guideTotal = form.guideDay ? 750 : 0;
     const overnightAdd = (form.overnight || 0) * 1000;
     const addOnMap = { glacier: 600, helicopter: 1200, bushplane: 900, zipline: 250, mine: 300 };
-    const addOnSum = Object.entries(form.addOns).filter(([k, v]) => addOnMap[k] && v === true).reduce((a, [k]) => a + addOnMap[k], 0);
+    const addOnSum = Object.entries(form.addOns)
+      .filter(([k, v]) => addOnMap[k] && v === true)
+      .reduce((a, [k]) => a + addOnMap[k], 0);
     const lodgeCost = (form.addOns.lodgeNights || 0) * 350;
     const rentalTotal = nights * dailyRental;
     const total = rentalTotal + guideTotal + overnightAdd + addOnSum + lodgeCost;
@@ -448,62 +460,63 @@ function TripBuilder() {
   const next = () => setStep((s) => Math.min(4, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));
   const set = (patch) => setForm((f) => ({ ...f, ...patch }));
-const [sending, setSending] = useState(false);
-const [status, setStatus] = useState({ type: "idle", message: "" }); // banner state
-const submit = async () => {
-  setStatus({ type: "idle", message: "" });
 
-  if (!form.contact.name || !form.contact.email) {
-    setStep(4);
-    setStatus({
-      type: "error",
-      message: "Please enter your name and email in the Contact step.",
-    });
-    setTimeout(() => {
-      document
-        .getElementById("trip-banner")
-        ?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 50);
-    return;
-  }
+  const [sending, setSending] = useState(false);
+  const [status, setStatus] = useState({ type: "idle", message: "" }); // <-- only one declaration
 
-  try {
-    setSending(true);
-    const r = await fetch("/api/trip-inquiry", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ form, pricing: price }),
-    });
+  const submit = async () => {
+    // reset banner
+    setStatus({ type: "idle", message: "" });
 
-    const data = await r.json().catch(() => null);
-
-    if (!r.ok || !data?.ok) {
-      const msg = data?.error || r.statusText || "Failed to submit";
-      throw new Error(msg);
+    // basic validation
+    if (!form.contact.name || !form.contact.email) {
+      setStep(4);
+      setStatus({
+        type: "error",
+        message: "Please enter your name and email in the Contact step.",
+      });
+      setTimeout(() => {
+        document
+          .getElementById("trip-banner")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
     }
 
-    setStatus({
-      type: "success",
-      message:
-        "Request submitted! We’ll email you shortly with availability and next steps.",
-    });
-  } catch (e) {
-    console.error("submit error:", e);
-    setStatus({
-      type: "error",
-      message: e.message || "Something went wrong sending your request.",
-    });
-  } finally {
-    setSending(false);
-    setTimeout(() => {
-      document
-        .getElementById("trip-banner")
-        ?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 50);
-  }
-};
+    try {
+      setSending(true);
+      const r = await fetch("/api/trip-inquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ form, pricing: price }),
+      });
 
+      const data = await r.json().catch(() => null);
 
+      if (!r.ok || !data?.ok) {
+        const msg = data?.error || r.statusText || "Failed to submit";
+        throw new Error(msg);
+      }
+
+      setStatus({
+        type: "success",
+        message: "Request submitted! We’ll email you shortly with availability and next steps.",
+      });
+    } catch (e) {
+      console.error("submit error:", e);
+      setStatus({
+        type: "error",
+        message: e.message || "Something went wrong sending your request.",
+      });
+    } finally {
+      setSending(false);
+      setTimeout(() => {
+        document
+          .getElementById("trip-banner")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+    }
+  };
 
   return (
     <div className="relative">
@@ -513,49 +526,60 @@ const submit = async () => {
           <header className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold">Build Your Expedition</h2>
-              <p className="mt-2 text-neutral-300 max-w-3xl">Select dates, rig, add experiences, and request an itinerary. We’ll confirm permits and send payment & waiver links.</p>
+              <p className="mt-2 text-neutral-300 max-w-3xl">
+                Select dates, rig, add experiences, and request an itinerary. We’ll confirm permits and send payment &
+                waiver links.
+              </p>
             </div>
             <Stepper step={step} />
           </header>
 
           <div className="mt-8 grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-6">
-              {step === 1 && (<StepDates form={form} set={set} nights={nights} />)}
-              {step === 2 && (<StepRigAndExtras form={form} set={set} />)}
-              {step === 3 && (<StepAddOns form={form} set={set} />)}
-              {step === 4 && (<StepContact form={form} set={set} />)}
+              {step === 1 && <StepDates form={form} set={set} nights={nights} />}
+              {step === 2 && <StepRigAndExtras form={form} set={set} />}
+              {step === 3 && <StepAddOns form={form} set={set} />}
+              {step === 4 && <StepContact form={form} set={set} />}
 
-{status.type !== "idle" && (
-  <div
-    id="trip-banner"
-    className={`mb-4 rounded-xl border px-4 py-3 text-sm ${
-      status.type === "success"
-        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
-        : "border-rose-400/30 bg-rose-500/10 text-rose-300"
-    }`}
-  >
-    {status.message}
-  </div>
-)}
+              {/* Status banner */}
+              {status.type !== "idle" && (
+                <div
+                  id="trip-banner"
+                  className={`mb-4 rounded-xl border px-4 py-3 text-sm ${
+                    status.type === "success"
+                      ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
+                      : "border-rose-400/30 bg-rose-500/10 text-rose-300"
+                  }`}
+                >
+                  {status.message}
+                </div>
+              )}
 
               <div className="flex items-center gap-3">
-                {step > 1 && (<button onClick={back} className="rounded-xl border border-white/20 px-5 py-3 font-semibold hover:bg-white/10">Back</button>)}
+                {step > 1 && (
+                  <button
+                    onClick={back}
+                    className="rounded-xl border border-white/20 px-5 py-3 font-semibold hover:bg-white/10"
+                  >
+                    Back
+                  </button>
+                )}
                 {step < 4 ? (
-  <button
-    onClick={next}
-    className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200"
-  >
-    Continue
-  </button>
-) : (
-  <button
-    onClick={submit}
-    disabled={sending}
-    className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200 disabled:opacity-60"
-  >
-    {sending ? "Sending..." : "Request Itinerary"}
-  </button>
-)}
+                  <button
+                    onClick={next}
+                    className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200"
+                  >
+                    Continue
+                  </button>
+                ) : (
+                  <button
+                    onClick={submit}
+                    disabled={sending}
+                    className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200 disabled:opacity-60"
+                  >
+                    {sending ? "Sending..." : "Request Itinerary"}
+                  </button>
+                )}
               </div>
             </div>
 
