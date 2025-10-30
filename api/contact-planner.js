@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     }
     const fromAddress = process.env.EMAIL_FROM || `no-reply@${new URL(sourceUrl || "https://example.com").hostname}`;
 
-    const subject = `Alaska Offroad Expedition – Talk to a Planner (${name})`;
+    const subject = `Talk to a Planner (${name})`;
 
     const html = `
       <div style="font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.5">

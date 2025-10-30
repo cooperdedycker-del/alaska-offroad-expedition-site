@@ -79,32 +79,36 @@ function Hero() {
     />
   </div>
 
-  <div className="relative max-w-3xl text-center bg-black/50 backdrop-blur-sm rounded-2xl p-6">
-    <h1 className="text-4xl md:text-6xl font-extrabold leading-tight text-white drop-shadow-lg">
-      Where Roads End, <span className="text-white/90">Adventure Begins.</span>
-    </h1>
-    <p className="mt-5 text-lg text-neutral-200">
-      Premium, guided off-road expeditions across Alaska. Expedition-built offroad vehicles, expert guides,
-      and bucket-list add-ons like glacier treks and helicopter flyovers. We plan it all. You show up.
-    </p>
-    <div className="mt-8 flex flex-wrap gap-3 justify-center">
-      <a
-        href="#trip-builder"
-        className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200"
-      >
-        Build Your Trip
-      </a>
-      <a
-        href="#experiences"
-        className="rounded-xl border border-white/30 px-5 py-3 font-semibold hover:bg-white/10"
-      >
-        See Experiences
-      </a>
-    </div>
-    <div className="mt-6 text-sm text-neutral-300">
-      Airport pickup & drop-off • Pro guides • All logistics handled
-    </div>
+ <div className="relative max-w-3xl text-center bg-black/50 backdrop-blur-sm rounded-2xl p-6">
+  <h1 className="text-5xl md:text-7xl font-extrabold leading-tight text-white drop-shadow-lg tracking-tight">
+    <span className="block text-amber-400/90 text-6xl md:text-8xl mb-3">ALASKA</span>
+    Where Roads End, <span className="text-white/90">Adventure Begins.</span>
+  </h1>
+
+  <p className="mt-6 text-lg md:text-xl text-neutral-200">
+    This is the last frontier—towering peaks, endless trails, and raw wilderness.
+    <span className="block mt-2">
+      Experience Alaska through premium, guided off-road expeditions. Expedition-built rigs, expert guides,
+      and bucket-list add-ons like glacier treks, bush-plane flights, and helicopter flyovers.
+    </span>
+    <span className="block mt-2">We plan it all. You just show up and drive Alaska.</span>
+  </p>
+
+  <div className="mt-8 flex flex-wrap gap-3 justify-center">
+    <a
+      href="#trip-builder"
+      className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200"
+    >
+      Build Your Trip
+    </a>
+    <a
+      href="#experiences"
+      className="rounded-xl border border-white/30 px-5 py-3 font-semibold hover:bg-white/10"
+    >
+      See Experiences
+    </a>
   </div>
+</div>
 </section>
   );
 }
@@ -126,36 +130,160 @@ function Experiences() {
   const cards = [
     {
       title: "Guided Day Expedition",
-      price: "from $1,200 / day (per couple)",
-      desc: "4–6 hours off-road with a pro guide, lunch included.",
-      img: "/images/guidedday1.png"
+      price: "from $1,000 / guest",
+      img: "/images/guidedday1.png",
+      desc:
+        "4–6 hours on iconic Alaska trails with a pro guide. Perfect sampler of the Last Frontier.",
+      included: [
+        "Expedition-built Jeep or Tacoma",
+        "Professional guide & trail leadership",
+        "Lunch & hot drinks",
+        "Safety gear & recovery kit",
+        "Satellite comms & navigation",
+        "All permits & logistics handled",
+      ],
+      cta: "Build Your Day Trip",
+      href: "#trip-builder",
+      note: "Ideal for couples or small groups. Family-friendly routes available.",
+      tags: ["Jeep included", "Lunch included", "Permits handled"],
     },
     {
       title: "Overnight Remote Camp",
-      price: "from $2,500 – $3,000 / couple",
-      desc: "Two-day off-road push, camp set-up, hot meals, stargazing.",
-      img: "/images/Overnight1.jpg"
+      price: "from $2,000 / guest",
+      img: "/images/Overnight1.jpg",
+      desc:
+        "Two-day push into the backcountry with a fully outfitted camp. Sunsets, stars, and silence.",
+      included: [
+        "Expedition vehicle",
+        "Guide (2 days) & route planning",
+        "Camp setup: tent, pads, bags, chairs, stove",
+        "All meals: hot dinner, breakfast, trail lunch",
+        "Coffee, tea, cocoa & potable water",
+        "Safety gear, first aid, satellite comms",
+        "Permits & land use fees",
+      ],
+      cta: "Plan Your Overnight",
+      href: "#trip-builder",
+      note: "Cold-weather kits and four-season tents available on request.",
+      tags: ["Jeep included", "Meals included", "Gear included"],
     },
     {
       title: "Ultimate 7-Day Expedition",
-      price: "$25,000 – $30,000 / guest",
-      desc: "Helicopter flyover, glacier trek, bush plane segment, lodge nights.",
-      img: "/images/7day.jpg"
-    }
+      price: "from $10,000 / guest",
+      img: "/images/7day.jpg",
+      desc:
+        "A week of Alaska’s greatest hits—deep trails, glaciers, and remote country. Your private expedition.",
+      included: [
+        "Expedition vehicle for 7 days",
+        "Lead guide & logistics manager",
+        "Camp gear & kitchen kit (multi-day)",
+        "Meal plan (camp & trail) or lodge coordination",
+        "Satellite comms, emergency planning & safety kit",
+        "Permits, routes, vendor scheduling",
+      ],
+      addOnsTitle: "Popular Excursions & Add-Ons",
+      addOns: [
+        "Glacier trek or ice-cave tour",
+        "Helicopter flightseeing",
+        "Bush-plane segment / backcountry drop",
+        "Zipline & canopy park",
+        "Historic mine & glacier tunnel tour",
+        "Wildlife cruise (seasonal)",
+        "Fishing charter (seasonal)",
+        "Additional lodge nights",
+      ],
+      cta: "Design Your 7-Day",
+      href: "#trip-builder",
+      note: "Add-ons are weather/season dependent and subject to vendor availability.",
+      tags: ["Custom itinerary", "Add-ons available", "Guide included"],
+    },
   ];
+
   return (
     <section id="experiences" className="mx-auto max-w-7xl px-4 py-16">
       <h2 className="text-3xl md:text-4xl font-bold">Signature Experiences</h2>
-      <p className="mt-2 text-neutral-300 max-w-3xl">Choose your pace—from a single day on iconic trails to week-long expeditions that mix off-road travel with glacier walks, bush plane drop-ins, and nights under the northern lights.</p>
+      <p className="mt-2 text-neutral-300 max-w-3xl">
+        Choose your pace—from a single day on the trail to week-long expeditions that mix off-road travel with glacier walks,
+        flightseeing, and nights under Alaska’s wide-open sky.
+      </p>
+
       <div className="mt-8 grid gap-6 md:grid-cols-3">
-        {cards.map((x, i) => (
-          <div key={i} className="group relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/40">
-            <img src={x.img} alt={x.title} className="h-44 w-full object-cover opacity-80 group-hover:scale-105 transition duration-500" loading="lazy" />
-            <div className="p-5">
-              <h3 className="text-xl font-semibold">{x.title}</h3>
-              <div className="text-sm text-neutral-300 mt-1">{x.price}</div>
-              <p className="mt-3 text-neutral-300">{x.desc}</p>
-              <a href="#trip-builder" className="mt-4 inline-block rounded-xl bg-white text-neutral-900 px-4 py-2 font-semibold hover:bg-neutral-200">Customize</a>
+        {cards.map((card, i) => (
+          <div
+            key={i}
+            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/40"
+          >
+            <img
+              src={card.img}
+              alt={card.title}
+              className="h-44 w-full object-cover opacity-85 group-hover:scale-105 transition duration-500"
+              loading="lazy"
+            />
+            <div className="p-5 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="text-xl font-semibold">{card.title}</h3>
+                <div className="text-sm text-neutral-300 whitespace-nowrap">{card.price}</div>
+              </div>
+
+              {/* quick value tags */}
+              {card.tags && (
+                <div className="flex flex-wrap gap-2">
+                  {card.tags.map((t) => (
+                    <span
+                      key={t}
+                      className="text-xs rounded-full border border-white/15 bg-white/5 px-2 py-1 text-neutral-300"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-neutral-300">{card.desc}</p>
+
+              {/* included bullets */}
+              {card.included && (
+                <div>
+                  <div className="text-sm font-semibold text-neutral-200">What’s included</div>
+                  <ul className="mt-2 space-y-1 text-sm text-neutral-300">
+                    {card.included.map((line, idx) => (
+                      <li key={idx} className="flex gap-2">
+                        <span aria-hidden>✓</span>
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* add-ons list for 7-day */}
+              {card.addOns && (
+                <div>
+                  <div className="mt-2 text-sm font-semibold text-neutral-200">
+                    {card.addOnsTitle || "Popular Add-Ons"}
+                  </div>
+                  <ul className="mt-2 grid grid-cols-1 gap-1 text-sm text-neutral-300">
+                    {card.addOns.map((a, j) => (
+                      <li key={j} className="flex gap-2">
+                        <span aria-hidden>•</span>
+                        <span>{a}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* note */}
+              {card.note && (
+                <div className="text-xs text-neutral-400 pt-1">{card.note}</div>
+              )}
+
+              <a
+                href={card.href}
+                className="mt-3 inline-block rounded-xl bg-white text-neutral-900 px-4 py-2 font-semibold hover:bg-neutral-200"
+              >
+                {card.cta}
+              </a>
             </div>
           </div>
         ))}
@@ -168,79 +296,65 @@ function Fleet() {
   return (
     <section id="fleet" className="mx-auto max-w-7xl px-4 py-16">
       <h2 className="text-3xl md:text-4xl font-bold">Fleet of Expedition Vehicles</h2>
-      <p className="mt-2 text-neutral-300 max-w-3xl">4&quot; lift • 37–40&quot; tires • 1-ton axles • Lockers • Winch • Skids • Roof rack • Fridge • Comms • Recovery kit • Camp systems • Airport pickup & drop-off available.</p>
+      <p className="mt-2 text-neutral-300 max-w-3xl">
+        4" lift • 37–40" tires • 1-ton axles • Lockers • Winch • Skids • Roof rack • Fridge • Comms • Recovery kit • Camp systems • Airport pickup & drop-off available.
+      </p>
+
       <div className="mt-8 grid gap-6 md:grid-cols-2">
-  {/* Jeep Gladiator */}
-  <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
-    <img
-      src="/images/Fleet2.jpg"
-      alt="Jeep on trail"
-      className="h-64 w-full object-contain bg-black"
-      loading="lazy"
-    />
-    <div className="p-5">
-      <h3 className="text-xl font-semibold">2025 Jeep Gladiator</h3>
-      <p className="mt-2 text-neutral-300">
-        Purpose-built 2025 Jeep Gladiator for Alaska’s toughest terrain.
-      </p>
-    </div>
-  </div>
 
-  {/* Toyota Tacoma */}
-  <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
-    <img
-      src="/images/Fleet3.jpeg"
-      alt="Tacoma Expedition Build"
-      className="h-64 w-full object-contain bg-black"
-      loading="lazy"
-    />
-    <div className="p-5">
-      <h3 className="text-xl font-semibold">2019 Toyota Tacoma</h3>
-      <p className="mt-2 text-neutral-300">
-        This is a 2019 Toyota Tacoma, 37&quot; tires and a 6-inch lift,
-        insulated tents, warm meals, safety gear, and satellite comms for true
-        off-grid comfort.
-      </p>
-    </div>
-  </div>
+        {/* Jeep Gladiator */}
+        <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
+          <img
+            src="/images/Fleet2.jpg"
+            alt="Jeep Gladiator on trail"
+            className="h-64 w-full object-contain bg-black"
+            loading="lazy"
+          />
+          <div className="p-5">
+            <h3 className="text-xl font-semibold">2025 Jeep Gladiator (Coming Soon)</h3>
+            <p className="mt-2 text-neutral-300">
+              Purpose-built Jeep Gladiator designed for Alaska’s toughest terrain.
+            </p>
+            <ul className="mt-3 list-disc list-inside text-neutral-400 space-y-1">
+              <li>3.6L V6 with 8-speed automatic</li>
+              <li>4" lift with 40" tires and 1-ton axles</li>
+              <li>Front & rear lockers with onboard air</li>
+              <li>Winch, armor, and full skid protection</li>
+              <li>Roof rack, tent, fridge, and dual battery system</li>
+              <li>Garmin Overlander GPS & GMRS comms</li>
+              <li>Ideal for multi-day overland routes</li>
+            </ul>
+          </div>
+        </div>
 
-  {/* 3rd Rig - Overland XJ */}
-  <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
-    <img
-      src="/images/Fleet5.jpg"
-      alt="Jeep XJ Overland Build"
-      className="h-64 w-full object-contain bg-black"
-      loading="lazy"
-    />
-    <div className="p-5">
-      <h3 className="text-xl font-semibold">2000 Jeep XJ</h3>
-      <p className="mt-2 text-neutral-300">
-        Fully built Jeep Cherokee XJ on 35s with a roof tent, dual battery
-        system, and complete trail recovery gear. Compact, capable, and ready
-        for the wild.
-      </p>
-    </div>
-  </div>
+        {/* Toyota Tacoma */}
+        <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
+          <img
+            src="/images/Fleet3.jpeg"
+            alt="Tacoma Expedition Build"
+            className="h-64 w-full object-contain bg-black"
+            loading="lazy"
+          />
+          <div className="p-5">
+            <h3 className="text-xl font-semibold">2019 Toyota Tacoma (Coming Soon)</h3>
+            <p className="mt-2 text-neutral-300">
+              Proven and reliable Tacoma outfitted for deep backcountry adventures.
+            </p>
+            <ul className="mt-3 list-disc list-inside text-neutral-400 space-y-1">
+              <li>3.5L V6 with 6-speed automatic</li>
+              <li>6" suspension lift on 37" tires</li>
+              <li>ARB front/rear lockers and armor package</li>
+              <li>Insulated rooftop tent and full camp setup</li>
+              <li>Dual fridge and hot meal prep system</li>
+              <li>Starlink and Garmin InReach for connectivity</li>
+              <li>Perfect balance of comfort and capability</li>
+            </ul>
+          </div>
+        </div>
 
-  {/* 4th Rig - Ram Power Wagon */}
-  <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
-    <img
-      src="/images/Fleet4.jpeg"
-      alt="Ram Power Wagon Expedition Rig"
-      className="h-64 w-full object-contain bg-black"
-      loading="lazy"
-    />
-    <div className="p-5">
-      <h3 className="text-xl font-semibold">2025 Ram Power Wagon Expedition Rig</h3>
-      <p className="mt-2 text-neutral-300">
-        Heavy-duty Ram Power Wagon with onboard air, winch, full-size rooftop
-        tent, and cold-weather overland setup — ideal for long-range Alaska
-        expeditions.
-      </p>
-    </div>
-  </div>
-</div>
+        
 
+      </div>
     </section>
   );
 }
@@ -462,24 +576,21 @@ function Footer() {
 /* ---------------- Trip Builder ---------------- */
 
 function TripBuilder() {
+  
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState({
-    start: "",
-    end: "",
-    party: 2,
-    rig: "wrangler-expedition",
-    guideDay: false,
-    overnight: 0,
-    addOns: {
-      glacier: false,
-      helicopter: false,
-      bushplane: false,
-      zipline: false,
-      mine: false,
-      lodgeNights: 0,
-    },
-    contact: { name: "", email: "", phone: "" },
-  });
+ const [form, setForm] = useState({
+  start: "",
+  end: "",
+  party: 2,
+  rig: "wrangler-expedition",
+  guideDays: 0,            
+  overnight: 0,
+  addOns: {
+    glacier: false, helicopter: false, bushplane: false,
+    zipline: false, mine: false, lodgeNights: 0,
+  },
+  contact: { name: "", email: "", phone: "" },
+});
 
   const nights = useMemo(() => {
     if (!form.start || !form.end) return 0;
@@ -490,7 +601,8 @@ function TripBuilder() {
 
   const price = useMemo(() => {
     const dailyRental = 850;
-    const guideTotal = form.guideDay ? 750 : 0;
+    const guideRatePerDay = 750; // set your real rate
+const guideTotal = (Number.isFinite(form.guideDays) ? form.guideDays : 0) * guideRatePerDay;
     const overnightAdd = (form.overnight || 0) * 1000;
     const addOnMap = { glacier: 600, helicopter: 1200, bushplane: 900, zipline: 250, mine: 300 };
     const addOnSum = Object.entries(form.addOns)
@@ -686,16 +798,30 @@ function StepRigAndExtras({ form, set }) {
       <div>
         <label className="text-sm text-neutral-300">Rig selection</label>
         <select value={form.rig} onChange={(e) => set({ rig: e.target.value })} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3">
-          <option value="wrangler-expedition">Wrangler Expedition (40&quot; tires)</option>
-          <option value="wrangler-premium">Wrangler Premium (35&quot; Tires)</option>
-          <option value="tacoma-expedition">Tacoma Expedition (40&quot; Tires)</option>
-          <option value="tacoma-premium">Tacoma Premium (35&quot; Tires)</option>
+          <option value="wrangler-expedition">Jeep Gladiator</option>
+          <option value="wrangler-premium">Toyota Tacoma</option>
         </select>
       </div>
-      <div className="flex items-center gap-3">
-        <input id="guideDay" type="checkbox" checked={form.guideDay} onChange={(e) => set({ guideDay: e.target.checked })} className="h-4 w-4" />
-        <label htmlFor="guideDay" className="text-neutral-200">Add a guided day (+$750)</label>
-      </div>
+    
+<div className="flex flex-col gap-2">
+  <label className="font-medium text-white/90">Number of Guided Days</label>
+  <input
+    type="number"
+    min={0}
+    max={10}
+    step={1}
+    value={form.guideDays ?? 0}
+    onChange={(e) => {
+      const n = e.target.valueAsNumber;
+      const safe = Number.isFinite(n) ? n : 0;
+      const clamped = Math.max(0, Math.min(10, safe));
+      setForm(prev => ({ ...prev, guideDays: clamped }));
+    }}
+    className="rounded-xl bg-neutral-800 border border-white/20 p-3 text-neutral-200 w-32"
+  />
+  <p className="text-neutral-400 text-sm">Set to 0 for self-guided trips.</p>
+</div>
+
       <div>
         <label className="text-sm text-neutral-300">Overnights (includes meals & camp)</label>
         <input value={form.overnight} onChange={(e) => set({ overnight: Number(e.target.value) })} type="number" min={0} max={14} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" />
@@ -738,23 +864,57 @@ function StepAddOns({ form, set }) {
 function StepContact({ form, set }) {
   const c = form.contact;
   const setC = (patch) => set({ contact: { ...c, ...patch } });
+
   return (
     <div className="space-y-4">
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="text-sm text-neutral-300">Full name</label>
-          <input value={c.name} onChange={(e) => setC({ name: e.target.value })} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" placeholder="Your name" />
+          <input
+            value={c.name}
+            onChange={(e) => setC({ name: e.target.value })}
+            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+            placeholder="Your name"
+            required
+          />
         </div>
         <div>
           <label className="text-sm text-neutral-300">Email</label>
-          <input value={c.email} type="email" onChange={(e) => setC({ email: e.target.value })} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" placeholder="you@email.com" />
+          <input
+            value={c.email}
+            type="email"
+            onChange={(e) => setC({ email: e.target.value })}
+            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+            placeholder="you@email.com"
+            required
+          />
         </div>
       </div>
+
       <div>
         <label className="text-sm text-neutral-300">Phone</label>
-        <input value={c.phone} onChange={(e) => setC({ phone: e.target.value })} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" placeholder="+1 (___) ___-____" />
+        <input
+          value={c.phone}
+          onChange={(e) => setC({ phone: e.target.value })}
+          className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+          placeholder="+1 (___) ___-____"
+        />
       </div>
-      <div className="text-sm text-neutral-400">Submitting will create a reservation request. We’ll reply with availability, a deposit link (Stripe), and an e-signature waiver.</div>
+
+      {/* NEW COMMENT BOX */}
+      <div>
+        <label className="text-sm text-neutral-300">Tell us about your perfect Alaska trip</label>
+        <textarea
+          value={form.notes || ""}
+          onChange={(e) => set({ notes: e.target.value })}
+          className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3 min-h-[120px]"
+          placeholder="Example: We'd love to see glaciers, wildlife, and do a mix of off-road adventure and scenic camping. Add any special requests or details about your dream Alaska experience!"
+        />
+      </div>
+
+      <div className="text-sm text-neutral-400">
+        Submitting will create a reservation request. We’ll reply with availability, a deposit link (Stripe), and an e-signature waiver.
+      </div>
     </div>
   );
 }
@@ -766,7 +926,8 @@ function SummaryCard({ form, nights, price }) {
       <div className="mt-3 space-y-2 text-sm text-neutral-300">
         <div><span className="text-neutral-400">Dates:</span> {form.start || '—'} → {form.end || '—'} ({nights} night{nights !== 1 ? 's' : ''})</div>
         <div><span className="text-neutral-400">Rig:</span> {form.rig.replace('-', ' ')}</div>
-        <div><span className="text-neutral-400">Guided day:</span> {form.guideDay ? 'Yes' : 'No'}</div>
+        <div><span className="text-neutral-400">Guided days:</span> {form.guideDays || 0}</div>
+        <div><span className="text-neutral-500"> {form.guideDays > 0 ? '(Guided)' : '(Self-guided)'}</span></div>
         <div><span className="text-neutral-400">Overnights:</span> {form.overnight}</div>
         <div className="pt-2 border-t border-white/10">Add-ons:</div>
         <ul className="list-disc pl-5">
