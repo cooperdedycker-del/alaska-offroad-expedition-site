@@ -390,9 +390,6 @@ function Contact() {
   );
 }
 
-export default Contact;
-
-}
 
 function Footer() {
   return (
