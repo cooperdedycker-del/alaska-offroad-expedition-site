@@ -289,7 +289,6 @@ function FAQ() {
   );
 }
 
-import { useState } from "react";
 
 function Contact() {
   const [planner, setPlanner] = useState({
