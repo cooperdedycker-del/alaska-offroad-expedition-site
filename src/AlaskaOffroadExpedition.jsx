@@ -417,7 +417,6 @@ function Footer() {
 /* ---------------- Trip Builder ---------------- */
 
 function TripBuilder() {
-  const [status, setStatus] = useState({ type: "idle", message: "" }); // "success" | "error" | "idle"
   const [sending, setSending] = useState(false);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
