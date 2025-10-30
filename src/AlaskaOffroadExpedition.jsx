@@ -296,19 +296,30 @@ function Contact() {
     email: "",
     dates: "",
     message: "",
+    website: "", // honeypot (kept for contact form only)
   });
   const [sending, setSending] = useState(false);
+  const [status, setStatus] = useState({ type: "idle", message: "" }); // "success" | "error" | "idle"
 
   async function handlePlannerSubmit(e) {
     e.preventDefault();
+
+    // Honeypot: silently succeed if bots fill it
+    if (planner.website) {
+      setStatus({ type: "success", message: "Thanks! An expedition planner will reach out shortly." });
+      return;
+    }
+
     setSending(true);
+    setStatus({ type: "idle", message: "" });
 
     const payload = {
       name: planner.name,
       email: planner.email,
-      phone: "", // no phone field in this form
+      phone: "", // no phone field here
       message: `Desired dates: ${planner.dates}\n\n${planner.message}`,
       sourceUrl: window.location.href,
+      website: planner.website, // pass honeypot to API
     };
 
     try {
@@ -318,16 +329,24 @@ function Contact() {
         body: JSON.stringify(payload),
       });
 
-      const data = await resp.json();
+      const data = await resp.json().catch(() => ({}));
       if (!resp.ok || !data.ok) {
-        alert(`There was a problem sending your message. ${data?.error || ""}`);
-      } else {
-        alert("Thanks! An expedition planner will reach out shortly.");
-        setPlanner({ name: "", email: "", dates: "", message: "" });
+        throw new Error(data?.error || resp.statusText || "Failed to send");
       }
+
+      setStatus({ type: "success", message: "Thanks! An expedition planner will reach out shortly." });
+      setPlanner({ name: "", email: "", dates: "", message: "", website: "" });
+
+      // scroll banner into view (matches Trip Builder UX)
+      setTimeout(() => {
+        document.getElementById("contact-banner")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
     } catch (err) {
       console.error(err);
-      alert("Something went wrong while sending your message.");
+      setStatus({ type: "error", message: err.message || "Something went wrong while sending your message." });
+      setTimeout(() => {
+        document.getElementById("contact-banner")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
     } finally {
       setSending(false);
     }
@@ -341,10 +360,21 @@ function Contact() {
           Tell us your dates and must-do experiences. We’ll craft a custom itinerary and get permits rolling.
         </p>
 
-        <form
-          onSubmit={handlePlannerSubmit}
-          className="mt-6 grid gap-4 md:grid-cols-2"
-        >
+        {/* Status banner — same styling as Trip Builder */}
+        {status.type !== "idle" && (
+          <div
+            id="contact-banner"
+            className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
+              status.type === "success"
+                ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
+                : "border-rose-400/30 bg-rose-500/10 text-rose-300"
+            }`}
+          >
+            {status.message}
+          </div>
+        )}
+
+        <form onSubmit={handlePlannerSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
           <input
             className="rounded-xl bg-neutral-800 px-4 py-3"
             placeholder="Full name"
@@ -374,6 +404,22 @@ function Contact() {
             onChange={(e) => setPlanner((p) => ({ ...p, message: e.target.value }))}
             required
           />
+
+          {/* Honeypot — visually hidden, out of tab order */}
+          <div className="hidden" aria-hidden="true">
+            <label htmlFor="website">Website</label>
+            <input
+              id="website"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={planner.website}
+              onChange={(e) => setPlanner((p) => ({ ...p, website: e.target.value }))}
+              className="rounded-xl bg-neutral-800 px-4 py-3"
+              placeholder="Your website"
+            />
+          </div>
+
           <button
             type="submit"
             disabled={sending}
@@ -388,7 +434,6 @@ function Contact() {
     </section>
   );
 }
-
 
 function Footer() {
   return (
