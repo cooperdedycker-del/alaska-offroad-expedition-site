@@ -417,8 +417,12 @@ function Footer() {
 /* ---------------- Trip Builder ---------------- */
 
 function TripBuilder() {
+  const [status, setStatus] = useState({ type: "idle", message: "" }); // "success" | "error" | "idle"
+  const [sending, setSending] = useState(false);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
+
+
     start: "", end: "", party: 2, rig: "wrangler-expedition", guideDay: false, overnight: 0,
     addOns: { glacier: false, helicopter: false, bushplane: false, zipline: false, mine: false, lodgeNights: 0 },
     contact: { name: "", email: "", phone: "" },
@@ -446,41 +450,60 @@ function TripBuilder() {
   const back = () => setStep((s) => Math.max(1, s - 1));
   const set = (patch) => setForm((f) => ({ ...f, ...patch }));
 const [sending, setSending] = useState(false);
+const [status, setStatus] = useState({ type: "idle", message: "" }); // banner state
 const submit = async () => {
-  // basic validation
+  setStatus({ type: "idle", message: "" });
+
   if (!form.contact.name || !form.contact.email) {
-    alert("Please enter your name and email in the Contact step.");
     setStep(4);
+    setStatus({
+      type: "error",
+      message: "Please enter your name and email in the Contact step.",
+    });
+    setTimeout(() => {
+      document
+        .getElementById("trip-banner")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
     return;
   }
 
   try {
     setSending(true);
-    const r = await fetch('/api/trip-inquiry', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      // 🔧 CHANGE: send an object with { form, pricing }
+    const r = await fetch("/api/trip-inquiry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ form, pricing: price }),
     });
 
-    // Better error surfacing
-    let data;
-    try { data = await r.json(); } catch (_) { data = null; }
+    const data = await r.json().catch(() => null);
 
     if (!r.ok || !data?.ok) {
-      const msg = data?.error || r.statusText || 'Failed to submit';
+      const msg = data?.error || r.statusText || "Failed to submit";
       throw new Error(msg);
     }
 
-    alert('Request submitted! We’ll email you shortly with availability and next steps.');
-    // optional: reset form here if desired
+    setStatus({
+      type: "success",
+      message:
+        "Request submitted! We’ll email you shortly with availability and next steps.",
+    });
   } catch (e) {
-    console.error('submit error:', e);
-    alert(`Something went wrong sending your request: ${e.message}`);
+    console.error("submit error:", e);
+    setStatus({
+      type: "error",
+      message: e.message || "Something went wrong sending your request.",
+    });
   } finally {
     setSending(false);
+    setTimeout(() => {
+      document
+        .getElementById("trip-banner")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
   }
 };
+
 
 
   return (
@@ -502,6 +525,19 @@ const submit = async () => {
               {step === 2 && (<StepRigAndExtras form={form} set={set} />)}
               {step === 3 && (<StepAddOns form={form} set={set} />)}
               {step === 4 && (<StepContact form={form} set={set} />)}
+
+{status.type !== "idle" && (
+  <div
+    id="trip-banner"
+    className={`mb-4 rounded-xl border px-4 py-3 text-sm ${
+      status.type === "success"
+        ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
+        : "border-rose-400/30 bg-rose-500/10 text-rose-300"
+    }`}
+  >
+    {status.message}
+  </div>
+)}
 
               <div className="flex items-center gap-3">
                 {step > 1 && (<button onClick={back} className="rounded-xl border border-white/20 px-5 py-3 font-semibold hover:bg-white/10">Back</button>)}
