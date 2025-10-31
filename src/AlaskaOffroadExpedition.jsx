@@ -7,8 +7,8 @@ export default function AlaskaOffroadExpedition() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
-      <div id="top" className="min-h-screen bg-neutral-950 text-neutral-100 pt-20 md:pt-24">
-       <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/70">
+      <div id="top" className="min-h-screen bg-neutral-950 text-neutral-100">
+      <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/70">
         <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <a href="#top" className="h-9 w-9 rounded-lg overflow-hidden">
@@ -69,7 +69,11 @@ export default function AlaskaOffroadExpedition() {
 
 function Hero() {
   return (
-   <section className="relative h-[50vh] md:h-[60vh] w-full flex items-center justify-center">
+   <section
+  id="hero"
+  className="relative h-[50vh] md:h-[60vh] w-full flex items-center justify-center mt-16 sm:mt-20 scroll-mt-24"
+>
+
   <div className="absolute inset-0">
     <img
       src="/images/hero-illustration.png"
