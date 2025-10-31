@@ -473,6 +473,29 @@ function Contact() {
         <p className="mt-2 text-neutral-300">
           Tell us your dates and must-do experiences. We’ll craft a custom itinerary and get permits rolling.
         </p>
+        {/* Call Us Button */}
+    <div className="mt-6">
+      <a
+        href="tel:9074067901"
+        className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 text-neutral-900 px-6 py-3 font-semibold hover:bg-emerald-400 transition"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          className="w-5 h-5"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M2 5.5C2 4.12 3.12 3 4.5 3h2A2.5 2.5 0 019 5.5v2A2.5 2.5 0 016.5 10H6a11.04 11.04 0 006 6h.5A2.5 2.5 0 0115 18.5v2A2.5 2.5 0 0112.5 23h-2A8.5 8.5 0 012 14.5v-9z"
+          />
+        </svg>
+        Call Us at (907) 406-7901
+      </a>
+    </div>
 
         {/* Status banner — same styling as Trip Builder */}
         {status.type !== "idle" && (
@@ -576,7 +599,7 @@ function Footer() {
 /* ---------------- Trip Builder ---------------- */
 
 function TripBuilder() {
-  
+
   const [step, setStep] = useState(1);
  const [form, setForm] = useState({
   start: "",
@@ -812,15 +835,17 @@ function StepRigAndExtras({ form, set }) {
     step={1}
     value={form.guideDays ?? 0}
     onChange={(e) => {
-      const n = e.target.valueAsNumber;
+      const n = Number(e.target.value);       // works consistently in PowerShell/Chrome
       const safe = Number.isFinite(n) ? n : 0;
       const clamped = Math.max(0, Math.min(10, safe));
-      setForm(prev => ({ ...prev, guideDays: clamped }));
+      set({ guideDays: clamped });            // <-- use your helper
+      console.log('onChange guideDays ->', clamped);
     }}
     className="rounded-xl bg-neutral-800 border border-white/20 p-3 text-neutral-200 w-32"
   />
   <p className="text-neutral-400 text-sm">Set to 0 for self-guided trips.</p>
 </div>
+
 
       <div>
         <label className="text-sm text-neutral-300">Overnights (includes meals & camp)</label>
