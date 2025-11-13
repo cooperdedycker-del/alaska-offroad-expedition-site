@@ -11,6 +11,7 @@ export default function LionsClubPage() {
     message: "",
     honeypot: "", // spam trap
   });
+
   const [status, setStatus] = useState({ state: "idle", msg: "" });
 
   const involvementOptions = [
@@ -27,7 +28,9 @@ export default function LionsClubPage() {
       const has = f.involvement.includes(key);
       return {
         ...f,
-        involvement: has ? f.involvement.filter((k) => k !== key) : [...f.involvement, key],
+        involvement: has
+          ? f.involvement.filter((k) => k !== key)
+          : [...f.involvement, key],
       };
     });
   };
@@ -49,306 +52,492 @@ export default function LionsClubPage() {
       const text = await res.text();
       let data = {};
       if (ct.includes("application/json")) {
-        try { data = JSON.parse(text); } catch {}
+        try {
+          data = JSON.parse(text);
+        } catch {
+          // ignore JSON parse errors for non-JSON responses
+        }
       }
 
       if (!res.ok || data.ok === false) {
-        const msg = (data && data.error) || `HTTP ${res.status} – ${text.slice(0, 200)}`;
+        const msg =
+          (data && data.error) || `HTTP ${res.status} – ${text.slice(0, 200)}`;
         throw new Error(msg);
       }
 
-      setStatus({ state: "success", msg: "Thanks! We’ll be in touch shortly." });
-      setForm({ name: "", email: "", phone: "", city: "", involvement: [], message: "", honeypot: "" });
+      setStatus({
+        state: "success",
+        msg: "Thanks! We’ll be in touch shortly.",
+      });
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        city: "",
+        involvement: [],
+        message: "",
+        honeypot: "",
+      });
     } catch (err) {
-      setStatus({ state: "error", msg: err.message || "Something went wrong." });
+      setStatus({
+        state: "error",
+        msg: err.message || "Something went wrong.",
+      });
     }
   }
 
   return (
     <main className="min-h-screen bg-white text-neutral-900">
-      {/* BACK TO MAIN SITE */}
+      {/* TOP BACK BAR */}
       <div className="bg-neutral-50 border-b border-neutral-200">
-        <div className="mx-auto max-w-6xl px-4 py-4">
+        <div className="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between gap-4">
           <Link
             to="/"
             className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold hover:bg-neutral-100 transition"
           >
             ← Back to Alaska Offroad Expedition
           </Link>
+          <p className="hidden md:block text-xs text-neutral-500">
+            Southcentral Off-Road &amp; Outdoor Lions Club • Adventure with
+            purpose
+          </p>
         </div>
       </div>
-{/* HERO BANNER - COMPACT AND CONNECTED TO ABOUT */}
-<section
-  className="relative border-b border-neutral-200"
-  style={{
-    backgroundImage: "url('/images/lions-banner-bg.jpg')", // Replace with your scenic background
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-  }}
->
-  {/* Dark overlay for text contrast */}
-  <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]" />
 
-  <div className="relative mx-auto max-w-6xl px-4 py-10 flex flex-col items-center text-center">
-    {/* LOGO CONTAINER */}
-    <div className="rounded-3xl border-2 border-white/70 bg-white/90 shadow-lg p-8 flex flex-col items-center justify-center w-full md:w-4/5 lg:w-3/5 backdrop-blur-sm">
-      
-      {/* LOGO WITH BORDER */}
-      <div className="rounded-2xl border-4 border-neutral-300 p-3 bg-white shadow-inner mb-6">
-        <img
-          src="/images/lions-hero.png?v=12"
-          alt="Southcentral Outdoor & Off-Road Lions Club Logo"
-          className="w-full max-w-[420px] h-auto object-contain rounded-xl"
-          loading="lazy"
-        />
+      {/* HERO – Big title + two-side layout */}
+<section className="relative overflow-hidden bg-neutral-950 text-white">
+  {/* Background image + gradient overlay */}
+  <div
+    className="absolute inset-0 opacity-50"
+    style={{
+      backgroundImage: "url('/images/lions-join-bg.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    }}
+  />
+  <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-neutral-950/95" />
+
+  <div className="relative mx-auto max-w-7xl px-4 lg:px-8 py-16 md:py-20 space-y-10">
+    {/* BIG TITLE + TAGLINE CENTERED */}
+    <div className="text-center flex flex-col items-center gap-3">
+      <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight">
+        Southcentral Off-Road &amp; Outdoor Lions Club
+      </h1>
+      <p className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-100">
+        Adventure with Purpose
+      </p>
+      <p className="text-neutral-200 max-w-2xl text-sm md:text-base">
+        Off-roaders, campers, and volunteers serving veterans, special needs
+        participants, and Alaska communities through free trail runs, training,
+        and outdoor experiences.
+      </p>
+    </div>
+
+ {/* TWO-COLUMN LAYOUT */}
+<div className="grid md:grid-cols-[1.1fr,1.7fr] gap-10 items-center">
+  {/* LEFT: Story + CTAs + stats */}
+  <div>
+    <h2 className="text-2xl md:text-3xl font-bold">
+      Adventure that actually gives back.
+    </h2>
+    <p className="mt-4 text-neutral-200 text-sm md:text-base leading-relaxed">
+      We host{" "}
+      <strong>
+        free off-road expeditions, camping weekends, survival classes, and
+        recovery training
+      </strong>{" "}
+      across Alaska. Members and volunteers help teach outdoor safety, 4x4
+      recovery, trail etiquette, and basic survival skills — making sure
+      the outdoors stays accessible to veterans, special needs participants,
+      and families who might not otherwise get the chance.
+    </p>
+
+    <div className="mt-6 flex flex-wrap gap-3">
+      <a
+        href="#join"
+        className="inline-flex items-center rounded-xl px-6 py-3 text-sm md:text-base font-semibold bg-amber-300 text-black hover:bg-amber-200 transition shadow-md"
+      >
+        Become a founding member
+      </a>
+      <a
+        href="#about"
+        className="inline-flex items-center rounded-xl px-6 py-3 text-sm md:text-base font-semibold border border-white/70 text-white hover:bg-white/10 transition"
+      >
+        Learn more about the club
+      </a>
+    </div>
+
+    <div className="mt-6 grid grid-cols-3 gap-4 max-w-md text-sm">
+      <div>
+        <p className="text-xs uppercase tracking-wide text-neutral-400">
+          Founding Members
+        </p>
+        <p className="text-xl font-bold text-amber-300">25</p>
       </div>
-
-      {/* BUTTONS */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        <a
-          href="#join"
-          className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-semibold bg-black text-white hover:opacity-90 transition"
-        >
-          Become a Founding Member
-        </a>
-        <a
-          href="#about"
-          className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-semibold border border-neutral-300 hover:bg-neutral-100 transition"
-        >
-          Learn more
-        </a>
+      <div>
+        <p className="text-xs uppercase tracking-wide text-neutral-400">
+          Focus
+        </p>
+        <p className="text-sm font-semibold">
+          Veterans &amp; special needs
+        </p>
+      </div>
+      <div>
+        <p className="text-xs uppercase tracking-wide text-neutral-400">
+          Core pillars
+        </p>
+        <p className="text-sm font-semibold">
+          Service • Safety • Access
+        </p>
       </div>
     </div>
   </div>
-</section>
 
-
-   
-      {/* ABOUT */}
-<section id="about" className="mx-auto max-w-6xl px-4 py-20">
-  <div className="grid md:grid-cols-2 gap-12 items-start">
-
-    {/* LEFT: Expanded mission text */}
-    <div>
-      <h2 className="text-3xl md:text-4xl font-bold">About the Nonprofit</h2>
-      <p className="mt-4 text-neutral-700 leading-relaxed text-lg">
-        The Southcentral Outdoor & Off-Road Lions Club was founded by a group of Alaskans who believe the outdoors
-        should be accessible to everyone. Our mission is to bring people together through adventure — serving our
-        communities, supporting our veterans, and creating opportunities for those with special needs to experience
-        the outdoors safely and confidently.
+  {/* RIGHT: HUGE LOGO */}
+  <div className="flex justify-center md:justify-end">
+    <div className="w-full">
+      <img
+        src="/images/lions-hero.png"
+        alt="Southcentral Off-Road & Outdoor Lions Club logo"
+        className="w-full max-w-[900px] md:max-w-[1100px] h-auto object-contain drop-shadow-2xl mx-auto"
+        loading="lazy"
+      />
+      <p className="mt-4 text-center text-sm text-neutral-200">
+        Southcentral Off-Road &amp; Outdoor Lions Club
+        <br />
+        <span className="text-amber-300 font-semibold">
+          “Adventure with purpose”
+        </span>
       </p>
-
-      <p className="mt-4 text-neutral-700 leading-relaxed text-lg">
-        We organize <strong>free off-road expeditions, camping weekends, survival classes, and recovery training</strong> events
-        across Alaska. Members and volunteers help teach outdoor safety, 4x4 recovery, trail etiquette, and basic
-        survival skills — ensuring that the next generation of adventurers is equipped, educated, and included.
-      </p>
-
-      <p className="mt-4 text-neutral-700 leading-relaxed text-lg">
-        Through our efforts, we’re giving back to the community — helping families, veterans, and individuals who
-        might not otherwise have the chance to experience the wild side of Alaska. Our club members work hand in hand
-        to <strong>maintain trails, clean up public lands, host outreach events, and provide access to adaptive equipment </strong>
-         so that everyone, regardless of ability, can share in the adventure.
-      </p>
-
-      <ul className="mt-8 space-y-3 text-neutral-800 text-base">
-        <li>• Free trail rides, camping trips, and outdoor adventures for special needs participants and veterans</li>
-        <li>• Community survival and recovery training classes open to the public</li>
-        <li>• Trail cleanups and stewardship projects to protect Alaska’s backcountry</li>
-        <li>• Group off-road runs that encourage teamwork, leadership, and inclusion</li>
-        <li>• Local partnerships to provide equipment, safety gear, and resources</li>
-        <li>• Events focused on mental health awareness and outdoor therapy</li>
-      </ul>
-    </div>
-
-    {/* RIGHT: Larger image grid */}
-    <div className="grid grid-cols-2 gap-6">
-      <img
-        src="/images/lions-ride-1.jpg"
-        className="rounded-xl border border-neutral-200 object-cover h-64 md:h-80 w-full shadow-sm"
-        alt="Veterans trail ride"
-        loading="lazy"
-      />
-      <img
-        src="/images/lions-cleanup.jpg"
-        className="rounded-xl border border-neutral-200 object-cover h-64 md:h-80 w-full shadow-sm"
-        alt="Trail cleanup"
-        loading="lazy"
-      />
-      <img
-        src="/images/lions-training.jpg"
-        className="rounded-xl border border-neutral-200 object-cover h-64 md:h-80 w-full shadow-sm"
-        alt="Recovery training"
-        loading="lazy"
-      />
-      <img
-        src="/images/lions-camp.jpg"
-        className="rounded-xl border border-neutral-200 object-cover h-64 md:h-80 w-full shadow-sm"
-        alt="Overnight campout"
-        loading="lazy"
-      />
+      <div className="mt-4 flex flex-col gap-2 text-xs text-neutral-300 text-center">
+        <p>• Lions Clubs International–aligned service initiative</p>
+        <p>• Focused on outdoor access, safety, and community support</p>
+      </div>
     </div>
   </div>
+  </div>
+  </div>
+
 </section>
 
-      {/* CALL OUT */}
-      <section className="bg-neutral-50 border-y border-neutral-200">
-        <div className="mx-auto max-w-6xl px-4 py-10">
-          <div className="rounded-2xl border border-neutral-200 p-6 md:p-8">
-            <h3 className="text-xl md:text-2xl font-bold">We’re recruiting 25 founding members</h3>
-            <p className="mt-2 text-neutral-700">
-              Membership is <strong>$110/year</strong> and supports vehicle maintenance for free rides,
-              outreach and awareness events, insurance, permits, safety gear, and training materials. <strong>Dues</strong> will be addressed once the group is established.
+      {/* WHAT WE DO / ABOUT SECTION */}
+      <section
+        id="about"
+        className="mx-auto max-w-6xl px-4 py-16 md:py-20 space-y-16"
+      >
+        {/* Top row: mission + quick pillars */}
+        <div className="grid lg:grid-cols-[1.6fr,1.1fr] gap-12 items-start">
+          {/* Mission / Story */}
+          <div>
+            <h2 className="text-3xl md:text-4xl font-bold">
+              Keeping Alaska&apos;s outdoors accessible to everyone.
+            </h2>
+            <p className="mt-4 text-neutral-700 leading-relaxed text-lg">
+              The Southcentral Off-Road &amp; Outdoor Lions Club was founded by
+              Alaskans who believe the outdoors should be shared, not gatekept.
+              Our mission is to bring people together through adventure —
+              serving our communities, supporting our veterans, and creating
+              opportunities for those with special needs to experience the
+              backcountry safely and confidently.
             </p>
+            <p className="mt-4 text-neutral-700 leading-relaxed">
+              We host{" "}
+              <strong>
+                free off-road expeditions, camping weekends, survival classes,
+                and recovery training
+              </strong>{" "}
+              across Alaska. Members and volunteers help teach outdoor safety,
+              4x4 recovery, trail etiquette, and basic survival skills — making
+              sure the next generation of adventurers is equipped, included,
+              and supported.
+            </p>
+          </div>
+
+          {/* Pillars / Highlights */}
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
+              <h3 className="text-lg font-semibold">
+                Who we serve &amp; how we show up
+              </h3>
+              <ul className="mt-3 space-y-2 text-sm text-neutral-700">
+                <li>• Veterans seeking connection, purpose, and time outside</li>
+                <li>• Special needs participants and their families</li>
+                <li>• Local communities that rely on safe, open trails</li>
+                <li>• New off-roaders learning safety, recovery, and stewardship</li>
+              </ul>
+            </div>
+
+            <div className="rounded-2xl border border-neutral-200 bg-white p-5">
+              <h3 className="text-lg font-semibold">What we focus on</h3>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                <span className="rounded-full bg-neutral-900 text-white px-3 py-1">
+                  Free off-road runs
+                </span>
+                <span className="rounded-full bg-neutral-100 px-3 py-1 border border-neutral-300">
+                  Trail cleanups
+                </span>
+                <span className="rounded-full bg-neutral-100 px-3 py-1 border border-neutral-300">
+                  Wilderness safety &amp; recovery
+                </span>
+                <span className="rounded-full bg-neutral-100 px-3 py-1 border border-neutral-300">
+                  Camping &amp; survival skills
+                </span>
+                <span className="rounded-full bg-neutral-100 px-3 py-1 border border-neutral-300">
+                  Mental health &amp; suicide awareness
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Photo grid */}
+        <div className="grid md:grid-cols-4 gap-4">
+          <div className="md:col-span-2">
+            <img
+              src="/images/lions-ride-1.jpg"
+              className="h-72 md:h-80 w-full object-cover rounded-2xl border border-neutral-200 shadow-sm"
+              alt="Veterans trail ride"
+              loading="lazy"
+            />
+          </div>
+          <div className="space-y-4">
+            <img
+              src="/images/lions-cleanup.jpg"
+              className="h-32 md:h-36 w-full object-cover rounded-2xl border border-neutral-200 shadow-sm"
+              alt="Trail cleanup"
+              loading="lazy"
+            />
+            <img
+              src="/images/lions-training.jpg"
+              className="h-32 md:h-36 w-full object-cover rounded-2xl border border-neutral-200 shadow-sm"
+              alt="Recovery training"
+              loading="lazy"
+            />
+          </div>
+          <div>
+            <img
+              src="/images/lions-camp.jpg"
+              className="h-full min-h-[10rem] w-full object-cover rounded-2xl border border-neutral-200 shadow-sm"
+              alt="Overnight campout"
+              loading="lazy"
+            />
           </div>
         </div>
       </section>
 
-      {/* JOIN FORM SECTION WITH BACKGROUND & FULL CONTACT FIELDS */}
-<section
-  id="join"
-  className="relative border-t border-neutral-200"
-  style={{
-    backgroundImage: "url('/images/lions-join-bg.jpg')", // scenic or gradient background
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-  }}
->
-  {/* Subtle overlay for contrast */}
-  <div className="absolute inset-0 bg-black/30" />
-
-  <div className="relative mx-auto max-w-5xl px-4 py-20">
-    <div className="rounded-3xl border border-white/60 bg-white/90 shadow-xl backdrop-blur-sm p-10">
-      <h2 className="text-3xl md:text-4xl font-bold text-center">Join the Club</h2>
-      <p className="mt-3 text-neutral-700 text-center text-lg">
-        Fill this out and we’ll get back to you with next steps and a charter meeting invite.
-      </p>
-
-      <form onSubmit={onSubmit} className="mt-10 grid gap-6">
-        {/* Honeypot field */}
-        <input
-          type="text"
-          name="company"
-          value={form.honeypot}
-          onChange={(e) => setForm({ ...form, honeypot: e.target.value })}
-          className="hidden"
-          autoComplete="off"
-          tabIndex={-1}
-        />
-
-        {/* CONTACT INFO */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium">Full name</label>
-            <input
-              required
-              type="text"
-              className="mt-1 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none focus:ring-2 focus:ring-black"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Jane Doe"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">City / Region</label>
-            <input
-              type="text"
-              className="mt-1 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none focus:ring-2 focus:ring-black"
-              value={form.city}
-              onChange={(e) => setForm({ ...form, city: e.target.value })}
-              placeholder="Palmer / Anchorage / Copper Valley"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Email</label>
-            <input
-              required
-              type="email"
-              className="mt-1 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none focus:ring-2 focus:ring-black"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="you@example.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Phone</label>
-            <input
-              type="tel"
-              className="mt-1 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none focus:ring-2 focus:ring-black"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="907-555-1234"
-            />
-          </div>
-        </div>
-
-        {/* INVOLVEMENT OPTIONS */}
-        <div>
-          <label className="block text-sm font-medium">How would you like to be involved?</label>
-          <div className="mt-3 grid md:grid-cols-2 gap-3">
-            {involvementOptions.map((opt) => (
-              <label
-                key={opt.key}
-                className="flex items-center gap-3 rounded-lg border border-neutral-300 px-4 py-3 cursor-pointer hover:bg-neutral-50"
+      {/* CALL OUT – Founding members */}
+      <section className="bg-neutral-50 border-y border-neutral-200">
+        <div className="mx-auto max-w-6xl px-4 py-12">
+          <div className="rounded-3xl border border-neutral-200 bg-white p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div>
+              <h3 className="text-xl md:text-2xl font-bold">
+                We’re recruiting 25 founding members
+              </h3>
+              <p className="mt-2 text-neutral-700">
+                Membership dues are currently estimated at{" "}
+                <strong>$110/year</strong>. This helps cover vehicle maintenance,
+                free ride events, insurance, permits, safety gear, training
+                materials and much more.{" "}
+                <strong>
+                  Final dues and structure will be confirmed at the charter
+                  meeting.
+                </strong>
+              </p>
+            </div>
+            <div className="flex flex-col items-start gap-3">
+              <p className="text-sm text-neutral-700">
+                Founding members help shape:
+              </p>
+              <ul className="text-sm text-neutral-800 space-y-1">
+                <li>• Which projects we take on first</li>
+                <li>• How we serve veterans &amp; special needs participants</li>
+                <li>• Club bylaws, leadership, and meeting structure</li>
+              </ul>
+              <a
+                href="#join"
+                className="mt-2 inline-flex items-center rounded-xl px-5 py-2.5 text-sm font-semibold bg-black text-white hover:bg-neutral-800 transition"
               >
-                <input
-                  type="checkbox"
-                  className="h-5 w-5"
-                  checked={form.involvement.includes(opt.key)}
-                  onChange={() => toggleInvolvement(opt.key)}
-                />
-                <span>{opt.label}</span>
-              </label>
-            ))}
+                Raise your hand to be a founding member →
+              </a>
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* MESSAGE */}
-        <div>
-          <label className="block text-sm font-medium">Anything else you want us to know?</label>
-          <textarea
-            rows={4}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none focus:ring-2 focus:ring-black"
-            value={form.message}
-            onChange={(e) => setForm({ ...form, message: e.target.value })}
-            placeholder="Share your background, availability, or questions."
-          />
+      {/* JOIN FORM SECTION */}
+      <section
+        id="join"
+        className="relative border-t border-neutral-200"
+        style={{
+          backgroundImage: "url('/images/lions-join-bg.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="absolute inset-0 bg-black/40" />
+
+        <div className="relative mx-auto max-w-5xl px-4 py-20">
+          <div className="rounded-3xl border border-white/60 bg-white/95 shadow-2xl backdrop-blur-sm p-8 md:p-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-center">
+              Join the Southcentral Off-Road &amp; Outdoor Lions Club
+            </h2>
+            <p className="mt-3 text-neutral-700 text-center text-base md:text-lg">
+              Fill this out and we’ll follow up with charter meeting details,
+              membership info, and ways you can plug in — whether you want to
+              wrench, wheel, teach, sponsor, or just be part of the crew.
+            </p>
+
+            <form onSubmit={onSubmit} className="mt-10 grid gap-6">
+              {/* Honeypot */}
+              <input
+                type="text"
+                name="company"
+                value={form.honeypot}
+                onChange={(e) =>
+                  setForm({ ...form, honeypot: e.target.value })
+                }
+                className="hidden"
+                autoComplete="off"
+                tabIndex={-1}
+              />
+
+              {/* CONTACT INFO */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium">Full name</label>
+                  <input
+                    required
+                    type="text"
+                    className="mt-1 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+                    value={form.name}
+                    onChange={(e) =>
+                      setForm({ ...form, name: e.target.value })
+                    }
+                    placeholder="Jane Doe"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium">
+                    City / Region
+                  </label>
+                  <input
+                    type="text"
+                    className="mt-1 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+                    value={form.city}
+                    onChange={(e) =>
+                      setForm({ ...form, city: e.target.value })
+                    }
+                    placeholder="Palmer / Anchorage / Copper Valley"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium">Email</label>
+                  <input
+                    required
+                    type="email"
+                    className="mt-1 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+                    value={form.email}
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
+                    placeholder="you@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium">Phone</label>
+                  <input
+                    type="tel"
+                    className="mt-1 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+                    value={form.phone}
+                    onChange={(e) =>
+                      setForm({ ...form, phone: e.target.value })
+                    }
+                    placeholder="907-555-1234"
+                  />
+                </div>
+              </div>
+
+              {/* INVOLVEMENT OPTIONS */}
+              <div>
+                <label className="block text-sm font-medium">
+                  How would you like to be involved?
+                </label>
+                <div className="mt-3 grid md:grid-cols-2 gap-3">
+                  {involvementOptions.map((opt) => (
+                    <label
+                      key={opt.key}
+                      className="flex items-center gap-3 rounded-lg border border-neutral-300 px-4 py-3 cursor-pointer hover:bg-neutral-50"
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-5 w-5"
+                        checked={form.involvement.includes(opt.key)}
+                        onChange={() => toggleInvolvement(opt.key)}
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* MESSAGE */}
+              <div>
+                <label className="block text-sm font-medium">
+                  Anything else you want us to know?
+                </label>
+                <textarea
+                  rows={4}
+                  className="mt-1 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+                  value={form.message}
+                  onChange={(e) =>
+                    setForm({ ...form, message: e.target.value })
+                  }
+                  placeholder="Share your background, availability, ideas, or questions."
+                />
+              </div>
+
+              {/* SUBMIT */}
+              <div className="flex flex-col items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={status.state === "submitting"}
+                  className="inline-flex items-center justify-center rounded-xl px-8 py-3 font-semibold bg-black text-white hover:bg-neutral-800 disabled:opacity-60 transition"
+                >
+                  {status.state === "submitting"
+                    ? "Submitting..."
+                    : "Submit Membership Interest"}
+                </button>
+
+                {status.state === "success" && (
+                  <p className="text-green-700 font-medium text-center">
+                    {status.msg}
+                  </p>
+                )}
+                {status.state === "error" && (
+                  <p className="text-red-700 font-medium text-center">
+                    {status.msg}
+                  </p>
+                )}
+
+                <p className="text-xs text-neutral-600 text-center mt-2">
+                  By submitting, you agree to be contacted about membership and
+                  upcoming club meetings. No payment is collected on this form.
+                </p>
+              </div>
+            </form>
+          </div>
         </div>
-
-        {/* SUBMIT */}
-        <div className="flex items-center gap-4 justify-center">
-          <button
-            type="submit"
-            disabled={status.state === "submitting"}
-            className="inline-flex items-center justify-center rounded-xl px-8 py-4 font-semibold bg-black text-white hover:opacity-90 disabled:opacity-60"
-          >
-            {status.state === "submitting" ? "Submitting..." : "Submit Membership Interest"}
-          </button>
-        </div>
-
-        {status.state === "success" && (
-          <p className="text-green-700 font-medium text-center mt-4">{status.msg}</p>
-        )}
-        {status.state === "error" && (
-          <p className="text-red-700 font-medium text-center mt-4">{status.msg}</p>
-        )}
-
-        <p className="text-sm text-neutral-600 text-center mt-6">
-          By submitting, you agree to be contacted about membership.
-        </p>
-      </form>
-    </div>
-  </div>
-</section>
+      </section>
 
       {/* FOOTER NOTE */}
-      <section className="pb-16">
+      <section className="pb-12 bg-white">
         <div className="mx-auto max-w-6xl px-4">
           <p className="text-sm text-neutral-600">
-            *This page is for the Southcentral Outdoor & Off-Road Lions Club initiative hosted by Alaska Offroad Expedition.
+            *This page is for the Southcentral Off-Road &amp; Outdoor Lions Club
+            initiative hosted by Alaska Offroad Expedition.
           </p>
         </div>
       </section>
