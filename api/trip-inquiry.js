@@ -2,7 +2,6 @@
 import { Resend } from "resend";
 
 export default async function handler(req, res) {
-  // Only allow POST
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
     return res.status(405).json({ ok: false, error: "Method Not Allowed" });
@@ -11,16 +10,13 @@ export default async function handler(req, res) {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    // Be very flexible with shapes from the frontend
     const raw = req.body || {};
 
-    // If there's a .form, use it, otherwise treat the whole body as "form"
+    // TripBuilder sends: { form, pricing }
     const form = raw.form || raw;
-
-    // Pricing can be at body.pricing or form.pricing
     const pricing = raw.pricing || form.pricing || {};
 
-    // Normalize contact info from multiple possible shapes
+    // ----- CONTACT -----
     const contact = {
       name:
         form?.contact?.name ??
@@ -42,133 +38,226 @@ export default async function handler(req, res) {
         "",
     };
 
-    // Log to Vercel if we didn't get expected contact info (for debugging, but don't break)
-    if (!contact.name && !contact.email) {
-      console.warn("Trip inquiry missing contact info. raw body:", raw);
+    // ----- TRIP DETAILS (aligned with TripBuilder state) -----
+    // TripBuilder form has: start, end, party, rig, guideDay, overnight, addOns.lodgeNights
+    let nights = 0;
+    if (form.start && form.end) {
+      const s = new Date(form.start);
+      const e = new Date(form.end);
+      nights = Math.max(
+        0,
+        Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24))
+      );
     }
 
-    // Trip details from several possible locations
     const trip = {
-      startDate:
-        form?.trip?.startDate ??
-        form?.startDate ??
-        raw?.trip?.startDate ??
-        "",
-      endDate:
-        form?.trip?.endDate ??
-        form?.endDate ??
-        raw?.trip?.endDate ??
-        "",
-      guideDays:
-        form?.trip?.guideDays ??
-        form?.guideDays ??
-        raw?.trip?.guideDays ??
-        "",
-      guests:
-        form?.trip?.guests ??
-        form?.guests ??
-        raw?.trip?.guests ??
-        "",
-      notes:
-        form?.trip?.notes ??
-        form?.notes ??
-        raw?.trip?.notes ??
-        "",
-      destination:
-        form?.trip?.destination ??
-        form?.destination ??
-        raw?.trip?.destination ??
-        "",
+      start: form.start || "",
+      end: form.end || "",
+      nights,
+      party: form.party || "",
+      rig: form.rig || "",
+      guideDay: !!form.guideDay,
+      overnight: form.overnight || 0,
+      lodgeNights: form?.addOns?.lodgeNights || 0,
     };
 
-    // Add-ons: support multiple possible shapes
-    let addOns = [];
+    // ----- ADD-ONS LIST -----
+    const addOns = form.addOns || {};
+    const selectedAddOns = Object.entries(addOns)
+      .filter(([key, value]) => typeof value === "boolean" && value)
+      .map(([key]) => key);
 
-    if (Array.isArray(pricing?.selectedAddOns)) {
-      addOns = pricing.selectedAddOns;
-    } else if (Array.isArray(form?.addOns)) {
-      addOns = form.addOns;
-    } else if (Array.isArray(form?.addons)) {
-      addOns = form.addons;
-    } else if (Array.isArray(raw?.addOns)) {
-      addOns = raw.addOns;
-    } else if (Array.isArray(raw?.addons)) {
-      addOns = raw.addons;
+    const addOnLabels = {
+      glacier: "Glacier Hike",
+      helicopter: "Helicopter Flight",
+      bushplane: "Bush Plane Segment",
+      zipline: "Zipline",
+      mine: "Historic Mine/Glacier Tunnel Tour",
+    };
+
+    const addOnLines = selectedAddOns.map(
+      (key) => `• ${addOnLabels[key] || key}`
+    );
+
+    if (trip.lodgeNights > 0) {
+      addOnLines.push(`• Lodge nights × ${trip.lodgeNights}`);
     }
 
-    const addOnList =
-      addOns.length > 0
-        ? addOns.map((a) => `• ${a}`).join("<br/>")
+    const addOnHtml =
+      addOnLines.length > 0
+        ? addOnLines.join("<br/>")
         : "None selected";
 
-    const priceSummary = {
-      basePrice:
-        pricing?.basePrice ??
-        form?.basePrice ??
-        raw?.basePrice ??
-        "",
-      addOnTotal:
-        pricing?.addOnTotal ??
-        form?.addOnTotal ??
-        raw?.addOnTotal ??
-        "",
-      totalPrice:
-        pricing?.totalPrice ??
-        form?.totalPrice ??
-        raw?.totalPrice ??
-        "",
+    const addOnText =
+      addOnLines.length > 0
+        ? addOnLines.join("\n")
+        : "None selected";
+
+    // ----- PRICING (aligned with TripBuilder "price") -----
+    const price = {
+      rentalTotal: pricing?.rentalTotal ?? "",
+      guideTotal: pricing?.guideTotal ?? "",
+      overnightAdd: pricing?.overnightAdd ?? "",
+      addOnSum: pricing?.addOnSum ?? "",
+      lodgeCost: pricing?.lodgeCost ?? "",
+      total: pricing?.total ?? "",
     };
 
-    const subject = "Alaska Offroad Expedition itinerary";
+    // Format helpers
+    const money = (v) =>
+      typeof v === "number" && !Number.isNaN(v)
+        ? `$${v.toLocaleString()}`
+        : "N/A";
+
+    // ----- STYLED HTML EMAIL -----
+    const subjectCustomer = "Alaska Offroad Expedition itinerary";
+    const subjectInternal = "New Trip Inquiry from Website";
 
     const from =
       "Alaska Offroad Expedition <cooper@alaskaoffroadexpedition.com>";
 
-    // Always send at least to YOU; include customer if we have their email
-    const to = ["cooper@alaskaoffroadexpedition.com"];
-    if (contact.email) {
-      to.push(contact.email);
-    }
+    const baseHtml = `
+      <div style="
+        max-width: 640px;
+        margin: 0 auto;
+        background: #020617;
+        color: #e5e7eb;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        padding: 24px;
+        border-radius: 16px;
+        border: 1px solid rgba(148,163,184,0.35);
+      ">
+        <div style="border-bottom: 1px solid rgba(148,163,184,0.35); padding-bottom: 16px; margin-bottom: 20px;">
+          <h1 style="font-size: 20px; margin: 0 0 4px 0;">Alaska Offroad Expedition</h1>
+          <p style="margin: 0; font-size: 13px; color: #9ca3af;">
+            Where roads end, adventure begins.
+          </p>
+        </div>
 
-    const html = `
-      <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height:1.5;">
-        <h1>New Trip Inquiry</h1>
-        <h2>Contact Info</h2>
-        <p>
-          <strong>Name:</strong> ${contact.name || "N/A"}<br/>
-          <strong>Email:</strong> ${contact.email || "N/A"}<br/>
-          <strong>Phone:</strong> ${contact.phone || "N/A"}
-        </p>
+        <h2 style="font-size: 16px; margin: 0 0 8px 0;">Contact Info</h2>
+        <div style="
+          background: rgba(15,23,42,0.9);
+          border-radius: 12px;
+          padding: 12px 14px;
+          border: 1px solid rgba(148,163,184,0.35);
+          margin-bottom: 16px;
+          font-size: 13px;
+        ">
+          <div><strong>Name:</strong> ${contact.name || "N/A"}</div>
+          <div><strong>Email:</strong> ${contact.email || "N/A"}</div>
+          <div><strong>Phone:</strong> ${contact.phone || "N/A"}</div>
+        </div>
 
-        <h2>Trip Details</h2>
-        <p>
-          <strong>Destination:</strong> ${trip.destination || "N/A"}<br/>
-          <strong>Start Date:</strong> ${trip.startDate || "N/A"}<br/>
-          <strong>End Date:</strong> ${trip.endDate || "N/A"}<br/>
-          <strong>Guide Days:</strong> ${trip.guideDays || "N/A"}<br/>
-          <strong>Guests:</strong> ${trip.guests || "N/A"}
-        </p>
+        <h2 style="font-size: 16px; margin: 0 0 8px 0;">Trip Details</h2>
+        <div style="
+          background: radial-gradient(circle at top left, rgba(56,189,248,0.15), rgba(15,23,42,0.95));
+          border-radius: 12px;
+          padding: 12px 14px;
+          border: 1px solid rgba(56,189,248,0.4);
+          margin-bottom: 16px;
+          font-size: 13px;
+        ">
+          <div><strong>Dates:</strong> ${trip.start || "N/A"} → ${
+      trip.end || "N/A"
+    }</div>
+          <div><strong>Nights:</strong> ${
+            typeof trip.nights === "number" ? trip.nights : "N/A"
+          }</div>
+          <div><strong>Party size:</strong> ${trip.party || "N/A"}</div>
+          <div><strong>Rig:</strong> ${
+            trip.rig ? trip.rig.replace("-", " ") : "N/A"
+          }</div>
+          <div><strong>Guided day:</strong> ${
+            trip.guideDay ? "Yes" : "No"
+          }</div>
+          <div><strong>Overnights:</strong> ${
+            typeof trip.overnight === "number" ? trip.overnight : "N/A"
+          }</div>
+          <div><strong>Lodge nights:</strong> ${
+            typeof trip.lodgeNights === "number" ? trip.lodgeNights : "N/A"
+          }</div>
+        </div>
 
-        <h2>Add-ons</h2>
-        <p>${addOnList}</p>
+        <h2 style="font-size: 16px; margin: 0 0 8px 0;">Add-ons</h2>
+        <div style="
+          background: rgba(15,23,42,0.9);
+          border-radius: 12px;
+          padding: 12px 14px;
+          border: 1px solid rgba(148,163,184,0.35);
+          margin-bottom: 16px;
+          font-size: 13px;
+        ">
+          ${addOnHtml}
+        </div>
 
-        <h2>Pricing Summary</h2>
-        <p>
-          <strong>Base Price:</strong> ${priceSummary.basePrice || "N/A"}<br/>
-          <strong>Add-on Total:</strong> ${priceSummary.addOnTotal || "N/A"}<br/>
-          <strong>Total Price:</strong> ${priceSummary.totalPrice || "N/A"}
-        </p>
+        <h2 style="font-size: 16px; margin: 0 0 8px 0;">Pricing (Estimate)</h2>
+        <div style="
+          background: rgba(15,23,42,0.9);
+          border-radius: 12px;
+          padding: 12px 14px;
+          border: 1px solid rgba(148,163,184,0.35);
+          margin-bottom: 16px;
+          font-size: 13px;
+        ">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <tbody>
+              <tr>
+                <td style="padding: 2px 0;">Rental</td>
+                <td style="padding: 2px 0; text-align: right;">${money(
+                  price.rentalTotal
+                )}</td>
+              </tr>
+              <tr>
+                <td style="padding: 2px 0;">Guided day</td>
+                <td style="padding: 2px 0; text-align: right;">${
+                  price.guideTotal ? money(price.guideTotal) : "$0"
+                }</td>
+              </tr>
+              <tr>
+                <td style="padding: 2px 0;">Overnights</td>
+                <td style="padding: 2px 0; text-align: right;">${
+                  price.overnightAdd ? money(price.overnightAdd) : "$0"
+                }</td>
+              </tr>
+              <tr>
+                <td style="padding: 2px 0;">Add-ons</td>
+                <td style="padding: 2px 0; text-align: right;">${
+                  price.addOnSum ? money(price.addOnSum) : "$0"
+                }</td>
+              </tr>
+              <tr>
+                <td style="padding: 2px 0;">Lodge</td>
+                <td style="padding: 2px 0; text-align: right;">${
+                  price.lodgeCost ? money(price.lodgeCost) : "$0"
+                }</td>
+              </tr>
+              <tr>
+                <td colspan="2" style="padding-top: 6px;">
+                  <hr style="border: none; border-top: 1px solid rgba(148,163,184,0.4);" />
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 0; font-weight: 600;">Total (est.)</td>
+                <td style="padding: 4px 0; text-align: right; font-weight: 600;">
+                  ${money(price.total)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top: 4px; font-size: 11px; color: #9ca3af;">
+            Final price confirmed after permits & vendor availability.
+          </div>
+        </div>
 
-        <h2>Notes</h2>
-        <p>${trip.notes || "No additional notes provided."}</p>
-
-        <hr/>
-        <p>Phone: 907-406-7901</p>
+        <div style="font-size: 12px; color: #9ca3af; margin-top: 16px; border-top: 1px solid rgba(148,163,184,0.35); padding-top: 10px;">
+          Questions? Call or text <strong>907-406-7901</strong><br/>
+          Thank you for planning your Alaska adventure with us.
+        </div>
       </div>
     `;
 
-    const text = `
-New Trip Inquiry
+    const baseText = `
+Alaska Offroad Expedition - Trip Inquiry
 
 Contact Info
 ------------
@@ -178,43 +267,47 @@ Phone: ${contact.phone || "N/A"}
 
 Trip Details
 ------------
-Destination: ${trip.destination || "N/A"}
-Start Date: ${trip.startDate || "N/A"}
-End Date: ${trip.endDate || "N/A"}
-Guide Days: ${trip.guideDays || "N/A"}
-Guests: ${trip.guests || "N/A"}
+Dates: ${trip.start || "N/A"} → ${trip.end || "N/A"}
+Nights: ${
+      typeof trip.nights === "number" ? trip.nights : "N/A"
+    }
+Party size: ${trip.party || "N/A"}
+Rig: ${trip.rig || "N/A"}
+Guided day: ${trip.guideDay ? "Yes" : "No"}
+Overnights: ${
+      typeof trip.overnight === "number" ? trip.overnight : "N/A"
+    }
+Lodge nights: ${
+      typeof trip.lodgeNights === "number" ? trip.lodgeNights : "N/A"
+    }
 
 Add-ons
 -------
-${
-  addOns.length > 0
-    ? addOns.map((a) => `- ${a}`).join("\n")
-    : "None selected"
-}
+${addOnText}
 
-Pricing Summary
----------------
-Base Price: ${priceSummary.basePrice || "N/A"}
-Add-on Total: ${priceSummary.addOnTotal || "N/A"}
-Total Price: ${priceSummary.totalPrice || "N/A"}
+Pricing (Estimate)
+------------------
+Rental: ${money(price.rentalTotal)}
+Guided day: ${price.guideTotal ? money(price.guideTotal) : "$0"}
+Overnights: ${price.overnightAdd ? money(price.overnightAdd) : "$0"}
+Add-ons: ${price.addOnSum ? money(price.addOnSum) : "$0"}
+Lodge: ${price.lodgeCost ? money(price.lodgeCost) : "$0"}
 
-Notes
------
-${trip.notes || "No additional notes provided."}
+Total (est.): ${money(price.total)}
+Final price confirmed after permits & vendor availability.
 
-Phone: 907-406-7901
+Questions? Call or text 907-406-7901.
     `.trim();
 
-       // --- SEND EMAILS ---
+    // ----- SEND EMAILS -----
 
     // 1) Internal email to you
-    const internalSubject = "New Trip Inquiry from Website";
     const internalResult = await resend.emails.send({
       from,
       to: "cooper@alaskaoffroadexpedition.com",
-      subject: internalSubject,
-      html,
-      text,
+      subject: subjectInternal,
+      html: baseHtml,
+      text: baseText,
     });
 
     if (internalResult?.error) {
@@ -224,15 +317,15 @@ Phone: 907-406-7901
         .json({ ok: false, error: "Failed to send internal email." });
     }
 
-    // 2) Customer confirmation email (only if we have their email)
+    // 2) Customer confirmation (if we have email)
     let customerError = null;
     if (contact.email) {
       const customerResult = await resend.emails.send({
         from,
         to: contact.email,
-        subject: subject, // "Alaska Offroad Expedition itinerary"
-        html,
-        text,
+        subject: subjectCustomer,
+        html: baseHtml,
+        text: baseText,
       });
 
       if (customerResult?.error) {
@@ -241,7 +334,6 @@ Phone: 907-406-7901
       }
     }
 
-    // Even if the customer email fails, the important part (internal email) worked
     return res.status(200).json({
       ok: true,
       customerEmailSent: !customerError,
