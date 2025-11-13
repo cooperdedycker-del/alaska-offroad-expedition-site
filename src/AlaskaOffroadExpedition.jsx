@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { Link } from "react-router-dom";
 
 
 export default function AlaskaOffroadExpedition() {
@@ -34,6 +35,7 @@ export default function AlaskaOffroadExpedition() {
             <a href="#about" className="hover:text-white">About</a>
             <a href="#faq" className="hover:text-white">FAQ</a>
             <a href="#contact" className="hover:text-white">Contact</a>
+            <Link to="/lionsclub" className="hover:text-white font-semibold text-amber-400">Off-Road Nonprofit</Link>
           </nav>
           <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className="md:hidden text-white">☰</button>
           <a href="#trip-builder" className="hidden md:inline-flex items-center gap-2 rounded-2xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition">Book an Expedition</a>
@@ -46,6 +48,7 @@ export default function AlaskaOffroadExpedition() {
             <a href="#about" onClick={() => setMobileNavOpen(false)}>About</a>
             <a href="#faq" onClick={() => setMobileNavOpen(false)}>FAQ</a>
             <a href="#contact" onClick={() => setMobileNavOpen(false)}>Contact</a>
+            <Link to="/lionsclub" className="hover:text-white font-semibold text-amber-400">Off-Road Nonprofit</Link>
           </nav>
         )}
       </header>
