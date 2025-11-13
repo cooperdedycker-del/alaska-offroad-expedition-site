@@ -13,8 +13,8 @@ export default async function handler(req, res) {
     const raw = req.body || {};
 
     // Support both flat and nested shapes:
-    // { name, email, phone, message }
-    // { contact: { name, email, phone }, message }
+    // { name, email, phone, dates, message }
+    // { contact: { name, email, phone }, message, dates }
     // { form: { ... } }
     const form = raw.form || raw;
 
@@ -47,13 +47,21 @@ export default async function handler(req, res) {
       raw?.message ??
       "";
 
+    // ✅ NEW: capture requested dates
+    const dates =
+      form?.dates ??
+      form?.tripDates ??
+      raw?.dates ??
+      "";
+
     const source =
       form?.source ??
       raw?.source ??
       "Website contact form (bottom of page)";
 
     const subjectInternal = "New Contact Form Submission";
-    const subjectCustomer = "Thanks for reaching out to Alaska Offroad Expedition";
+    const subjectCustomer =
+      "Thanks for reaching out to Alaska Offroad Expedition";
 
     const from =
       "Alaska Offroad Expedition <cooper@alaskaoffroadexpedition.com>";
@@ -93,6 +101,18 @@ export default async function handler(req, res) {
           <div><strong>Source:</strong> ${safe(source)}</div>
         </div>
 
+        <h2 style="font-size: 16px; margin: 0 0 8px 0;">Trip / Date Info</h2>
+        <div style="
+          background: rgba(15,23,42,0.9);
+          border-radius: 12px;
+          padding: 12px 14px;
+          border: 1px solid rgba(148,163,184,0.35);
+          margin-bottom: 16px;
+          font-size: 13px;
+        ">
+          ${safe(dates)}
+        </div>
+
         <h2 style="font-size: 16px; margin: 0 0 8px 0;">Message</h2>
         <div style="
           background: rgba(15,23,42,0.9);
@@ -122,6 +142,10 @@ Name: ${safe(contact.name)}
 Email: ${safe(contact.email)}
 Phone: ${safe(contact.phone)}
 Source: ${safe(source)}
+
+Trip / Date Info
+----------------
+${safe(dates)}
 
 Message
 -------
@@ -175,6 +199,18 @@ Questions? Call or text 907-406-7901.
             about your Alaska off-road adventure.
           </p>
 
+          <h2 style="font-size: 15px; margin: 16px 0 8px 0;">Requested dates / trip info</h2>
+          <div style="
+            background: rgba(15,23,42,0.9);
+            border-radius: 12px;
+            padding: 12px 14px;
+            border: 1px solid rgba(148,163,184,0.35);
+            margin-bottom: 16px;
+            font-size: 13px;
+          ">
+            ${safe(dates)}
+          </div>
+
           <h2 style="font-size: 15px; margin: 16px 0 8px 0;">What you sent</h2>
           <div style="
             background: rgba(15,23,42,0.9);
@@ -199,6 +235,10 @@ Questions? Call or text 907-406-7901.
 Hi ${safe(contact.name)},
 
 We’ve received your message and will get back to you as soon as possible about your Alaska off-road adventure.
+
+Requested dates / trip info
+---------------------------
+${safe(dates)}
 
 What you sent
 -------------
@@ -229,6 +269,8 @@ Alaska Offroad Expedition
     });
   } catch (err) {
     console.error("QUOTE / CONTACT API ERROR:", err);
-    return res.status(500).json({ ok: false, error: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ ok: false, error: "Internal Server Error" });
   }
 }
