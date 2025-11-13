@@ -244,6 +244,7 @@ function Contact() {
   const [form, setForm] = useState({
     name: "",
     email: "",
+    phone: "",
     dates: "",
     message: "",
   });
@@ -271,8 +272,9 @@ function Contact() {
           form: {
             name: form.name,
             email: form.email,
-            message: form.message,
+            phone: form.phone,
             dates: form.dates,
+            message: form.message,
             source: "Bottom contact form",
           },
         }),
@@ -286,7 +288,7 @@ function Contact() {
       // ✅ SUCCESS
       setStatus("success");
       setError("");
-      setForm({ name: "", email: "", dates: "", message: "" });
+      setForm({ name: "", email: "", phone: "", dates: "", message: "" });
     } catch (err) {
       console.error("Contact form error:", err);
       setStatus("error");
@@ -333,6 +335,14 @@ function Contact() {
             onChange={(e) => update({ email: e.target.value })}
           />
 
+          {/* NEW PHONE FIELD */}
+          <input
+            className="rounded-xl bg-neutral-800 px-4 py-3"
+            placeholder="Phone number"
+            value={form.phone}
+            onChange={(e) => update({ phone: e.target.value })}
+          />
+
           <input
             className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2"
             placeholder="Desired dates (flexible is okay)"
@@ -360,6 +370,7 @@ function Contact() {
     </section>
   );
 }
+
 
 
 function Footer() {
