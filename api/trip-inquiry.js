@@ -1,4 +1,4 @@
-// pages/api/trip-inquiry.js
+// /api/trip-inquiry.js
 import { Resend } from "resend";
 
 export default async function handler(req, res) {
@@ -11,32 +11,77 @@ export default async function handler(req, res) {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const { form = {}, pricing = {} } = req.body || {};
+    // Be very flexible with shapes from the frontend
+    const raw = req.body || {};
 
-    // Normalize contact info so it works with old + new form shapes
+    // If there's a .form, use it, otherwise treat the whole body as "form"
+    const form = raw.form || raw;
+
+    // Pricing can be at body.pricing or form.pricing
+    const pricing = raw.pricing || form.pricing || {};
+
+    // Normalize contact info from multiple possible shapes
     const contact = {
-      name: form?.contact?.name ?? form?.name ?? "",
-      email: form?.contact?.email ?? form?.email ?? "",
-      phone: form?.contact?.phone ?? form?.phone ?? "",
+      name:
+        form?.contact?.name ??
+        form?.name ??
+        raw?.contact?.name ??
+        raw?.name ??
+        "",
+      email:
+        form?.contact?.email ??
+        form?.email ??
+        raw?.contact?.email ??
+        raw?.email ??
+        "",
+      phone:
+        form?.contact?.phone ??
+        form?.phone ??
+        raw?.contact?.phone ??
+        raw?.phone ??
+        "",
     };
 
-    if (!contact.name || !contact.email) {
-      return res
-        .status(400)
-        .json({ ok: false, error: "Missing contact name or email" });
+    // Log to Vercel if we didn't get expected contact info (for debugging, but don't break)
+    if (!contact.name && !contact.email) {
+      console.warn("Trip inquiry missing contact info. raw body:", raw);
     }
 
-    // Trip details (fallbacks so we don't crash if fields are missing)
+    // Trip details from several possible locations
     const trip = {
-      startDate: form?.trip?.startDate ?? form?.startDate ?? "",
-      endDate: form?.trip?.endDate ?? form?.endDate ?? "",
-      guideDays: form?.trip?.guideDays ?? form?.guideDays ?? "",
-      guests: form?.trip?.guests ?? form?.guests ?? "",
-      notes: form?.trip?.notes ?? form?.notes ?? "",
-      destination: form?.trip?.destination ?? form?.destination ?? "",
+      startDate:
+        form?.trip?.startDate ??
+        form?.startDate ??
+        raw?.trip?.startDate ??
+        "",
+      endDate:
+        form?.trip?.endDate ??
+        form?.endDate ??
+        raw?.trip?.endDate ??
+        "",
+      guideDays:
+        form?.trip?.guideDays ??
+        form?.guideDays ??
+        raw?.trip?.guideDays ??
+        "",
+      guests:
+        form?.trip?.guests ??
+        form?.guests ??
+        raw?.trip?.guests ??
+        "",
+      notes:
+        form?.trip?.notes ??
+        form?.notes ??
+        raw?.trip?.notes ??
+        "",
+      destination:
+        form?.trip?.destination ??
+        form?.destination ??
+        raw?.trip?.destination ??
+        "",
     };
 
-    // Add-ons: support both pricing.selectedAddOns and form.addOns/addons
+    // Add-ons: support multiple possible shapes
     let addOns = [];
 
     if (Array.isArray(pricing?.selectedAddOns)) {
@@ -45,37 +90,53 @@ export default async function handler(req, res) {
       addOns = form.addOns;
     } else if (Array.isArray(form?.addons)) {
       addOns = form.addons;
+    } else if (Array.isArray(raw?.addOns)) {
+      addOns = raw.addOns;
+    } else if (Array.isArray(raw?.addons)) {
+      addOns = raw.addons;
     }
 
     const addOnList =
-      addOns.length > 0 ? addOns.map((a) => `• ${a}`).join("<br/>") : "None selected";
+      addOns.length > 0
+        ? addOns.map((a) => `• ${a}`).join("<br/>")
+        : "None selected";
 
-    // Basic price summary if present
     const priceSummary = {
-      basePrice: pricing?.basePrice ?? "",
-      addOnTotal: pricing?.addOnTotal ?? "",
-      totalPrice: pricing?.totalPrice ?? "",
+      basePrice:
+        pricing?.basePrice ??
+        form?.basePrice ??
+        raw?.basePrice ??
+        "",
+      addOnTotal:
+        pricing?.addOnTotal ??
+        form?.addOnTotal ??
+        raw?.addOnTotal ??
+        "",
+      totalPrice:
+        pricing?.totalPrice ??
+        form?.totalPrice ??
+        raw?.totalPrice ??
+        "",
     };
 
-    // Subject + from address (your requested values)
     const subject = "Alaska Offroad Expedition itinerary";
 
     const from =
-      'Alaska Offroad Expedition <cooper@alaskaoffroadexpedition.com>';
+      "Alaska Offroad Expedition <cooper@alaskaoffroadexpedition.com>";
 
-    // Send to you + the customer
-    const to = [
-      "cooper@alaskaoffroadexpedition.com",
-      contact.email,
-    ];
+    // Always send at least to YOU; include customer if we have their email
+    const to = ["cooper@alaskaoffroadexpedition.com"];
+    if (contact.email) {
+      to.push(contact.email);
+    }
 
     const html = `
       <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height:1.5;">
         <h1>New Trip Inquiry</h1>
         <h2>Contact Info</h2>
         <p>
-          <strong>Name:</strong> ${contact.name}<br/>
-          <strong>Email:</strong> ${contact.email}<br/>
+          <strong>Name:</strong> ${contact.name || "N/A"}<br/>
+          <strong>Email:</strong> ${contact.email || "N/A"}<br/>
           <strong>Phone:</strong> ${contact.phone || "N/A"}
         </p>
 
@@ -111,8 +172,8 @@ New Trip Inquiry
 
 Contact Info
 ------------
-Name: ${contact.name}
-Email: ${contact.email}
+Name: ${contact.name || "N/A"}
+Email: ${contact.email || "N/A"}
 Phone: ${contact.phone || "N/A"}
 
 Trip Details
