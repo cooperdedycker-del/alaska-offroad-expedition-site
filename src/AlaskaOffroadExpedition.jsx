@@ -238,21 +238,129 @@ function FAQ() {
 }
 
 function Contact() {
+  const [status, setStatus] = useState("idle"); // "idle" | "loading" | "success" | "error"
+  const [error, setError] = useState("");
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    dates: "",
+    message: "",
+  });
+
+  const update = (patch) => setForm((f) => ({ ...f, ...patch }));
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    // 🔴 Validation
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      setStatus("error");
+      setError("Please include your name, email, and a short message.");
+      return;
+    }
+
+    try {
+      setStatus("loading");
+
+      const res = await fetch("/api/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          form: {
+            name: form.name,
+            email: form.email,
+            message: form.message,
+            dates: form.dates,
+            source: "Bottom contact form",
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Failed to send message");
+      }
+
+      // ✅ SUCCESS
+      setStatus("success");
+      setError("");
+      setForm({ name: "", email: "", dates: "", message: "" });
+    } catch (err) {
+      console.error("Contact form error:", err);
+      setStatus("error");
+      setError("Something went wrong sending your message. Please try again.");
+    }
+  };
+
   return (
     <section id="contact" className="mx-auto max-w-7xl px-4 py-16">
       <div className="rounded-3xl border border-white/10 bg-neutral-900/50 p-8 md:p-12">
         <h2 className="text-3xl md:text-4xl font-bold">Talk to an Expedition Planner</h2>
-        <p className="mt-2 text-neutral-300">Tell us your dates and must-do experiences. We’ll craft a custom itinerary and get permits rolling.</p>
-        <form className="mt-6 grid gap-4 md:grid-cols-2">
-          <input className="rounded-xl bg-neutral-800 px-4 py-3" placeholder="Full name" />
-          <input className="rounded-xl bg-neutral-800 px-4 py-3" placeholder="Email" type="email" />
-          <input className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2" placeholder="Desired dates (flexible is okay)" />
-          <textarea className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2" rows={4} placeholder="Tell us what you want to experience (glacier, helicopter, zipline, remote camping, etc.)" />
-          <button type="button" className="rounded-xl bg-white text-neutral-900 px-4 py-3 font-semibold hover:bg-neutral-200 md:col-span-2">Request Itinerary</button>
+        <p className="mt-2 text-neutral-300">
+          Tell us your dates and must-do experiences. We’ll craft a custom itinerary and get permits rolling.
+        </p>
+
+        {/* Status messages */}
+        <div className="mt-4">
+          {status === "success" && (
+            <div className="mb-4 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+              Message sent! We’ll get back to you soon about your Alaska Expedition.
+            </div>
+          )}
+
+          {status === "error" && error && (
+            <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+              {error}
+            </div>
+          )}
+        </div>
+
+        <form onSubmit={submit} className="mt-6 grid gap-4 md:grid-cols-2">
+          <input
+            className="rounded-xl bg-neutral-800 px-4 py-3"
+            placeholder="Full name"
+            value={form.name}
+            onChange={(e) => update({ name: e.target.value })}
+          />
+
+          <input
+            className="rounded-xl bg-neutral-800 px-4 py-3"
+            placeholder="Email"
+            type="email"
+            value={form.email}
+            onChange={(e) => update({ email: e.target.value })}
+          />
+
+          <input
+            className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2"
+            placeholder="Desired dates (flexible is okay)"
+            value={form.dates}
+            onChange={(e) => update({ dates: e.target.value })}
+          />
+
+          <textarea
+            className="rounded-xl bg-neutral-800 px-4 py-3 md:col-span-2"
+            rows={4}
+            placeholder="Tell us what you want to experience (glacier, helicopter, zipline, remote camping, etc.)"
+            value={form.message}
+            onChange={(e) => update({ message: e.target.value })}
+          />
+
+          <button
+            type="submit"
+            disabled={status === "loading"}
+            className="rounded-xl bg-white text-neutral-900 px-4 py-3 font-semibold hover:bg-neutral-200 md:col-span-2 disabled:opacity-60"
+          >
+            {status === "loading" ? "Sending..." : "Request Itinerary"}
+          </button>
         </form>
       </div>
     </section>
   );
+}
+
 }
 
 function Footer() {
