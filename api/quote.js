@@ -1,40 +1,234 @@
-import { Resend } from 'resend';
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-const INBOX = process.env.BOOKING_INBOX || 'cooperdedycker@gmail.com';
-const FROM  = process.env.BOOKING_FROM  || 'Expeditions <bookings@alaskaoffroadexpedition.com>';
+// /api/quote.js
+import { Resend } from "resend";
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "POST") {
+    res.setHeader("Allow", ["POST"]);
+    return res.status(405).json({ ok: false, error: "Method Not Allowed" });
+  }
+
   try {
-    const { form, nights, price } = req.body || {};
-    if (!form?.contact?.email) return res.status(400).json({ error: 'Invalid payload' });
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const subject = `New Expedition Request — ${form.contact.name || 'Guest'} (${form.start} → ${form.end})`;
-    const html = `<h2>New Expedition Request</h2>
-      <p><strong>Name:</strong> ${form.contact.name || ''}<br/>
-      <strong>Email:</strong> ${form.contact.email || ''}<br/>
-      <strong>Phone:</strong> ${form.contact.phone || ''}</p>
-      <p><strong>Dates:</strong> ${form.start || '—'} → ${form.end || '—'} (${nights} night${nights!==1?'s':''})<br/>
-      <strong>Party:</strong> ${form.party}<br/>
-      <strong>Rig:</strong> ${form.rig}<br/>
-      <strong>Guided Day:</strong> ${form.guideDay ? 'Yes' : 'No'}<br/>
-      <strong>Extra Guided Overnights:</strong> ${form.overnights}</p>
-      <p><strong>Add-ons:</strong> ${
-        Object.entries(form.addOns||{}).filter(([k,v])=>k!=='lodgeNights' && v===true).map(([k])=>k).join(', ') || 'None'
-      }<br/><strong>Lodge nights:</strong> ${form.addOns?.lodgeNights || 0}</p>
-      <p><strong>Vehicle:</strong> $${(price?.rentalTotal||0).toLocaleString()}<br/>
-      ${price?.guideTotal ? `Guided day: $${price.guideTotal.toLocaleString()}<br/>` : ''}
-      ${price?.overnightAdd ? `Extra guided overnights: $${price.overnightAdd.toLocaleString()}<br/>` : ''}
-      ${price?.addOnSum ? `Add-ons: $${price.addOnSum.toLocaleString()}<br/>` : ''}
-      ${price?.lodgeCost ? `Lodge: $${price.lodgeCost.toLocaleString()}<br/>` : ''}
-      <strong>Subtotal (est.):</strong> $${(price?.total||0).toLocaleString()}<br/>
-      <strong>Deposit (25%):</strong> $${(price?.deposit||0).toLocaleString()}</p>`;
+    const raw = req.body || {};
 
-    await resend.emails.send({ from: FROM, to: INBOX, reply_to: form.contact.email, subject, html });
-    return res.status(200).json({ ok: true });
+    // Support both flat and nested shapes:
+    // { name, email, phone, message }
+    // { contact: { name, email, phone }, message }
+    // { form: { ... } }
+    const form = raw.form || raw;
+
+    const contact = {
+      name:
+        form?.contact?.name ??
+        form?.name ??
+        raw?.contact?.name ??
+        raw?.name ??
+        "",
+      email:
+        form?.contact?.email ??
+        form?.email ??
+        raw?.contact?.email ??
+        raw?.email ??
+        "",
+      phone:
+        form?.contact?.phone ??
+        form?.phone ??
+        raw?.contact?.phone ??
+        raw?.phone ??
+        "",
+    };
+
+    const message =
+      form?.message ??
+      form?.notes ??
+      form?.details ??
+      form?.comment ??
+      raw?.message ??
+      "";
+
+    const source =
+      form?.source ??
+      raw?.source ??
+      "Website contact form (bottom of page)";
+
+    const subjectInternal = "New Contact Form Submission";
+    const subjectCustomer = "Thanks for reaching out to Alaska Offroad Expedition";
+
+    const from =
+      "Alaska Offroad Expedition <cooper@alaskaoffroadexpedition.com>";
+
+    const safe = (v) => (v && String(v).trim().length > 0 ? v : "N/A");
+
+    const html = `
+      <div style="
+        max-width: 640px;
+        margin: 0 auto;
+        background: #020617;
+        color: #e5e7eb;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        padding: 24px;
+        border-radius: 16px;
+        border: 1px solid rgba(148,163,184,0.35);
+      ">
+        <div style="border-bottom: 1px solid rgba(148,163,184,0.35); padding-bottom: 16px; margin-bottom: 20px;">
+          <h1 style="font-size: 20px; margin: 0 0 4px 0;">Alaska Offroad Expedition</h1>
+          <p style="margin: 0; font-size: 13px; color: #9ca3af;">
+            New contact form submission from your website.
+          </p>
+        </div>
+
+        <h2 style="font-size: 16px; margin: 0 0 8px 0;">Contact Info</h2>
+        <div style="
+          background: rgba(15,23,42,0.9);
+          border-radius: 12px;
+          padding: 12px 14px;
+          border: 1px solid rgba(148,163,184,0.35);
+          margin-bottom: 16px;
+          font-size: 13px;
+        ">
+          <div><strong>Name:</strong> ${safe(contact.name)}</div>
+          <div><strong>Email:</strong> ${safe(contact.email)}</div>
+          <div><strong>Phone:</strong> ${safe(contact.phone)}</div>
+          <div><strong>Source:</strong> ${safe(source)}</div>
+        </div>
+
+        <h2 style="font-size: 16px; margin: 0 0 8px 0;">Message</h2>
+        <div style="
+          background: rgba(15,23,42,0.9);
+          border-radius: 12px;
+          padding: 12px 14px;
+          border: 1px solid rgba(148,163,184,0.35);
+          margin-bottom: 16px;
+          font-size: 13px;
+          white-space: pre-wrap;
+        ">
+          ${safe(message)}
+        </div>
+
+        <div style="font-size: 12px; color: #9ca3af; margin-top: 16px; border-top: 1px solid rgba(148,163,184,0.35); padding-top: 10px;">
+          Questions? Call or text <strong>907-406-7901</strong><br/>
+          This email was generated from the Alaska Offroad Expedition website contact form.
+        </div>
+      </div>
+    `;
+
+    const text = `
+Alaska Offroad Expedition - Contact Form
+
+Contact Info
+------------
+Name: ${safe(contact.name)}
+Email: ${safe(contact.email)}
+Phone: ${safe(contact.phone)}
+Source: ${safe(source)}
+
+Message
+-------
+${safe(message)}
+
+Questions? Call or text 907-406-7901.
+    `.trim();
+
+    // 1) Internal email to you
+    const internalResult = await resend.emails.send({
+      from,
+      to: "cooper@alaskaoffroadexpedition.com",
+      subject: subjectInternal,
+      html,
+      text,
+    });
+
+    if (internalResult?.error) {
+      console.error("RESEND contact (internal) error:", internalResult.error);
+      return res
+        .status(500)
+        .json({ ok: false, error: "Failed to send internal email." });
+    }
+
+    // 2) Auto-response to customer (if email present)
+    let customerError = null;
+    if (contact.email) {
+      const customerHtml = `
+        <div style="
+          max-width: 640px;
+          margin: 0 auto;
+          background: #020617;
+          color: #e5e7eb;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          padding: 24px;
+          border-radius: 16px;
+          border: 1px solid rgba(148,163,184,0.35);
+        ">
+          <div style="border-bottom: 1px solid rgba(148,163,184,0.35); padding-bottom: 16px; margin-bottom: 20px;">
+            <h1 style="font-size: 20px; margin: 0 0 4px 0;">Alaska Offroad Expedition</h1>
+            <p style="margin: 0; font-size: 13px; color: #9ca3af;">
+              Thanks for reaching out!
+            </p>
+          </div>
+
+          <p style="font-size: 14px; margin-bottom: 12px;">
+            Hi ${safe(contact.name)},
+          </p>
+          <p style="font-size: 14px; margin-bottom: 12px;">
+            We’ve received your message and will get back to you as soon as possible
+            about your Alaska off-road adventure.
+          </p>
+
+          <h2 style="font-size: 15px; margin: 16px 0 8px 0;">What you sent</h2>
+          <div style="
+            background: rgba(15,23,42,0.9);
+            border-radius: 12px;
+            padding: 12px 14px;
+            border: 1px solid rgba(148,163,184,0.35);
+            margin-bottom: 16px;
+            font-size: 13px;
+            white-space: pre-wrap;
+          ">
+            ${safe(message)}
+          </div>
+
+          <div style="font-size: 12px; color: #9ca3af; margin-top: 16px; border-top: 1px solid rgba(148,163,184,0.35); padding-top: 10px;">
+            If you need to reach us sooner, you can call or text <strong>907-406-7901</strong>.<br/>
+            We’re excited to help plan your Alaska adventure.
+          </div>
+        </div>
+      `;
+
+      const customerText = `
+Hi ${safe(contact.name)},
+
+We’ve received your message and will get back to you as soon as possible about your Alaska off-road adventure.
+
+What you sent
+-------------
+${safe(message)}
+
+If you need to reach us sooner, you can call or text 907-406-7901.
+
+Alaska Offroad Expedition
+      `.trim();
+
+      const customerResult = await resend.emails.send({
+        from,
+        to: contact.email,
+        subject: subjectCustomer,
+        html: customerHtml,
+        text: customerText,
+      });
+
+      if (customerResult?.error) {
+        customerError = customerResult.error;
+        console.error("RESEND contact (customer) error:", customerError);
+      }
+    }
+
+    return res.status(200).json({
+      ok: true,
+      customerEmailSent: !customerError,
+    });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Email failed' });
+    console.error("QUOTE / CONTACT API ERROR:", err);
+    return res.status(500).json({ ok: false, error: "Internal Server Error" });
   }
 }
