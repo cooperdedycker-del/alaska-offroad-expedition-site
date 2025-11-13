@@ -361,7 +361,6 @@ function Contact() {
   );
 }
 
-}
 
 function Footer() {
   return (
