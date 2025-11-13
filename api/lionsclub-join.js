@@ -137,8 +137,7 @@ export default async function handler(req, res) {
             </p>
 
             <p style="margin:0 0 6px;">
-              If you have questions in the meantime, you can reply directly to this email
-              or contact us at
+              If you have questions in the meantime, you can contact us at
               <a href="mailto:cooper@alaskaoffroadexpedition.com" style="color:#2563eb;text-decoration:none;">
                 cooper@alaskaoffroadexpedition.com
               </a>.
