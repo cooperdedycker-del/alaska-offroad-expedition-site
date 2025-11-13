@@ -205,22 +205,47 @@ ${trip.notes || "No additional notes provided."}
 Phone: 907-406-7901
     `.trim();
 
-    const { error } = await resend.emails.send({
+       // --- SEND EMAILS ---
+
+    // 1) Internal email to you
+    const internalSubject = "New Trip Inquiry from Website";
+    const internalResult = await resend.emails.send({
       from,
-      to,
-      subject,
+      to: "cooper@alaskaoffroadexpedition.com",
+      subject: internalSubject,
       html,
       text,
     });
 
-    if (error) {
-      console.error("RESEND trip-inquiry error:", error);
+    if (internalResult?.error) {
+      console.error("RESEND internal trip-inquiry error:", internalResult.error);
       return res
         .status(500)
-        .json({ ok: false, error: "Failed to send email." });
+        .json({ ok: false, error: "Failed to send internal email." });
     }
 
-    return res.status(200).json({ ok: true });
+    // 2) Customer confirmation email (only if we have their email)
+    let customerError = null;
+    if (contact.email) {
+      const customerResult = await resend.emails.send({
+        from,
+        to: contact.email,
+        subject: subject, // "Alaska Offroad Expedition itinerary"
+        html,
+        text,
+      });
+
+      if (customerResult?.error) {
+        customerError = customerResult.error;
+        console.error("RESEND customer confirmation error:", customerError);
+      }
+    }
+
+    // Even if the customer email fails, the important part (internal email) worked
+    return res.status(200).json({
+      ok: true,
+      customerEmailSent: !customerError,
+    });
   } catch (err) {
     console.error("TRIP-INQUIRY API ERROR:", err);
     return res.status(500).json({ ok: false, error: "Internal Server Error" });
