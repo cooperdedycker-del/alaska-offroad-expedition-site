@@ -6,7 +6,8 @@ import { Link } from "react-router-dom";
 
 export default function AlaskaOffroadExpedition() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
+  const [tripStatus, setTripStatus] = useState("idle"); // "idle" | "loading" | "success" | "error"
+  const [tripError, setTripError] = useState("");
   return (
       <div id="top" className="min-h-screen bg-neutral-950 text-neutral-100">
       <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/70">
@@ -283,60 +284,123 @@ function Footer() {
 function TripBuilder() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-    start: "", end: "", party: 2, rig: "wrangler-expedition", guideDay: false, overnight: 0,
-    addOns: { glacier: false, helicopter: false, bushplane: false, zipline: false, mine: false, lodgeNights: 0 },
+    start: "",
+    end: "",
+    party: 2,
+    rig: "wrangler-expedition",
+    guideDay: false,
+    overnight: 0,
+    addOns: {
+      glacier: false,
+      helicopter: false,
+      bushplane: false,
+      zipline: false,
+      mine: false,
+      lodgeNights: 0,
+    },
     contact: { name: "", email: "", phone: "" },
   });
 
+  // ✅ New: status + error for inline messages
+  const [tripStatus, setTripStatus] = useState("idle"); // "idle" | "loading" | "success" | "error"
+  const [tripError, setTripError] = useState("");
+
   const nights = useMemo(() => {
     if (!form.start || !form.end) return 0;
-    const s = new Date(form.start), e = new Date(form.end);
-    return Math.max(0, Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)));
+    const s = new Date(form.start),
+      e = new Date(form.end);
+    return Math.max(
+      0,
+      Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24))
+    );
   }, [form.start, form.end]);
 
   const price = useMemo(() => {
     const dailyRental = 850;
     const guideTotal = form.guideDay ? 750 : 0;
     const overnightAdd = (form.overnight || 0) * 1000;
-    const addOnMap = { glacier: 600, helicopter: 1200, bushplane: 900, zipline: 250, mine: 300 };
-    const addOnSum = Object.entries(form.addOns).filter(([k, v]) => addOnMap[k] && v === true).reduce((a, [k]) => a + addOnMap[k], 0);
+
+    const addOnMap = {
+      glacier: 600,
+      helicopter: 1200,
+      bushplane: 900,
+      zipline: 250,
+      mine: 300,
+    };
+
+    const addOnSum = Object.entries(form.addOns)
+      .filter(([k, v]) => addOnMap[k] && v === true)
+      .reduce((a, [k]) => a + addOnMap[k], 0);
+
     const lodgeCost = (form.addOns.lodgeNights || 0) * 350;
     const rentalTotal = nights * dailyRental;
     const total = rentalTotal + guideTotal + overnightAdd + addOnSum + lodgeCost;
+
     return { rentalTotal, guideTotal, overnightAdd, addOnSum, lodgeCost, total };
   }, [nights, form]);
 
   const next = () => setStep((s) => Math.min(4, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));
   const set = (patch) => setForm((f) => ({ ...f, ...patch }));
-const [sending, setSending] = useState(false);
-const submit = async () => {
-  // basic validation
-  if (!form.contact.name || !form.contact.email) {
-    alert("Please enter your name and email in the Contact step.");
-    setStep(4);
-    return;
-  }
 
-  try {
-    setSending(true);
-    const r = await fetch('/api/trip-inquiry', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'Failed to submit');
+  const submit = async () => {
+    // 🔴 Client-side validation for contact info
+    if (!form.contact.name || !form.contact.email) {
+      setTripStatus("error");
+      setTripError(
+        "Please enter your name and email in the Contact step so we can send your itinerary."
+      );
+      setStep(4);
+      return;
+    }
 
-    alert('Request submitted! We’ll email you shortly with availability and next steps.');
-    // optional: reset or keep values
-    // setForm({ ...initial state if you want to clear it... });
-  } catch (e) {
-    alert('Something went wrong sending your request. Please try again.');
-  } finally {
-    setSending(false);
-  }
-};
+    try {
+      setTripStatus("loading");
+      setTripError("");
+
+      const r = await fetch("/api/trip-inquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          form,
+          pricing: price, // ✅ include pricing details for the email
+        }),
+      });
+
+      const data = await r.json();
+      if (!r.ok || !data.ok) {
+        throw new Error(data.error || "Failed to submit");
+      }
+
+      // ✅ SUCCESS
+      setTripStatus("success");
+      setTripError("");
+      // Optional: clear the form after success:
+      // setForm({
+      //   start: "",
+      //   end: "",
+      //   party: 2,
+      //   rig: "wrangler-expedition",
+      //   guideDay: false,
+      //   overnight: 0,
+      //   addOns: {
+      //     glacier: false,
+      //     helicopter: false,
+      //     bushplane: false,
+      //     zipline: false,
+      //     mine: false,
+      //     lodgeNights: 0,
+      //   },
+      //   contact: { name: "", email: "", phone: "" },
+      // });
+    } catch (e) {
+      console.error("Trip submit error:", e);
+      setTripStatus("error");
+      setTripError(
+        "Something went wrong sending your request. Please try again in a minute."
+      );
+    }
+  };
 
   return (
     <div className="relative">
@@ -346,36 +410,62 @@ const submit = async () => {
           <header className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold">Build Your Expedition</h2>
-              <p className="mt-2 text-neutral-300 max-w-3xl">Select dates, rig, add experiences, and request an itinerary. We’ll confirm permits and send payment & waiver links.</p>
+              <p className="mt-2 text-neutral-300 max-w-3xl">
+                Select dates, rig, add experiences, and request an itinerary. We’ll confirm
+                permits and send payment & waiver links.
+              </p>
             </div>
             <Stepper step={step} />
           </header>
 
           <div className="mt-8 grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-6">
-              {step === 1 && (<StepDates form={form} set={set} nights={nights} />)}
-              {step === 2 && (<StepRigAndExtras form={form} set={set} />)}
-              {step === 3 && (<StepAddOns form={form} set={set} />)}
-              {step === 4 && (<StepContact form={form} set={set} />)}
+              {step === 1 && <StepDates form={form} set={set} nights={nights} />}
+              {step === 2 && <StepRigAndExtras form={form} set={set} />}
+              {step === 3 && <StepAddOns form={form} set={set} />}
+              {step === 4 && <StepContact form={form} set={set} />}
+
+              {/* ✅ Inline success / error messages near the buttons */}
+              {tripStatus === "success" && (
+                <div className="mb-4 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+                  Your trip inquiry has been sent! We’ll email your custom Alaska Offroad
+                  Expedition itinerary shortly.
+                </div>
+              )}
+
+              {tripStatus === "error" && tripError && (
+                <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                  {tripError}
+                </div>
+              )}
 
               <div className="flex items-center gap-3">
-                {step > 1 && (<button onClick={back} className="rounded-xl border border-white/20 px-5 py-3 font-semibold hover:bg-white/10">Back</button>)}
+                {step > 1 && (
+                  <button
+                    onClick={back}
+                    className="rounded-xl border border-white/20 px-5 py-3 font-semibold hover:bg-white/10"
+                  >
+                    Back
+                  </button>
+                )}
                 {step < 4 ? (
-  <button
-    onClick={next}
-    className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200"
-  >
-    Continue
-  </button>
-) : (
-  <button
-    onClick={submit}
-    disabled={sending}
-    className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200 disabled:opacity-60"
-  >
-    {sending ? "Sending..." : "Request Itinerary"}
-  </button>
-)}
+                  <button
+                    onClick={next}
+                    className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200"
+                  >
+                    Continue
+                  </button>
+                ) : (
+                  <button
+                    onClick={submit}
+                    disabled={tripStatus === "loading"}
+                    className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200 disabled:opacity-60"
+                  >
+                    {tripStatus === "loading"
+                      ? "Sending..."
+                      : "Request Itinerary"}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -399,9 +489,21 @@ function Stepper({ step }) {
         const active = n <= step;
         return (
           <div key={label} className="flex items-center gap-2">
-            <div className={`h-7 w-7 grid place-items-center rounded-full border ${active ? "bg-white text-neutral-900 border-white" : "border-white/30"}`}>{n}</div>
-            <span className={active ? "text-white" : "text-neutral-400"}>{label}</span>
-            {i < steps.length - 1 && <div className="mx-2 h-px w-8 bg-white/20" />}
+            <div
+              className={`h-7 w-7 grid place-items-center rounded-full border ${
+                active
+                  ? "bg-white text-neutral-900 border-white"
+                  : "border-white/30"
+              }`}
+            >
+              {n}
+            </div>
+            <span className={active ? "text-white" : "text-neutral-400"}>
+              {label}
+            </span>
+            {i < steps.length - 1 && (
+              <div className="mx-2 h-px w-8 bg-white/20" />
+            )}
           </div>
         );
       })}
@@ -415,18 +517,37 @@ function StepDates({ form, set, nights }) {
       <div className="grid md:grid-cols-3 gap-4">
         <div>
           <label className="text-sm text-neutral-300">Start date</label>
-          <input value={form.start} onChange={(e) => set({ start: e.target.value })} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" type="date" />
+          <input
+            value={form.start}
+            onChange={(e) => set({ start: e.target.value })}
+            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+            type="date"
+          />
         </div>
         <div>
           <label className="text-sm text-neutral-300">End date</label>
-          <input value={form.end} onChange={(e) => set({ end: e.target.value })} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" type="date" />
+          <input
+            value={form.end}
+            onChange={(e) => set({ end: e.target.value })}
+            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+            type="date"
+          />
         </div>
         <div>
           <label className="text-sm text-neutral-300">Party size</label>
-          <input value={form.party} onChange={(e) => set({ party: Number(e.target.value) })} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" type="number" min={1} max={4} />
+          <input
+            value={form.party}
+            onChange={(e) => set({ party: Number(e.target.value) })}
+            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+            type="number"
+            min={1}
+            max={4}
+          />
         </div>
       </div>
-      <div className="text-sm text-neutral-400">{nights} night(s) selected.</div>
+      <div className="text-sm text-neutral-400">
+        {nights} night(s) selected.
+      </div>
     </div>
   );
 }
@@ -436,41 +557,86 @@ function StepRigAndExtras({ form, set }) {
     <div className="space-y-4">
       <div>
         <label className="text-sm text-neutral-300">Rig selection</label>
-        <select value={form.rig} onChange={(e) => set({ rig: e.target.value })} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3">
-          <option value="wrangler-expedition">Wrangler Expedition (40&quot; tires)</option>
-          <option value="wrangler-premium">Wrangler Premium (35&quot; Tires)</option>
-          <option value="tacoma-expedition">Tacoma Expedition (40&quot; Tires)</option>
-          <option value="tacoma-premium">Tacoma Premium (35&quot; Tires)</option>
+        <select
+          value={form.rig}
+          onChange={(e) => set({ rig: e.target.value })}
+          className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+        >
+          <option value="wrangler-expedition">
+            Wrangler Expedition (40&quot; tires)
+          </option>
+          <option value="wrangler-premium">
+            Wrangler Premium (35&quot; Tires)
+          </option>
+          <option value="tacoma-expedition">
+            Tacoma Expedition (40&quot; Tires)
+          </option>
+          <option value="tacoma-premium">
+            Tacoma Premium (35&quot; Tires)
+          </option>
         </select>
       </div>
       <div className="flex items-center gap-3">
-        <input id="guideDay" type="checkbox" checked={form.guideDay} onChange={(e) => set({ guideDay: e.target.checked })} className="h-4 w-4" />
-        <label htmlFor="guideDay" className="text-neutral-200">Add a guided day (+$750)</label>
+        <input
+          id="guideDay"
+          type="checkbox"
+          checked={form.guideDay}
+          onChange={(e) => set({ guideDay: e.target.checked })}
+          className="h-4 w-4"
+        />
+        <label htmlFor="guideDay" className="text-neutral-200">
+          Add a guided day (+$750)
+        </label>
       </div>
       <div>
-        <label className="text-sm text-neutral-300">Overnights (includes meals & camp)</label>
-        <input value={form.overnight} onChange={(e) => set({ overnight: Number(e.target.value) })} type="number" min={0} max={14} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" />
+        <label className="text-sm text-neutral-300">
+          Overnights (includes meals & camp)
+        </label>
+        <input
+          value={form.overnight}
+          onChange={(e) => set({ overnight: Number(e.target.value) })}
+          type="number"
+          min={0}
+          max={14}
+          className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+        />
       </div>
     </div>
   );
 }
 
 function StepAddOns({ form, set }) {
-  const toggle = (k) => set({ addOns: { ...form.addOns, [k]: !form.addOns[k] } });
-  const setNum = (k, v) => set({ addOns: { ...form.addOns, [k]: Number(v) } });
+  const toggle = (k) =>
+    set({ addOns: { ...form.addOns, [k]: !form.addOns[k] } });
+  const setNum = (k, v) =>
+    set({ addOns: { ...form.addOns, [k]: Number(v) } });
+
   const items = [
     { key: "glacier", label: "Glacier Hike", note: "+$600" },
     { key: "helicopter", label: "Helicopter Flight", note: "+$1500" },
     { key: "bushplane", label: "Bush Plane Segment", note: "+$1500" },
     { key: "zipline", label: "Zipline", note: "+$500" },
-    { key: "mine", label: "Historic Mine/Glacier Tunnel Tour", note: "+$1500" },
+    {
+      key: "mine",
+      label: "Historic Mine/Glacier Tunnel Tour",
+      note: "+$1500",
+    },
   ];
+
   return (
     <div className="space-y-4">
       <div className="grid md:grid-cols-2 gap-3">
         {items.map((x) => (
-          <label key={x.key} className="flex items-center gap-3 rounded-xl border border-white/10 bg-neutral-900/40 p-4 hover:bg-white/5 cursor-pointer">
-            <input type="checkbox" checked={form.addOns[x.key]} onChange={() => toggle(x.key)} className="h-4 w-4" />
+          <label
+            key={x.key}
+            className="flex items-center gap-3 rounded-xl border border-white/10 bg-neutral-900/40 p-4 hover:bg-white/5 cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              checked={form.addOns[x.key]}
+              onChange={() => toggle(x.key)}
+              className="h-4 w-4"
+            />
             <span className="flex-1">
               <div className="font-semibold">{x.label}</div>
               <div className="text-sm text-neutral-400">{x.note}</div>
@@ -479,8 +645,17 @@ function StepAddOns({ form, set }) {
         ))}
       </div>
       <div>
-        <label className="text-sm text-neutral-300">Lodge nights (optional)</label>
-        <input type="number" min={0} max={14} value={form.addOns.lodgeNights} onChange={(e) => setNum("lodgeNights", e.target.value)} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" />
+        <label className="text-sm text-neutral-300">
+          Lodge nights (optional)
+        </label>
+        <input
+          type="number"
+          min={0}
+          max={14}
+          value={form.addOns.lodgeNights}
+          onChange={(e) => setNum("lodgeNights", e.target.value)}
+          className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+        />
       </div>
     </div>
   );
@@ -494,18 +669,37 @@ function StepContact({ form, set }) {
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="text-sm text-neutral-300">Full name</label>
-          <input value={c.name} onChange={(e) => setC({ name: e.target.value })} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" placeholder="Your name" />
+          <input
+            value={c.name}
+            onChange={(e) => setC({ name: e.target.value })}
+            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+            placeholder="Your name"
+          />
         </div>
         <div>
           <label className="text-sm text-neutral-300">Email</label>
-          <input value={c.email} type="email" onChange={(e) => setC({ email: e.target.value })} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" placeholder="you@email.com" />
+          <input
+            value={c.email}
+            type="email"
+            onChange={(e) => setC({ email: e.target.value })}
+            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+            placeholder="you@email.com"
+          />
         </div>
       </div>
       <div>
         <label className="text-sm text-neutral-300">Phone</label>
-        <input value={c.phone} onChange={(e) => setC({ phone: e.target.value })} className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3" placeholder="+1 (___) ___-____" />
+        <input
+          value={c.phone}
+          onChange={(e) => setC({ phone: e.target.value })}
+          className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+          placeholder="+1 (___) ___-____"
+        />
       </div>
-      <div className="text-sm text-neutral-400">Submitting will create a reservation request. We’ll reply with availability, a deposit link (Stripe), and an e-signature waiver.</div>
+      <div className="text-sm text-neutral-400">
+        Submitting will create a reservation request. We’ll reply with
+        availability, a deposit link (Stripe), and an e-signature waiver.
+      </div>
     </div>
   );
 }
@@ -515,27 +709,78 @@ function SummaryCard({ form, nights, price }) {
     <div className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5">
       <div className="font-semibold text-lg">Summary</div>
       <div className="mt-3 space-y-2 text-sm text-neutral-300">
-        <div><span className="text-neutral-400">Dates:</span> {form.start || '—'} → {form.end || '—'} ({nights} night{nights !== 1 ? 's' : ''})</div>
-        <div><span className="text-neutral-400">Rig:</span> {form.rig.replace('-', ' ')}</div>
-        <div><span className="text-neutral-400">Guided day:</span> {form.guideDay ? 'Yes' : 'No'}</div>
-        <div><span className="text-neutral-400">Overnights:</span> {form.overnight}</div>
+        <div>
+          <span className="text-neutral-400">Dates:</span>{" "}
+          {form.start || "—"} → {form.end || "—"} ({nights} night
+          {nights !== 1 ? "s" : ""})
+        </div>
+        <div>
+          <span className="text-neutral-400">Rig:</span>{" "}
+          {form.rig.replace("-", " ")}
+        </div>
+        <div>
+          <span className="text-neutral-400">Guided day:</span>{" "}
+          {form.guideDay ? "Yes" : "No"}
+        </div>
+        <div>
+          <span className="text-neutral-400">Overnights:</span>{" "}
+          {form.overnight}
+        </div>
         <div className="pt-2 border-t border-white/10">Add-ons:</div>
         <ul className="list-disc pl-5">
-          {Object.entries(form.addOns).filter(([k, v]) => typeof v === 'boolean' && v).map(([k]) => (
-            <li key={k} className="capitalize">{k}</li>
-          ))}
-          {form.addOns.lodgeNights > 0 && (<li>Lodge nights × {form.addOns.lodgeNights}</li>)}
-          {Object.values(form.addOns).every(v => v === false || v === 0) && (<li className="text-neutral-400">None selected</li>)}
+          {Object.entries(form.addOns)
+            .filter(([k, v]) => typeof v === "boolean" && v)
+            .map(([k]) => (
+              <li key={k} className="capitalize">
+                {k}
+              </li>
+            ))}
+          {form.addOns.lodgeNights > 0 && (
+            <li>Lodge nights × {form.addOns.lodgeNights}</li>
+          )}
+          {Object.values(form.addOns).every(
+            (v) => v === false || v === 0
+          ) && (
+            <li className="text-neutral-400">None selected</li>
+          )}
         </ul>
       </div>
       <div className="mt-4 rounded-xl bg-neutral-800 p-4 text-sm text-neutral-200">
-        <div className="flex justify-between"><span>Rental</span><span>${price.rentalTotal.toLocaleString()}</span></div>
-        {price.guideTotal > 0 && <div className="flex justify-between"><span>Guided day</span><span>${price.guideTotal.toLocaleString()}</span></div>}
-        {price.overnightAdd > 0 && <div className="flex justify-between"><span>Overnights</span><span>${price.overnightAdd.toLocaleString()}</span></div>}
-        {price.addOnSum > 0 && <div className="flex justify-between"><span>Add-ons</span><span>${price.addOnSum.toLocaleString()}</span></div>}
-        {price.lodgeCost > 0 && <div className="flex justify-between"><span>Lodge</span><span>${price.lodgeCost.toLocaleString()}</span></div>}
-        <div className="mt-3 flex justify-between text-base font-semibold"><span>Total (est.)</span><span>${price.total.toLocaleString()}</span></div>
-        <div className="text-xs text-neutral-400 mt-1">Final price confirmed after permits & vendor availability.</div>
+        <div className="flex justify-between">
+          <span>Rental</span>
+          <span>${price.rentalTotal.toLocaleString()}</span>
+        </div>
+        {price.guideTotal > 0 && (
+          <div className="flex justify-between">
+            <span>Guided day</span>
+            <span>${price.guideTotal.toLocaleString()}</span>
+          </div>
+        )}
+        {price.overnightAdd > 0 && (
+          <div className="flex justify-between">
+            <span>Overnights</span>
+            <span>${price.overnightAdd.toLocaleString()}</span>
+          </div>
+        )}
+        {price.addOnSum > 0 && (
+          <div className="flex justify-between">
+            <span>Add-ons</span>
+            <span>${price.addOnSum.toLocaleString()}</span>
+          </div>
+        )}
+        {price.lodgeCost > 0 && (
+          <div className="flex justify-between">
+            <span>Lodge</span>
+            <span>${price.lodgeCost.toLocaleString()}</span>
+          </div>
+        )}
+        <div className="mt-3 flex justify-between text-base font-semibold">
+          <span>Total (est.)</span>
+          <span>${price.total.toLocaleString()}</span>
+        </div>
+        <div className="text-xs text-neutral-400 mt-1">
+          Final price confirmed after permits & vendor availability.
+        </div>
       </div>
     </div>
   );
@@ -548,8 +793,13 @@ function PolicyCard() {
       <ul className="mt-3 list-disc pl-5 space-y-2">
         <li>25% deposit to reserve; balance due 14 days before start.</li>
         <li>Free date change up to 30 days prior (subject to availability).</li>
-        <li>Driver’s license verification and damage deposit required for rentals.</li>
-        <li>Trips may shift for safety/weather; equal or better alternatives provided.</li>
+        <li>
+          Driver’s license verification and damage deposit required for rentals.
+        </li>
+        <li>
+          Trips may shift for safety/weather; equal or better alternatives
+          provided.
+        </li>
       </ul>
     </div>
   );
