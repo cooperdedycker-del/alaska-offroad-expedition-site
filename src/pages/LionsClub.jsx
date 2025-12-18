@@ -98,7 +98,7 @@ export default function LionsClubPage() {
             ← Back to Alaska Offroad Expedition
           </Link>
           <p className="hidden md:block text-xs text-neutral-500">
-            Mat-Su Offroad &amp; Outdoor Lions Club • Adventure with purpose
+            Southcentral Alaska Offroad &amp; Outdoor Lions Club • Adventure with purpose
           </p>
         </div>
       </div>
@@ -120,7 +120,7 @@ export default function LionsClubPage() {
           {/* BIG TITLE + TAGLINE CENTERED */}
           <div className="text-center flex flex-col items-center gap-3">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight">
-              Mat-Su Offroad &amp; Outdoor Lions Club
+              Southcentral Alaska Offroad &amp; Outdoor Lions Club
             </h1>
             <p className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-100">
               Adventure with Purpose
@@ -206,20 +206,20 @@ export default function LionsClubPage() {
             <div className="flex justify-center md:justify-end">
               <div className="w-full">
                 <img
-                  src="/images/lions-hero.png"
-                  alt="Mat-Su Off-Road & Outdoor Lions Club logo"
+                  src="/images/Offical SAOOLC Logo.png"
+                  alt="Southcentral Alaska Off-Road & Outdoor Lions Club logo"
                   className="w-full max-w-[200px] md:max-w-[500px] h-auto object-contain drop-shadow-2xl mx-auto"
                   loading="lazy"
                 />
                 <p className="mt-4 text-center text-sm text-neutral-200">
-                  Mat-Su Off-Road &amp; Outdoor Lions Club
+                  Southcentral Alaska Off-Road &amp; Outdoor Lions Club
                   <br />
                   <span className="text-amber-300 font-semibold">
                     “Adventure with purpose”
                   </span>
                 </p>
                 <div className="mt-4 flex flex-col gap-2 text-xs text-neutral-300 text-center">
-                  <p>• Official Lions Club serving the Mat-Su and beyond</p>
+                  <p>• Official Lions Club serving the Southcentral Alaska area and beyond</p>
                   <p>• Focused on outdoor access, safety, and community support</p>
                 </div>
               </div>
@@ -241,7 +241,7 @@ export default function LionsClubPage() {
               Keeping Alaska&apos;s outdoors accessible to everyone.
             </h2>
             <p className="mt-4 text-neutral-700 leading-relaxed text-lg">
-              The Mat-Su Off-Road &amp; Outdoor Lions Club was founded by
+              The Southcentral Alaska Off-Road &amp; Outdoor Lions Club was founded by
               Alaskans who believe the outdoors should be shared, not gatekept.
               Our mission is to be advocates and stewards for Alaska’s outdoor
               and off-road community — protecting access, teaching safety, and
@@ -428,8 +428,7 @@ export default function LionsClubPage() {
                 <strong>$35 application fee</strong> and{" "}
                 <strong>$110 yearly dues</strong>. Your support helps cover
                 vehicle maintenance, free ride events, insurance, permits,
-                safety gear, training materials, and more. Founding member
-                spots are open until the 4th.
+                safety gear, training materials, and more.
               </p>
             </div>
             <div className="flex flex-col items-start gap-3">
@@ -467,11 +466,11 @@ export default function LionsClubPage() {
         <div className="relative mx-auto max-w-5xl px-4 py-20">
           <div className="rounded-3xl border border-white/60 bg-white/95 shadow-2xl backdrop-blur-sm p-8 md:p-10">
             <h2 className="text-3xl md:text-4xl font-bold text-center">
-              Join the Mat-Su Off-Road &amp; Outdoor Lions Club
+              Join the Southcentral Alaska Off-Road &amp; Outdoor Lions Club
             </h2>
             <p className="mt-3 text-neutral-700 text-center text-base md:text-lg">
               We are officially a chartering club and are accepting{" "}
-              <strong>founding members until the 4th</strong>. Fill out this
+              <strong>founding members</strong>. Fill out this
               form to apply as a founding member or general club member. We’ll
               follow up with next steps, charter meeting details, and how to
               submit your <strong>$35 application fee</strong> and{" "}
@@ -629,7 +628,7 @@ export default function LionsClubPage() {
       <section className="pb-12 bg-white">
         <div className="mx-auto max-w-6xl px-4">
           <p className="text-sm text-neutral-600">
-            *This page is for the official Mat-Su Off-Road &amp; Outdoor Lions
+            *This page is for the official Southcentral Alaska Off-Road &amp; Outdoor Lions
             Club, supported by Alaska Offroad Expedition.
           </p>
         </div>
