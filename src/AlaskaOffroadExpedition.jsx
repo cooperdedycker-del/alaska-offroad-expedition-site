@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Link } from "react-router-dom";
@@ -15,7 +15,7 @@ export default function AlaskaOffroadExpedition() {
           <div className="flex items-center gap-3">
             <a href="#top" className="h-9 w-9 rounded-lg overflow-hidden">
   <img
-    src="/images/logo-round.png"
+    src="/images/android-chrome-512x512.png"
     alt="Alaska Offroad Expedition logo"
     className="h-full w-full object-contain"
   />
@@ -31,10 +31,12 @@ export default function AlaskaOffroadExpedition() {
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm text-neutral-300">
             <a href="#experiences" className="hover:text-white">Experiences</a>
+            <a href="#excursions" className="hover:text-white">Excursions</a>
             <a href="#fleet" className="hover:text-white">Fleet</a>
             <a href="#trip-builder" className="hover:text-white">Trip Builder</a>
             <a href="#about" className="hover:text-white">About</a>
             <a href="#faq" className="hover:text-white">FAQ</a>
+            <a href="#sponsors" className="hover:text-white">Sponsors</a>
             <a href="#contact" className="hover:text-white">Contact</a>
             <Link to="/lionsclub" className="hover:text-white font-semibold text-amber-400">Off-Road Nonprofit</Link>
           </nav>
@@ -44,10 +46,12 @@ export default function AlaskaOffroadExpedition() {
         {mobileNavOpen && (
           <nav className="md:hidden flex flex-col items-center gap-4 pb-4 text-sm text-neutral-300">
             <a href="#experiences" onClick={() => setMobileNavOpen(false)}>Experiences</a>
+            <a href="#excursions" onClick={() => setMobileNavOpen(false)}>Excursions</a>
             <a href="#fleet" onClick={() => setMobileNavOpen(false)}>Fleet</a>
             <a href="#trip-builder" onClick={() => setMobileNavOpen(false)}>Trip Builder</a>
             <a href="#about" onClick={() => setMobileNavOpen(false)}>About</a>
             <a href="#faq" onClick={() => setMobileNavOpen(false)}>FAQ</a>
+            <a href="#sponsors" onClick={() => setMobileNavOpen(false)}>Sponsors</a>
             <a href="#contact" onClick={() => setMobileNavOpen(false)}>Contact</a>
             <Link to="/lionsclub" className="hover:text-white font-semibold text-amber-400">Off-Road Nonprofit</Link>
           </nav>
@@ -57,12 +61,14 @@ export default function AlaskaOffroadExpedition() {
       <Hero />
       <TrustBar />
       <Experiences />
+      <Excursions />
       <Fleet />
       <section id="trip-builder" className="relative">
         <TripBuilder />
       </section>
       <About />
       <FAQ />
+      <Sponsors />
       <Contact />
       <Footer />
     </div>
@@ -129,37 +135,234 @@ function TrustBar() {
 function Experiences() {
   const cards = [
     {
-      title: "Guided Day Expedition",
-      price: "from $1,200 / day (per couple)",
-      desc: "4–6 hours off-road with a pro guide, lunch included.",
-      img: "/images/guidedday1.png"
+      tier: "Signature",
+      title: "14-Day Ultimate Guided Expedition",
+      price: "Starting at $15,000+",
+      desc:
+        "A full-state, multi-week expedition built around the best of Alaska. Includes expedition rigs, daily guiding, lodging, excursions, and all essential gear. Helicopter tours, glacier climbing, mine tours, dirt bikes, and more—planned end-to-end.",
+      img: "/images/7day.jpg",
+      bullets: [
+        "Rigs included",
+        "Guided daily",
+        "Excursions included",
+        "Lodging included",
+        "All gear included",
+      ],
     },
     {
-      title: "Overnight Remote Camp",
-      price: "from $2,500 – $3,000 / couple",
-      desc: "Two-day off-road push, camp set-up, hot meals, stargazing.",
-      img: "/images/Overnight1.jpg"
+      tier: "Signature",
+      title: "7-Day Guided Expedition (All-In)",
+      price: "Starting at $7,500+",
+      desc:
+        "A week-long guided expedition with an expedition rig, curated routes, lodging, and top excursions. Built for guests who want the full Alaska experience without the multi-week timeline.",
+      img: "/images/7 day trip.jpg",
+      bullets: [
+        "Rigs included",
+        "Guided daily",
+        "Excursions + lodging",
+        "Route planning + logistics",
+      ],
     },
     {
-      title: "Ultimate 7-Day Expedition",
-      price: "$25,000 – $30,000 / guest",
-      desc: "Helicopter flyover, glacier trek, bush plane segment, lodge nights.",
-      img: "/images/7day.jpg"
-    }
+      tier: "Popular",
+      title: "3-Day Remote Adventure (Guided + Camp/Lodge Mix)",
+      price: "Starting at $3,500+",
+      desc:
+        "A long-weekend expedition that gets you deep into the backcountry. Includes guided trail days, a camp system, and optional lodge nights depending on your comfort level and the season.",
+      img: "/images/Overnight1.jpg",
+      bullets: [
+        "Rig + guided trail days",
+        "Camp system + meals",
+        "Optional lodge nights",
+      ],
+    },
+    {
+      tier: "Popular",
+      title: "Overnight Remote Camp (2-Day)",
+      price: "Starting at $2,500+",
+      desc:
+        "Two days of off-road travel with camp setup, hot meals, and a true off-grid overnight. A perfect intro to expedition-style Alaska without committing to a full week.",
+      img: "/images/Bolder creek Camp.jpg",
+      bullets: ["Rig + guiding", "Meals + camp system", "Backcountry overnight"],
+    },
+    {
+      tier: "Seasonal",
+      title: "Knik Glacier Winter Day Tour (1-Day)",
+      price: "Driver $250 • Passengers $100 each",
+      desc:
+        "Winter-only glacier day tour to Knik Glacier. Lunch is provided. One driver seat and up to six passenger seats available—ideal for families, groups, or visitors who want glacier views in a single day.",
+      img: "/images/Knik .jpg",
+      bullets: [
+        "Winter-only",
+        "Lunch included",
+        "1 driver + up to 6 passengers",
+        "Glacier destination: Knik",
+      ],
+    },
+    {
+      tier: "Entry",
+      title: "1-Day Off-Road Experience (Choose Your Level)",
+      price: "Driver $250 / $350 / $450 • Passengers $100 each",
+      desc:
+        "A guided one-day off-road experience with three difficulty levels—easy, moderate, or advanced. Lunch is provided. One driver seat and up to six passenger seats available.",
+      img: "/images/guidedday1.png",
+      bullets: [
+        "3 difficulty levels",
+        "Lunch included",
+        "1 driver + up to 6 passengers",
+        "Perfect first-time experience",
+      ],
+    },
   ];
+
   return (
-    <section id="experiences" className="mx-auto max-w-7xl px-4 py-16">
-      <h2 className="text-3xl md:text-4xl font-bold">Signature Experiences</h2>
-      <p className="mt-2 text-neutral-300 max-w-3xl">Choose your pace—from a single day on iconic trails to week-long expeditions that mix off-road travel with glacier walks, bush plane drop-ins, and nights under the northern lights.</p>
+  <section id="experiences" className="mx-auto max-w-7xl px-4 py-16">
+    <div className="mb-10 text-center">
+      <h2 className="text-3xl md:text-4xl font-bold">
+        Expedition Packages
+      </h2>
+      <p className="mt-3 text-neutral-300 max-w-3xl mx-auto">
+        Premium, fully guided expeditions built around Alaska’s most iconic trails, glaciers, and remote backcountry.
+        Choose a multi-week, full-service expedition—or start with a single-day adventure. Use the Trip Builder below to customize your dates, rig, and excursions.
+      </p>
+    </div>
+
+
       <div className="mt-8 grid gap-6 md:grid-cols-3">
         {cards.map((x, i) => (
-          <div key={i} className="group relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/40">
-            <img src={x.img} alt={x.title} className="h-44 w-full object-cover opacity-80 group-hover:scale-105 transition duration-500" loading="lazy" />
+          <div
+            key={i}
+            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/40"
+          >
+            <img
+              src={x.img}
+              alt={x.title}
+              className="h-52 w-full object-cover opacity-85 group-hover:scale-105 transition duration-500"
+              loading="lazy"
+            />
+
             <div className="p-5">
-              <h3 className="text-xl font-semibold">{x.title}</h3>
-              <div className="text-sm text-neutral-300 mt-1">{x.price}</div>
+              <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-neutral-200">
+                {x.tier}
+              </div>
+
+              <h3 className="mt-3 text-xl font-semibold">{x.title}</h3>
+              <div className="text-sm text-neutral-200 mt-1">{x.price}</div>
+
               <p className="mt-3 text-neutral-300">{x.desc}</p>
-              <a href="#trip-builder" className="mt-4 inline-block rounded-xl bg-white text-neutral-900 px-4 py-2 font-semibold hover:bg-neutral-200">Customize</a>
+
+              {x.bullets?.length > 0 && (
+                <ul className="mt-4 space-y-1 text-sm text-neutral-300">
+                  {x.bullets.map((b, idx) => (
+                    <li key={idx} className="flex gap-2">
+                      <span className="text-neutral-500">•</span>
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <a
+                href="#trip-builder"
+                className="mt-5 inline-block rounded-xl bg-white text-neutral-900 px-4 py-2 font-semibold hover:bg-neutral-200"
+              >
+                Customize
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Excursions() {
+  const partners = [
+    {
+      name: "St. Elias Alpine Guides",
+      type: "Experiances / Glacier / Full service",
+      desc: "Guided glacier travel, ice, and alpine objectives—ideal for bucket-list glacier days and technical adventures.",
+      img: "/images/excursions/stellis1.jpg",
+      website: "https://www.steliasguides.com",
+    },
+    {
+      name: "Outbound Heli Adventures",
+      type: "Helicopter / Glacier Access",
+      desc: "Scenic flights, glacier landings, and remote ridge access—perfect for next-level views and unforgettable photo ops.",
+      img: "/images/excursions/outbound1.jpg",
+      website: "https://outboundheli.com/",
+      
+    },
+    {
+      name: "Alaska Premier Enduro",
+      type: "Motorsports",
+      desc: "Technical terrain and high-energy off-road Dirt Bike riding experiences for guests who want adrenaline and skill-based routes.",
+      img: "/images/excursions/APE1.jpg",
+      website: "https://www.alaskapremierendurollc.com/",
+      
+    },
+       {
+      name: "Gunsight Mountain Lodge",
+      type: "Lodging",
+      desc: "Gun Sight Mountain Lodge offers comfortable, welcoming accommodations at the base of one of Alaska’s most accessible and diverse off-road trail systems. Hosted by Hap, the lodge serves as an ideal home base for summer and winter adventures, providing easy access to trail riding, overland routes, snowmachine terrain, and backcountry exploration—all while offering a warm, relaxed place to recharge after a day in the outdoors.",
+      img: "/images/excursions/GSML1.jpg",
+      website: "https://www.facebook.com/gunsight.mtn.lodge/",
+      
+    },
+    {
+      name: "Become a partner Today!",
+      type: "Hit us up to get added to our list",
+      desc: "We are always looking for bussniess to add to our partner list. Contact us today!",
+      img: "/images/excursions/Looking for1.png",
+      website: "https://www.AlaskaOffroadExpedition/#excursions",
+    },
+  ];
+
+  return (
+    <section id="excursions" className="mx-auto max-w-7xl px-4 py-16">
+      {/* Centered header + description */}
+      <div className="mb-10 text-center">
+        <h2 className="text-3xl md:text-4xl font-bold">
+          Excursions &amp; Local Partners
+        </h2>
+        <p className="mt-3 text-neutral-300 max-w-3xl mx-auto">
+          We partner with proven Alaska outfitters to integrate bucket-list experiences into your expedition.
+          We coordinate logistics, timing, and planning so your trip flows smoothly.
+        </p>
+      </div>
+
+      {/* Partner cards */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {partners.map((p) => (
+          <div
+            key={p.name}
+            className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40"
+          >
+            <div className="aspect-[4/3] bg-black/30">
+              <img
+                src={p.img}
+                alt={p.name}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            </div>
+
+            <div className="p-5">
+              <div className="text-xs uppercase tracking-wider text-white/60">
+                {p.type}
+              </div>
+              <div className="mt-2 font-semibold">{p.name}</div>
+              <p className="mt-2 text-sm text-neutral-300">{p.desc}</p>
+              <a href={p.website}target="_blank"rel="noopener noreferrer"
+                     className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-neutral-100 hover:bg-white/20 transition"
+          >
+                 Learn More
+              </a>    
+
+
+              <div className="mt-3 text-xs text-neutral-500">
+                Excursion addons are selected in the trip builder
+              </div>
             </div>
           </div>
         ))}
@@ -170,22 +373,57 @@ function Experiences() {
 
 function Fleet() {
   return (
-    <section id="fleet" className="mx-auto max-w-7xl px-4 py-16">
-      <h2 className="text-3xl md:text-4xl font-bold">Fleet of Expedition Vehicles</h2>
-      <p className="mt-2 text-neutral-300 max-w-3xl">4&quot; lift • 37–40&quot; tires • 1-ton axles • Lockers • Winch • Skids • Roof rack • Fridge • Comms • Recovery kit • Camp systems • Airport pickup & drop-off available.</p>
+  <section id="fleet" className="mx-auto max-w-7xl px-4 py-16">
+    <div className="mb-10 text-center">
+      <h2 className="text-3xl md:text-4xl font-bold">
+        Expedition-Ready Fleet
+      </h2>
+      <p className="mt-3 text-neutral-300 max-w-3xl mx-auto">
+        Professionally built expedition vehicles equipped for Alaska’s most demanding terrain.
+        37&quot; tires • 4–6&quot; suspension lift • Heavy-duty bumpers &amp; winches • 
+        Rooftop and hard-shell tents • Comms &amp; navigation • Full recovery and safety gear • 
+        Airport pickup &amp; drop-off available.
+      </p>
+    </div>
+
       <div className="mt-8 grid gap-6 md:grid-cols-2">
+        {/* Jeep Gladiator */}
         <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
-          <img src="/images/Wrangler140.jpg" alt="Jeep on trail" className="h-64 w-full object-cover" loading="lazy" />
+          <img
+            src="/images/Wrangler140.jpg"
+            alt="Jeep Gladiator expedition build on mountain trail"
+            className="h-96 md:h-[28rem] w-full object-cover"
+            loading="lazy"
+          />
           <div className="p-5">
-            <h3 className="text-xl font-semibold">Wrangler Expedition Build</h3>
-            <p className="mt-2 text-neutral-300">Purpose-built 2025 Jeep Gladiator for Alaska’s toughest terrain.</p>
+            <h3 className="text-xl font-semibold">
+              Jeep Gladiator Expedition Build
+            </h3>
+            <p className="mt-2 text-neutral-300">
+              37&quot; tires with a 4.5&quot; lift, steel bumpers, integrated winch,
+              expedition suspension, comms, recovery equipment, and a SmartCap-based
+              camp system designed for long-range travel in remote terrain.
+            </p>
           </div>
         </div>
+
+        {/* Toyota Tacoma */}
         <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
-          <img src="/images/tacomaone40.jpeg" alt="Camp under northern lights" className="h-64 w-full object-cover" loading="lazy" />
+          <img
+            src="/images/tacomaone40.jpeg"
+            alt="Toyota Tacoma expedition build in the mountains"
+            className="h-96 md:h-[28rem] w-full object-cover"
+            loading="lazy"
+          />
           <div className="p-5">
-            <h3 className="text-xl font-semibold">Tacoma Expedition Build</h3>
-            <p className="mt-2 text-neutral-300">This is a 2019 Toyota Tacoma, 37&quot; Tires and a 6 inch lift, Insulated tents, warm meals, safety gear, and satellite comms for true off-grid comfort.</p>
+            <h3 className="text-xl font-semibold">
+              Toyota Tacoma Expedition Build
+            </h3>
+            <p className="mt-2 text-neutral-300">
+              2019 Tacoma TRD Off-Road on 37&quot; tires with a 6&quot; lift, heavy-duty
+              bumpers and winch, OVS topper and tent system, satellite comms,
+              recovery gear, and cold-weather camping equipment for true off-grid comfort.
+            </p>
           </div>
         </div>
       </div>
@@ -236,6 +474,98 @@ function FAQ() {
     </section>
   );
 }
+
+function Sponsors() {
+  const sponsors = [
+    {
+      name: "Carbon Offroad",
+      img: "/images/sponsors/carbonoffroad.jpg",
+      description:
+        "Carbon Offroad specializes in heavy-duty winches and recovery gear engineered for serious off-road and expedition use. Premium winches and recovery solutions trusted on our expedition rigs in Alaska’s harshest conditions. Use Discount code: ALASKAOFFROAD for 10% off!",
+      website: "https://carbonoffroadusa.com",
+    },
+    {
+      name: "Diode Dynamics",
+      img: "/images/sponsors/Diodedynamics.png",
+      description:
+        "Diode Dynamics is a U.S.-based automotive lighting manufacturer known for high-performance LED lighting solutions. They design and engineer durable, vehicle-specific products—such as headlights, auxiliary off-road lights, and interior LEDs—built to perform reliably in extreme conditions, including harsh weather and rugged off-road use.",
+      website: "diodedynamics.com",
+    },
+    // Add more sponsors here
+  ];
+
+  return (
+    <section id="sponsors" className="mx-auto max-w-7xl px-4 py-16">
+      {/* Centered header + CTA */}
+      <div className="mb-12 text-center">
+        <h2 className="text-3xl md:text-4xl font-bold">Sponsors</h2>
+        <p className="mt-3 text-neutral-300 max-w-3xl mx-auto">
+          We’re proud to work with companies that help make Alaska Offroad Expedition possible.
+          Our sponsors provide trusted gear, services, and exclusive offers for our guests.
+        </p>
+
+        <a
+          href="#contact"
+          className="mt-6 inline-flex items-center justify-center rounded-xl bg-amber-400 px-6 py-3 text-sm font-bold text-neutral-900 hover:bg-amber-300 transition"
+        >
+          Become a Sponsor
+        </a>
+      </div>
+
+      {/* Sponsors grid container */}
+      <div className="rounded-3xl border border-white/10 bg-neutral-900/40 p-6 md:p-8">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {sponsors.map((s) => (
+            <div
+              key={s.name}
+              className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/50"
+            >
+             <div className="h-40 flex items-center justify-center bg-black/30 p-4">
+  <img
+    src={s.img}
+    alt={s.name}
+    className="max-h-24 max-w-full object-contain"
+    loading="lazy"
+  />
+</div>
+
+
+              <div className="p-5 text-center">
+                <div className="text-lg font-semibold text-neutral-100">
+                  {s.name}
+                </div>
+
+                <p className="mt-2 text-sm text-neutral-300">
+                  {s.description}
+                </p>
+
+                <a
+                  href={s.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-neutral-100 hover:bg-white/20 transition"
+                >
+                  Visit Website
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {sponsors.length === 0 && (
+          <div className="mt-4 text-center text-sm text-neutral-400">
+            Sponsors coming soon.
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+
+
+
+
 
 function Contact() {
   const [status, setStatus] = useState("idle"); // "idle" | "loading" | "success" | "error"
@@ -299,9 +629,33 @@ function Contact() {
   return (
     <section id="contact" className="mx-auto max-w-7xl px-4 py-16">
       <div className="rounded-3xl border border-white/10 bg-neutral-900/50 p-8 md:p-12">
-        <h2 className="text-3xl md:text-4xl font-bold">Talk to an Expedition Planner</h2>
-        <p className="mt-2 text-neutral-300">
-          Tell us your dates and must-do experiences. We’ll craft a custom itinerary and get permits rolling.
+        {/* Call Now CTA */}
+        <div className="mb-10 flex flex-col items-center gap-3 text-center">
+          <div className="text-sm uppercase tracking-wider text-neutral-400">
+            Prefer to talk now?
+          </div>
+
+          <a
+            href="tel:9074067901"
+            className="inline-flex items-center justify-center rounded-2xl bg-amber-400 px-6 py-3 font-bold text-neutral-900 hover:bg-amber-300 transition"
+          >
+            Call Now
+          </a>
+
+          <div className="text-2xl md:text-3xl font-extrabold text-amber-400 tracking-wide">
+            907-406-7901
+          </div>
+
+          <div className="text-sm text-neutral-400 max-w-xl">
+            Speak directly with an expedition planner to discuss availability, routes, and custom options.
+          </div>
+        </div>
+
+        <h2 className="text-3xl md:text-4xl font-bold text-center">
+          Talk to an Expedition Planner
+        </h2>
+        <p className="mt-3 text-neutral-300 text-center max-w-3xl mx-auto">
+          Tell us your dates and must-do experiences. We’ll craft a custom itinerary and take care of everything!
         </p>
 
         {/* Status messages */}
@@ -335,7 +689,6 @@ function Contact() {
             onChange={(e) => update({ email: e.target.value })}
           />
 
-          {/* NEW PHONE FIELD */}
           <input
             className="rounded-xl bg-neutral-800 px-4 py-3"
             placeholder="Phone number"
@@ -373,6 +726,7 @@ function Contact() {
 
 
 
+
 function Footer() {
   return (
     <footer className="border-t border-white/10">
@@ -400,28 +754,108 @@ function Footer() {
 /* ---------------- Trip Builder ---------------- */
 
 function TripBuilder() {
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState({
-    start: "",
-    end: "",
-    party: 2,
-    rig: "wrangler-expedition",
-    guideDay: false,
-    overnight: 0,
-    addOns: {
-      glacier: false,
-      helicopter: false,
-      bushplane: false,
-      zipline: false,
-      mine: false,
-      lodgeNights: 0,
+  const topRef = useRef(null);
+  const PACKAGES = [
+    {
+      id: "ultimate-multiweek",
+      title: "Ultimate Alaska Expedition (Multi-Week)",
+      priceLabel: "Starting at $15,000+",
+      desc:
+        "Multi-week expedition across Alaska. Includes rigs, daily guiding, excursions, lodging, and all essential gear. Helicopter tours, glacier climbing, mine tours, dirt bikes, and more.",
+      airportIncluded: true,
     },
-    contact: { name: "", email: "", phone: "" },
-  });
+    {
+      id: "guided-week",
+      title: "7-Day Guided Expedition (All-In)",
+      priceLabel: "Starting at $7,500+",
+      desc:
+        "A full week of guided exploration with rigs, lodging, and curated excursions. Built for guests who want the full Alaska experience on a fixed timeline.",
+      airportIncluded: true,
+    },
+    {
+      id: "remote-3day",
+      title: "3-Day Remote Adventure",
+      priceLabel: "Starting at $3,500+",
+      desc:
+        "A long-weekend expedition with guided trail days, camp system, and optional lodge nights depending on season and comfort level.",
+      airportIncluded: true,
+    },
+    {
+      id: "overnight-2day",
+      title: "Overnight Remote Camp (2-Day)",
+      priceLabel: "Starting at $2,500+",
+      desc:
+        "Two days off-road with camp setup, hot meals, and a true off-grid overnight.",
+      airportIncluded: true,
+    },
+    {
+      id: "knik-glacier-winter",
+      title: "Knik Glacier Winter Day Tour (1-Day)",
+      priceLabel: "Driver $250 • Passengers $100 each",
+      desc:
+        "Winter-only glacier day tour to Knik Glacier. Lunch included. 1 driver seat + up to 6 passenger seats.",
+      airportIncluded: false,
+      meetupNote: "Meetup location provided after booking (day trip).",
+    },
+    {
+      id: "offroad-day-levels",
+      title: "1-Day Off-Road Experience (Choose Your Level)",
+      priceLabel: "Driver $250 / $350 / $450 • Passengers $100 each",
+      desc:
+        "Guided one-day off-road experience with three difficulty levels (easy, moderate, advanced). Lunch included. 1 driver seat + up to 6 passenger seats.",
+      airportIncluded: false,
+      meetupNote: "Meetup location provided after booking (day trip).",
+    },
+  ];
 
-  // ✅ New: status + error for inline messages
+  const [step, setStep] = useState(1);
+
+const [form, setForm] = useState({
+  packageId: "ultimate-multiweek",
+  start: "",
+  end: "",
+  drivers: 1,
+  passengers: 0,
+  dayLevel: "easy",
+  rig: "gladiator-expedition",
+
+  // NEW
+  expeditionType: "guided", // "guided" | "selfGuided"
+  campNights: 0,
+  lodgingOnly: false,
+
+  addOns: {
+    glacier: false,
+    helicopter: false,
+    bushplane: false,
+    zipline: false,
+    mine: false,
+    dirtBikes: false,
+  },
+
+  contact: { name: "", email: "", phone: "" },
+});
+
+  useEffect(() => {
+  if (topRef.current) {
+    topRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+}, [step]);
+
+
+
+  const selectedPackage = useMemo(
+    () => PACKAGES.find((p) => p.id === form.packageId) || PACKAGES[0],
+    [form.packageId]
+  );
+
+  // ✅ status + error for inline messages
   const [tripStatus, setTripStatus] = useState("idle"); // "idle" | "loading" | "success" | "error"
   const [tripError, setTripError] = useState("");
+
 
   const nights = useMemo(() => {
     if (!form.start || !form.end) return 0;
@@ -433,31 +867,86 @@ function TripBuilder() {
     );
   }, [form.start, form.end]);
 
-  const price = useMemo(() => {
-    const dailyRental = 850;
-    const guideTotal = form.guideDay ? 750 : 0;
-    const overnightAdd = (form.overnight || 0) * 1000;
+const price = useMemo(() => {
+  // Package base "starting at" prices (you can change anytime)
+  const packageBaseMap = {
+    "ultimate-multiweek": 15000,
+    "guided-week": 7500,
+    "remote-3day": 3500,
+    "overnight-2day": 2500,
+    "knik-glacier-winter": 0, // computed per seat below
+    "offroad-day-levels": 0,  // computed per seat below
+  };
 
-    const addOnMap = {
-      glacier: 600,
-      helicopter: 1200,
-      bushplane: 900,
-      zipline: 250,
-      mine: 300,
-    };
+  const isDayTrip = ["knik-glacier-winter", "offroad-day-levels"].includes(form.packageId);
 
-    const addOnSum = Object.entries(form.addOns)
-      .filter(([k, v]) => addOnMap[k] && v === true)
-      .reduce((a, [k]) => a + addOnMap[k], 0);
+  // Day trip pricing (driver + passengers)
+  const dayTripPrices = {
+    knik: { driver: 250, passenger: 100 },
+    offroad: {
+      passenger: 100,
+      driverByLevel: { easy: 250, moderate: 350, advanced: 450 },
+    },
+  };
 
-    const lodgeCost = (form.addOns.lodgeNights || 0) * 350;
-    const rentalTotal = nights * dailyRental;
-    const total = rentalTotal + guideTotal + overnightAdd + addOnSum + lodgeCost;
+  let packageBase = packageBaseMap[form.packageId] ?? 0;
 
-    return { rentalTotal, guideTotal, overnightAdd, addOnSum, lodgeCost, total };
-  }, [nights, form]);
+  if (form.packageId === "knik-glacier-winter") {
+    packageBase =
+      (form.drivers || 0) * dayTripPrices.knik.driver +
+      (form.passengers || 0) * dayTripPrices.knik.passenger;
+  }
 
-  const next = () => setStep((s) => Math.min(4, s + 1));
+  if (form.packageId === "offroad-day-levels") {
+    const driverRate = dayTripPrices.offroad.driverByLevel[form.dayLevel] ?? 250;
+    packageBase =
+      (form.drivers || 0) * driverRate +
+      (form.passengers || 0) * dayTripPrices.offroad.passenger;
+  }
+
+  // For now keep your rental math for multi-day packages (you can refine later)
+  const dailyRental = 850;
+  const rentalTotal = isDayTrip ? 0 : nights * dailyRental;
+
+  const guideTotal = form.guideDay ? 750 : 0;
+  const overnightAdd = (form.overnight || 0) * 1000;
+
+  // Excursions: numeric costs later. For now, set to null and display TBD.
+  const addOnMap = {
+    glacier: null,
+    helicopter: null,
+    bushplane: null,
+    zipline: null,
+    mine: null,
+    dirtBikes: null,
+  };
+
+  // Sum only numeric add-ons (ignore null/TBD)
+  const addOnSum = Object.entries(form.addOns)
+    .filter(([k, v]) => typeof v === "boolean" && v === true)
+    .reduce((a, [k]) => {
+      const cost = addOnMap[k];
+      return typeof cost === "number" ? a + cost : a;
+    }, 0);
+
+  const lodgeCost = (form.addOns.lodgeNights || 0) * 350;
+
+  const total = packageBase + rentalTotal + guideTotal + overnightAdd + addOnSum + lodgeCost;
+
+  return {
+    packageBase,
+    rentalTotal,
+    guideTotal,
+    overnightAdd,
+    addOnSum,
+    lodgeCost,
+    total,
+    isDayTrip,
+  };
+}, [form, nights]);
+
+
+  const next = () => setStep((s) => Math.min(5, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));
   const set = (patch) => setForm((f) => ({ ...f, ...patch }));
 
@@ -468,7 +957,7 @@ function TripBuilder() {
       setTripError(
         "Please enter your name and email in the Contact step so we can send your itinerary."
       );
-      setStep(4);
+      setStep(5);
       return;
     }
 
@@ -524,7 +1013,11 @@ function TripBuilder() {
     <div className="relative">
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-neutral-900/60 to-neutral-950" />
       <div className="mx-auto max-w-7xl px-4 py-16">
-        <div className="rounded-3xl border border-white/10 bg-neutral-900/50 p-8 md:p-12">
+        <div
+  ref={topRef}
+  className="rounded-3xl border border-white/10 bg-neutral-900/50 p-8 md:p-12"
+>
+
           <header className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold">Build Your Expedition</h2>
@@ -538,10 +1031,11 @@ function TripBuilder() {
 
           <div className="mt-8 grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-6">
-              {step === 1 && <StepDates form={form} set={set} nights={nights} />}
-              {step === 2 && <StepRigAndExtras form={form} set={set} />}
-              {step === 3 && <StepAddOns form={form} set={set} />}
-              {step === 4 && <StepContact form={form} set={set} />}
+              {step === 1 && <StepPackage form={form} set={set} />}
+              {step === 2 && <StepDates form={form} set={set} nights={nights} />}
+              {step === 3 && <StepRigAndExtras form={form} set={set} />}
+              {step === 4 && <StepAddOns form={form} set={set} />}
+              {step === 5 && <StepContact form={form} set={set} />}
 
               {/* ✅ Inline success / error messages near the buttons */}
               {tripStatus === "success" && (
@@ -566,7 +1060,7 @@ function TripBuilder() {
                     Back
                   </button>
                 )}
-                {step < 4 ? (
+                {step < 5 ? (
                   <button
                     onClick={next}
                     className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200"
@@ -599,7 +1093,7 @@ function TripBuilder() {
 }
 
 function Stepper({ step }) {
-  const steps = ["Dates", "Rig", "Add-ons", "Contact"];
+  const steps = ["Package", "Dates", "Rig", "Add-ons", "Contact"];
   return (
     <div className="hidden md:flex items-center gap-2 text-sm text-neutral-300">
       {steps.map((label, i) => {
@@ -629,7 +1123,103 @@ function Stepper({ step }) {
   );
 }
 
+function StepPackage({ form, set }) {
+  const packages = [
+    {
+      id: "ultimate-multiweek",
+      tier: "Signature",
+      title: "Ultimate Alaska Expedition (Multi-Week)",
+      price: "Starting at $15,000+",
+      note: "Full-state, all-in experience",
+    },
+    {
+      id: "guided-week",
+      tier: "Signature",
+      title: "7-Day Guided Expedition (All-In)",
+      price: "Starting at $7,500+",
+      note: "Week-long guided + lodging + excursions",
+    },
+    {
+      id: "remote-3day",
+      tier: "Popular",
+      title: "3-Day Remote Adventure",
+      price: "Starting at $3,500+",
+      note: "Long weekend into the backcountry",
+    },
+    {
+      id: "overnight-2day",
+      tier: "Popular",
+      title: "Overnight Remote Camp (2-Day)",
+      price: "Starting at $2,500+",
+      note: "Camp setup + meals + off-grid night",
+    },
+    {
+      id: "knik-glacier-winter",
+      tier: "Seasonal",
+      title: "Knik Glacier Winter Day Tour (1-Day)",
+      price: "Driver $250 • Passengers $100",
+      note: "Winter-only Knik Glacier day tour",
+    },
+    {
+      id: "offroad-day-levels",
+      tier: "Entry",
+      title: "1-Day Off-Road Experience (Choose Your Level)",
+      price: "Driver $250 / $350 / $450 • Passengers $100",
+      note: "Easy / Moderate / Advanced options",
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="text-sm text-neutral-300">
+        Choose a package to start. You can customize dates, rigs, and add-ons in the next steps.
+      </div>
+
+      <div className="grid gap-3">
+        {packages.map((p) => {
+          const active = form.packageId === p.id;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => set({ packageId: p.id })}
+              className={`text-left rounded-2xl border p-4 transition ${
+                active
+                  ? "border-white/40 bg-white/10"
+                  : "border-white/10 bg-neutral-900/40 hover:bg-white/5"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-neutral-200">
+                    {p.tier}
+                  </div>
+                  <div className="mt-2 font-semibold text-neutral-100">
+                    {p.title}
+                  </div>
+                  <div className="mt-1 text-sm text-neutral-400">{p.note}</div>
+                </div>
+                <div className="shrink-0 text-sm text-neutral-200">
+                  {p.price}
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-neutral-900/50 p-4 text-sm text-neutral-300">
+        <span className="font-semibold text-neutral-100">Pickup info:</span>{" "}
+        Airport pickup &amp; drop-off are included for multi-day packages. Day trips are a meetup at a set location.
+      </div>
+    </div>
+  );
+}
+
+
 function StepDates({ form, set, nights }) {
+  const isDayTrip = ["knik-glacier-winter", "offroad-day-levels"].includes(form.packageId);
+
   return (
     <div className="space-y-4">
       <div className="grid md:grid-cols-3 gap-4">
@@ -642,6 +1232,7 @@ function StepDates({ form, set, nights }) {
             type="date"
           />
         </div>
+
         <div>
           <label className="text-sm text-neutral-300">End date</label>
           <input
@@ -649,79 +1240,303 @@ function StepDates({ form, set, nights }) {
             onChange={(e) => set({ end: e.target.value })}
             className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
             type="date"
+            disabled={isDayTrip}
           />
+          {isDayTrip && (
+            <div className="mt-1 text-xs text-neutral-500">
+              Day trips are single-day bookings (end date not required).
+            </div>
+          )}
         </div>
+
         <div>
-          <label className="text-sm text-neutral-300">Party size</label>
+          <label className="text-sm text-neutral-300">Drivers</label>
           <input
-            value={form.party}
-            onChange={(e) => set({ party: Number(e.target.value) })}
+            value={form.drivers}
+            onChange={(e) => set({ drivers: Number(e.target.value) })}
             className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
             type="number"
             min={1}
-            max={4}
+            max={2}
           />
         </div>
       </div>
-      <div className="text-sm text-neutral-400">
-        {nights} night(s) selected.
+
+      <div className="grid md:grid-cols-3 gap-4">
+        <div>
+          <label className="text-sm text-neutral-300">Passengers</label>
+          <input
+            value={form.passengers}
+            onChange={(e) => set({ passengers: Number(e.target.value) })}
+            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+            type="number"
+            min={0}
+            max={6}
+          />
+        </div>
+
+        {form.packageId === "offroad-day-levels" && (
+          <div className="md:col-span-2">
+            <label className="text-sm text-neutral-300">Difficulty level</label>
+            <select
+              value={form.dayLevel}
+              onChange={(e) => set({ dayLevel: e.target.value })}
+              className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+            >
+              <option value="easy">Easy (Driver $250)</option>
+              <option value="moderate">Moderate (Driver $350)</option>
+              <option value="advanced">Advanced (Driver $450)</option>
+            </select>
+          </div>
+        )}
+      </div>
+
+      {!isDayTrip && (
+        <div className="text-sm text-neutral-400">{nights} night(s) selected.</div>
+      )}
+    </div>
+  );
+}
+
+
+function StepRigAndExtras({ form, set, nights }) {
+  const rigOptions = [
+    {
+      value: "gladiator-expedition",
+      label: '2020 Jeep Gladiator',
+      img: "/images/Wrangler140.jpg",
+    },
+    {
+      value: "tacoma-expedition",
+      label: '2019 Toyota Tacoma TRD Off-Road',
+      img: "/images/tacomaone40.jpeg",
+    },
+  ];
+
+  const selectedRig = rigOptions.find((r) => r.value === form.rig) || rigOptions[0];
+
+  // Total nights should come from the TripBuilder nights calculation
+  const totalNights = Math.max(0, Number(nights || 0));
+
+  // Compute lodge nights as "remaining nights" unless lodgingOnly
+  const derivedLodgeNights = form.lodgingOnly
+    ? totalNights
+    : Math.max(0, totalNights - Number(form.campNights || 0));
+
+  const setCampNights = (val) => {
+    const nextCamp = Math.max(0, Math.min(totalNights, Number(val || 0)));
+    set({
+      campNights: nextCamp,
+      lodgingOnly: nextCamp === 0 ? form.lodgingOnly : false, // if they choose camping, lodgingOnly should turn off
+    });
+  };
+
+  const setLodgingOnly = (checked) => {
+    set({
+      lodgingOnly: checked,
+      campNights: checked ? 0 : form.campNights,
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Rig selection + live preview */}
+      <div className="grid gap-4 md:grid-cols-2 md:items-start">
+        <div>
+          <label className="text-sm text-neutral-300">Rig selection</label>
+          <select
+            value={form.rig}
+            onChange={(e) => set({ rig: e.target.value })}
+            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+          >
+            {rigOptions.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+
+          <div className="mt-2 text-xs text-neutral-500">
+            Your rig selection updates the live preview and helps us plan your itinerary and logistics.
+          </div>
+        </div>
+
+        <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
+          <img
+            src={selectedRig.img}
+            alt={selectedRig.label}
+            className="h-48 w-full object-cover"
+            loading="lazy"
+          />
+          <div className="p-4 text-sm text-neutral-300 text-center">
+            {selectedRig.label}
+          </div>
+        </div>
+      </div>
+
+      {/* Expedition type */}
+      <div>
+        <div className="text-sm text-neutral-300 mb-2">Expedition type</div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Guided */}
+          <button
+            type="button"
+            onClick={() => set({ expeditionType: "guided" })}
+            className={`text-left rounded-2xl border p-5 transition ${
+              form.expeditionType === "guided"
+                ? "border-white/40 bg-white/10"
+                : "border-white/10 bg-neutral-900/40 hover:bg-white/5"
+            }`}
+          >
+           <div className="font-semibold text-neutral-100">
+  Guided Expedition (Recommended)
+</div>
+
+<p className="mt-2 text-sm text-neutral-300">
+  A fully guided Alaska Offroad Expedition where a professional expedition guide
+  travels with you for the duration of your trip, handling route planning, daily
+  logistics, navigation, and on-trail decision making. Guided expeditions are
+  designed for guests who want full access to Alaska’s remote backcountry while
+  maintaining a high level of safety, efficiency, and flexibility.
+</p>
+
+<p className="mt-2 text-sm text-neutral-300">
+  Your guide leads technical sections, coordinates fuel, food, lodging, and camp
+  setup, and provides real-time adjustments based on weather, trail conditions,
+  and group comfort—while still building in intentional downtime and privacy at
+  lodges, camps, and during select portions of the itinerary.
+</p>
+
+<ul className="mt-3 space-y-1 text-sm text-neutral-300">
+  <li className="flex gap-2">
+    <span className="text-neutral-500">•</span>
+    Full access to approved off-road trails, remote routes, and technical terrain
+  </li>
+  <li className="flex gap-2">
+    <span className="text-neutral-500">•</span>
+    Professional navigation, recovery support, and risk management
+  </li>
+  <li className="flex gap-2">
+    <span className="text-neutral-500">•</span>
+    Ideal for multi-day expeditions, remote camping, glacier access, and complex itineraries
+  </li>
+</ul>
+``
+
+          </button>
+
+          {/* Self-guided */}
+          <button
+            type="button"
+            onClick={() => set({ expeditionType: "selfGuided" })}
+            className={`text-left rounded-2xl border p-5 transition ${
+              form.expeditionType === "selfGuided"
+                ? "border-white/40 bg-white/10"
+                : "border-white/10 bg-neutral-900/40 hover:bg-white/5"
+            }`}
+          >
+ <div className="font-semibold text-neutral-100">
+  Self-Guided Vehicle Rental (Returning Guests Only)
+</div>
+
+<p className="mt-2 text-sm text-neutral-300">
+  Self-guided expeditions are available exclusively to returning guests who have
+  previously completed a guided Alaska Offroad Expedition with us. This ensures
+  familiarity with our vehicles, safety standards, and route expectations.
+</p>
+
+<p className="mt-2 text-sm text-neutral-300">
+  Guests rent the expedition vehicle for independent exploration over 1–3 days,
+  traveling primarily on approved roads and dirt routes depending on location and
+  conditions. Extreme off-roading is not permitted on self-guided rentals with out approval.
+</p>
+
+<ul className="mt-3 space-y-1 text-sm text-neutral-300">
+  <li className="flex gap-2">
+    <span className="text-neutral-500">•</span>
+    Completion of a guided expedition is required prior to approval
+  </li>
+  <li className="flex gap-2">
+    <span className="text-neutral-500">•</span>
+    Vehicles are GPS tracked for safety and recovery response
+  </li>
+  <li className="flex gap-2">
+    <span className="text-neutral-500">•</span>
+    Same pricing as guided experiences — privacy is a premium feature
+  </li>
+</ul>
+
+          </button>
+        </div>
+
+        <div className="mt-3 text-xs text-neutral-500">
+          Guided is the default for expedition packages. Self-guided rentals are limited access and may be seasonal.
+        </div>
+      </div>
+
+      {/* Overnight style */}
+      <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
+        <div className="text-sm font-semibold text-neutral-100">Overnight style</div>
+        <p className="mt-2 text-sm text-neutral-300">
+          Choose how many nights you want to camp. The remaining nights become lodge/hotel nights based on your trip length.
+        </p>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="text-sm text-neutral-300">Camping nights</label>
+            <input
+              type="number"
+              min={0}
+              max={totalNights}
+              value={form.campNights}
+              onChange={(e) => setCampNights(e.target.value)}
+              disabled={form.lodgingOnly || totalNights === 0}
+              className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3 disabled:opacity-60"
+            />
+            <div className="mt-1 text-xs text-neutral-500">
+              Includes expedition camp setup and meals where applicable.
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm text-neutral-300">Lodge / hotel nights</label>
+            <input
+              type="number"
+              value={derivedLodgeNights}
+              readOnly
+              className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3 opacity-80"
+            />
+            <div className="mt-1 text-xs text-neutral-500">
+              Auto-calculated as remaining nights ({totalNights} total).
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-3">
+          <input
+            id="lodgingOnly"
+            type="checkbox"
+            checked={form.lodgingOnly}
+            onChange={(e) => setLodgingOnly(e.target.checked)}
+            className="h-4 w-4"
+            disabled={totalNights === 0}
+          />
+          <label htmlFor="lodgingOnly" className="text-sm text-neutral-200">
+            Lodging only (no camping)
+          </label>
+        </div>
+
+        {totalNights === 0 && (
+          <div className="mt-2 text-xs text-neutral-500">
+            Select dates first to calculate total nights and enable overnight options.
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function StepRigAndExtras({ form, set }) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className="text-sm text-neutral-300">Rig selection</label>
-        <select
-          value={form.rig}
-          onChange={(e) => set({ rig: e.target.value })}
-          className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
-        >
-          <option value="wrangler-expedition">
-            Wrangler Expedition (40&quot; tires)
-          </option>
-          <option value="wrangler-premium">
-            Wrangler Premium (35&quot; Tires)
-          </option>
-          <option value="tacoma-expedition">
-            Tacoma Expedition (40&quot; Tires)
-          </option>
-          <option value="tacoma-premium">
-            Tacoma Premium (35&quot; Tires)
-          </option>
-        </select>
-      </div>
-      <div className="flex items-center gap-3">
-        <input
-          id="guideDay"
-          type="checkbox"
-          checked={form.guideDay}
-          onChange={(e) => set({ guideDay: e.target.checked })}
-          className="h-4 w-4"
-        />
-        <label htmlFor="guideDay" className="text-neutral-200">
-          Add a guided day (+$750)
-        </label>
-      </div>
-      <div>
-        <label className="text-sm text-neutral-300">
-          Overnights (includes meals & camp)
-        </label>
-        <input
-          value={form.overnight}
-          onChange={(e) => set({ overnight: Number(e.target.value) })}
-          type="number"
-          min={0}
-          max={14}
-          className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
-        />
-      </div>
-    </div>
-  );
-}
 
 function StepAddOns({ form, set }) {
   const toggle = (k) =>
@@ -730,33 +1545,84 @@ function StepAddOns({ form, set }) {
     set({ addOns: { ...form.addOns, [k]: Number(v) } });
 
   const items = [
-    { key: "glacier", label: "Glacier Hike", note: "+$600" },
-    { key: "helicopter", label: "Helicopter Flight with Alpine Air Alaska", note: "+$1500" },
-    { key: "bushplane", label: "Bush Plane Segment", note: "+$1500" },
-    { key: "zipline", label: "Zipline", note: "+$500" },
-    {key: "mine", label: "Historic Mine/Glacier Tunnel Tour with St. Elias Alpine Guides", note: "+$1500", },
-    {key: "Dirt Bikes", label: "Dirt Bike rental tour with Alaska premier Enduro ", note: "+$1000", },
-  ];
+  {
+    key: "glacier",
+    label: "Glacier Hike",
+    note: "TBD",
+    img: "/images/addons/glacier.jpg",
+    desc: "Guided glacier hike option based on conditions and season.",
+  },
+  {
+    key: "helicopter",
+    label: "Helicopter Flight to Knik Glacier",
+    note: "TBD",
+    img: "/images/addons/helicopter.jpg",
+    desc: "Scenic helicopter flight options available with Outbound Heli Adventures ",
+  },
+  {
+    key: "bushplane",
+    label: "Bush Plane Segment",
+    note: "TBD",
+    img: "/images/addons/bushplane.jpg",
+    desc: "Remote access flight segment for true off-grid destinations with Denali Flightseeting Tours or K2 Aviation",
+  },
+  {
+    key: "zipline",
+    label: "Zipline",
+    note: "TBD",
+    img: "/images/addons/zipline.jpg",
+    desc: "Add a zipline excursion when available near your itinerary.",
+  },
+  {
+    key: "mine",
+    label: "Historic Mine / Glacier Tunnel Tour (St. Elias Alpine Guides)",
+    note: "TBD",
+    img: "/images/addons/mine.jpg",
+    desc: "Guided historic mine and glacier tunnel experiences when available.",
+  },
+  {
+    key: "dirtBikes",
+    label: "Dirt Bike Rental Tour (Alaska Premier Enduro)",
+    note: "TBD",
+    img: "/images/addons/dirtbikes.jpg",
+    desc: "Add a dirt bike tour day—availability varies by season and location.",
+  },
+];
+
 
   return (
     <div className="space-y-4">
       <div className="grid md:grid-cols-2 gap-3">
         {items.map((x) => (
-          <label
-            key={x.key}
-            className="flex items-center gap-3 rounded-xl border border-white/10 bg-neutral-900/40 p-4 hover:bg-white/5 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              checked={form.addOns[x.key]}
-              onChange={() => toggle(x.key)}
-              className="h-4 w-4"
-            />
-            <span className="flex-1">
-              <div className="font-semibold">{x.label}</div>
-              <div className="text-sm text-neutral-400">{x.note}</div>
-            </span>
-          </label>
+         <label
+  key={x.key}
+  className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/40 hover:bg-white/5 cursor-pointer"
+>
+  <div className="flex gap-4 p-4">
+    <input
+      type="checkbox"
+      checked={form.addOns[x.key]}
+      onChange={() => toggle(x.key)}
+      className="mt-1 h-4 w-4"
+    />
+
+    <div className="flex-1">
+      <div className="font-semibold">{x.label}</div>
+      <div className="text-sm text-neutral-400 mt-1">{x.desc}</div>
+      <div className="text-xs text-neutral-500 mt-2">Cost: {x.note}</div>
+    </div>
+  </div>
+
+  <div className="px-4 pb-4">
+    <img
+      src={x.img}
+      alt={x.label}
+      className="h-36 w-full rounded-xl object-cover border border-white/10"
+      loading="lazy"
+    />
+  </div>
+</label>
+
         ))}
       </div>
       <div>
@@ -820,79 +1686,128 @@ function StepContact({ form, set }) {
 }
 
 function SummaryCard({ form, nights, price }) {
+  const packageNameMap = {
+    "ultimate-multiweek": "Ultimate Alaska Expedition (Multi-Week)",
+    "guided-week": "7-Day Guided Expedition (All-In)",
+    "remote-3day": "3-Day Remote Adventure",
+    "overnight-2day": "Overnight Remote Camp (2-Day)",
+    "knik-glacier-winter": "Knik Glacier Winter Day Tour (1-Day)",
+    "offroad-day-levels": "1-Day Off-Road Experience",
+  };
+
+  const airportIncluded = !["knik-glacier-winter", "offroad-day-levels"].includes(
+    form.packageId
+  );
+
+  const prettyAddOnLabel = (k) => {
+    const map = {
+      glacier: "Glacier Hike",
+      helicopter: "Helicopter Flight",
+      bushplane: "Bush Plane Segment",
+      zipline: "Zipline",
+      mine: "Historic Mine / Glacier Tunnel Tour",
+      dirtBikes: "Dirt Bike Rental Tour",
+    };
+    return map[k] || k;
+  };
+
+  const selectedAddOns = Object.entries(form.addOns || {})
+    .filter(([k, v]) => typeof v === "boolean" && v)
+    .map(([k]) => prettyAddOnLabel(k));
+
   return (
     <div className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5">
       <div className="font-semibold text-lg">Summary</div>
+
       <div className="mt-3 space-y-2 text-sm text-neutral-300">
-        <div>
-          <span className="text-neutral-400">Dates:</span>{" "}
-          {form.start || "—"} → {form.end || "—"} ({nights} night
-          {nights !== 1 ? "s" : ""})
+        <div className="flex justify-between gap-4">
+          <span className="text-neutral-400">Package</span>
+          <span className="text-neutral-100">
+            {packageNameMap[form.packageId] || "—"}
+          </span>
         </div>
-        <div>
-          <span className="text-neutral-400">Rig:</span>{" "}
-          {form.rig.replace("-", " ")}
+
+        <div className="flex justify-between gap-4">
+          <span className="text-neutral-400">Pickup</span>
+          <span className="text-neutral-100">
+            {airportIncluded ? "Airport pickup & drop-off included" : "Meetup location (day trip)"}
+          </span>
         </div>
-        <div>
-          <span className="text-neutral-400">Guided day:</span>{" "}
-          {form.guideDay ? "Yes" : "No"}
+
+        <div className="flex justify-between gap-4">
+          <span className="text-neutral-400">Dates</span>
+          <span className="text-neutral-100">
+            {form.start || "—"} → {form.end || "—"} ({nights} night{nights !== 1 ? "s" : ""})
+          </span>
         </div>
-        <div>
-          <span className="text-neutral-400">Overnights:</span>{" "}
-          {form.overnight}
+
+        <div className="flex justify-between gap-4">
+          <span className="text-neutral-400">Rig</span>
+          <span className="text-neutral-100">
+            {(form.rig || "—").replaceAll("-", " ")}
+          </span>
         </div>
-        <div className="pt-2 border-t border-white/10">Add-ons:</div>
-        <ul className="list-disc pl-5">
-          {Object.entries(form.addOns)
-            .filter(([k, v]) => typeof v === "boolean" && v)
-            .map(([k]) => (
-              <li key={k} className="capitalize">
-                {k}
-              </li>
-            ))}
-          {form.addOns.lodgeNights > 0 && (
-            <li>Lodge nights × {form.addOns.lodgeNights}</li>
+
+        <div className="flex justify-between gap-4">
+          <span className="text-neutral-400">Guiding</span>
+          <span className="text-neutral-100">Included</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
+          <div className="flex justify-between gap-4">
+            <span className="text-neutral-400">Camp nights</span>
+            <span className="text-neutral-100">{form.campNights || 0}</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-neutral-400">Lodge nights</span>
+            <span className="text-neutral-100">{form.lodgeNights || 0}</span>
+          </div>
+        </div>
+
+        <div className="pt-2 border-t border-white/10">
+          <div className="text-neutral-400">Excursions / Add-ons</div>
+          {selectedAddOns.length ? (
+            <ul className="mt-2 list-disc pl-5">
+              {selectedAddOns.map((label) => (
+                <li key={label}>{label}</li>
+              ))}
+            </ul>
+          ) : (
+            <div className="mt-2 text-neutral-400">None selected</div>
           )}
-          {Object.values(form.addOns).every(
-            (v) => v === false || v === 0
-          ) && (
-            <li className="text-neutral-400">None selected</li>
-          )}
-        </ul>
+        </div>
       </div>
+
       <div className="mt-4 rounded-xl bg-neutral-800 p-4 text-sm text-neutral-200">
         <div className="flex justify-between">
-          <span>Rental</span>
-          <span>${price.rentalTotal.toLocaleString()}</span>
+          <span>Package</span>
+          <span>${(price?.packageBase || 0).toLocaleString()}</span>
         </div>
-        {price.guideTotal > 0 && (
-          <div className="flex justify-between">
-            <span>Guided day</span>
-            <span>${price.guideTotal.toLocaleString()}</span>
-          </div>
-        )}
-        {price.overnightAdd > 0 && (
-          <div className="flex justify-between">
-            <span>Overnights</span>
-            <span>${price.overnightAdd.toLocaleString()}</span>
-          </div>
-        )}
-        {price.addOnSum > 0 && (
+
+        <div className="flex justify-between">
+          <span>Rental</span>
+          <span>${(price?.rentalTotal || 0).toLocaleString()}</span>
+        </div>
+
+        {(price?.addOnSum || 0) > 0 && (
           <div className="flex justify-between">
             <span>Add-ons</span>
             <span>${price.addOnSum.toLocaleString()}</span>
           </div>
         )}
-        {price.lodgeCost > 0 && (
+
+        {(price?.lodgeCost || 0) > 0 && (
           <div className="flex justify-between">
-            <span>Lodge</span>
+            <span>Lodging (est.)</span>
             <span>${price.lodgeCost.toLocaleString()}</span>
           </div>
         )}
+
         <div className="mt-3 flex justify-between text-base font-semibold">
           <span>Total (est.)</span>
-          <span>${price.total.toLocaleString()}</span>
+          <span>${(price?.total || 0).toLocaleString()}</span>
         </div>
+
         <div className="text-xs text-neutral-400 mt-1">
           Final price confirmed after permits & vendor availability.
         </div>
@@ -900,6 +1815,9 @@ function SummaryCard({ form, nights, price }) {
     </div>
   );
 }
+
+
+
 
 function PolicyCard() {
   return (
