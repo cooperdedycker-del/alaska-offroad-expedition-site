@@ -731,14 +731,11 @@ function StepAddOns({ form, set }) {
 
   const items = [
     { key: "glacier", label: "Glacier Hike", note: "+$600" },
-    { key: "helicopter", label: "Helicopter Flight", note: "+$1500" },
+    { key: "helicopter", label: "Helicopter Flight with Alpine Air Alaska", note: "+$1500" },
     { key: "bushplane", label: "Bush Plane Segment", note: "+$1500" },
     { key: "zipline", label: "Zipline", note: "+$500" },
-    {
-      key: "mine",
-      label: "Historic Mine/Glacier Tunnel Tour",
-      note: "+$1500",
-    },
+    {key: "mine", label: "Historic Mine/Glacier Tunnel Tour with St. Elias Alpine Guides", note: "+$1500", },
+    {key: "Dirt Bikes", label: "Dirt Bike rental tour with Alaska premier Enduro ", note: "+$1000", },
   ];
 
   return (
