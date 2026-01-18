@@ -836,7 +836,16 @@ const [form, setForm] = useState({
   contact: { name: "", email: "", phone: "" },
 });
 
-  useEffect(() => {
+  const didMountRef = useRef(false);
+
+useEffect(() => {
+  // Prevent auto-scroll on initial page load
+  if (!didMountRef.current) {
+    didMountRef.current = true;
+    return;
+  }
+
+  // Scroll only when the user navigates steps
   if (topRef.current) {
     topRef.current.scrollIntoView({
       behavior: "smooth",
@@ -844,6 +853,7 @@ const [form, setForm] = useState({
     });
   }
 }, [step]);
+
 
 
 
