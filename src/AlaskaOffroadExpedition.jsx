@@ -489,7 +489,7 @@ function Sponsors() {
       img: "/images/sponsors/Diodedynamics.png",
       description:
         "Diode Dynamics is a U.S.-based automotive lighting manufacturer known for high-performance LED lighting solutions. They design and engineer durable, vehicle-specific products—such as headlights, auxiliary off-road lights, and interior LEDs—built to perform reliably in extreme conditions, including harsh weather and rugged off-road use.",
-      website: "diodedynamics.com",
+      website: "https://diodedynamics.com",
     },
     // Add more sponsors here
   ];
