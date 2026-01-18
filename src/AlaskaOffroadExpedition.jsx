@@ -314,7 +314,7 @@ function Excursions() {
       type: "Hit us up to get added to our list",
       desc: "We are always looking for bussniess to add to our partner list. Contact us today!",
       img: "/images/excursions/Looking for1.png",
-      website: "https://www.AlaskaOffroadExpedition/#excursions",
+      website: "https://www.alaskaoffroadexpedition.com/#contact",
     },
   ];
 
@@ -1834,16 +1834,18 @@ function PolicyCard() {
     <div className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5 text-sm text-neutral-300">
       <div className="font-semibold text-lg">Policies</div>
       <ul className="mt-3 list-disc pl-5 space-y-2">
-        <li>25% deposit to reserve; balance due 14 days before start.</li>
-        <li>Free date change up to 30 days prior (subject to availability).</li>
-        <li>
-          Driver’s license verification and damage deposit required for rentals.
-        </li>
-        <li>
-          Trips may shift for safety/weather; equal or better alternatives
-          provided.
-        </li>
-      </ul>
+  <li>25% deposit required to reserve your expedition.</li>
+  <li>Deposits become non-refundable within 14 days of the trip start date.</li>
+  <li>Remaining balance due 14 days before the expedition.</li>
+  <li>
+    Driver’s license verification and damage deposit required for rentals.
+  </li>
+  <li>
+    Trips may adjust due to weather or safety conditions; equal or better
+    alternatives will be provided when possible.
+  </li>
+</ul>
+
     </div>
   );
 }
