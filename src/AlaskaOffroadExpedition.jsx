@@ -310,8 +310,15 @@ function Excursions() {
       
     },
     {
+      name: "Hatcher Pass ATV Tours",
+      type: "Alaska ATV and Snowmobile Tours",
+      desc: "Explore Alaska’s backcountry on a guided ride through the rugged Talkeetna Mountains of Hatcher Pass with unmatched panoramic views, creek crossings, and Denali views on clear days—without sacrificing comfort.",
+      img: "/images/excursions/HPATVT.jpg",
+      website: "https://hatcherpasstour.com/",
+    },
+    {
       name: "Become a partner Today!",
-      type: "Hit us up to get added to our list",
+      type: "Huit s up to get added to our list",
       desc: "We are always looking for bussniess to add to our partner list. Contact us today!",
       img: "/images/excursions/Looking for1.png",
       website: "https://www.alaskaoffroadexpedition.com/#contact",
@@ -1562,6 +1569,13 @@ function StepAddOns({ form, set }) {
     set({ addOns: { ...form.addOns, [k]: Number(v) } });
 
   const items = [
+    {
+    key: "mine",
+    label: "Historic Mine / Glacier Tunnel Tour (St. Elias Alpine Guides)",
+    note: "TBD",
+    img: "/images/addons/mine.jpg",
+    desc: "Guided historic mine and glacier tunnel experiences when available.",
+  },
   {
     key: "glacier",
     label: "Glacier Hike",
@@ -1584,18 +1598,18 @@ function StepAddOns({ form, set }) {
     desc: "Remote access flight segment for true off-grid destinations with Denali Flightseeting Tours or K2 Aviation",
   },
   {
+    key: "Alaska Adventure Tours",
+    label: "ATV or snow machine tours",
+    note: "TBD",
+    img: "/images/addons/HPATVT Winter.jpg",
+    desc: "Explore Alaska’s backcountry on a guided ride through the rugged Talkeetna Mountains of Hatcher Pass with unmatched panoramic views, creek crossings, and Denali views on clear days—without sacrificing comfort.",
+  },
+  {
     key: "zipline",
     label: "Zipline",
     note: "TBD",
     img: "/images/addons/zipline.jpg",
     desc: "Add a zipline excursion when available near your itinerary.",
-  },
-  {
-    key: "mine",
-    label: "Historic Mine / Glacier Tunnel Tour (St. Elias Alpine Guides)",
-    note: "TBD",
-    img: "/images/addons/mine.jpg",
-    desc: "Guided historic mine and glacier tunnel experiences when available.",
   },
   {
     key: "dirtBikes",
