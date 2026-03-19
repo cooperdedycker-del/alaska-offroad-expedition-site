@@ -30,7 +30,7 @@ export default function AlaskaOffroadExpedition() {
 
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm text-neutral-300">
-            <a href="#experiences" className="hover:text-white">Experiences</a>
+            <a href="#experiences" className="hover:text-white">Expeditions</a>
             <a href="#excursions" className="hover:text-white">Excursions</a>
             <a href="#fleet" className="hover:text-white">Fleet</a>
             <a href="#trip-builder" className="hover:text-white">Trip Builder</a>
@@ -45,7 +45,7 @@ export default function AlaskaOffroadExpedition() {
         </div>
         {mobileNavOpen && (
           <nav className="md:hidden flex flex-col items-center gap-4 pb-4 text-sm text-neutral-300">
-            <a href="#experiences" onClick={() => setMobileNavOpen(false)}>Experiences</a>
+            <a href="#experiences" onClick={() => setMobileNavOpen(false)}>Expeditions</a>
             <a href="#excursions" onClick={() => setMobileNavOpen(false)}>Excursions</a>
             <a href="#fleet" onClick={() => setMobileNavOpen(false)}>Fleet</a>
             <a href="#trip-builder" onClick={() => setMobileNavOpen(false)}>Trip Builder</a>
@@ -318,7 +318,7 @@ function Excursions() {
     },
     {
       name: "Become a partner Today!",
-      type: "Huit s up to get added to our list",
+      type: "Give us a call to get added to our list",
       desc: "We are always looking for bussniess to add to our partner list. Contact us today!",
       img: "/images/excursions/Looking for1.png",
       website: "https://www.alaskaoffroadexpedition.com/#contact",
