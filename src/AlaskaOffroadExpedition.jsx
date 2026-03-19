@@ -906,10 +906,10 @@ const price = useMemo(() => {
 
   // Day trip pricing (driver + passengers)
   const dayTripPrices = {
-    knik: { driver: 250, passenger: 100 },
+    knik: { driver: 500, passenger: 300 },
     offroad: {
-      passenger: 100,
-      driverByLevel: { easy: 250, moderate: 350, advanced: 450 },
+      passenger: 300,
+      driverByLevel: { easy: 500, moderate: 1000, advanced: 1500 },
     },
   };
 
