@@ -188,7 +188,7 @@ function Experiences() {
     {
       tier: "Seasonal",
       title: "Knik Glacier Winter Day Tour (1-Day)",
-      price: "Driver $250 • Passengers $100 each",
+      price: "Driver $500 • Passengers $300 each",
       desc:
         "Winter-only glacier day tour to Knik Glacier. Lunch is provided. One driver seat and up to six passenger seats available—ideal for families, groups, or visitors who want glacier views in a single day.",
       img: "/images/Knik .jpg",
@@ -201,10 +201,10 @@ function Experiences() {
     },
     {
       tier: "Entry",
-      title: "1-Day Off-Road Experience (Choose Your Level)",
-      price: "Driver $250 / $350 / $450 • Passengers $100 each",
+      title: "1-Day Off-Road Experience (Choose Your difficulty Level)",
+      price: "Driver $500 / $1000/ $1500 • Passengers $300 each",
       desc:
-        "A guided one-day off-road experience with three difficulty levels—easy, moderate, or advanced. Lunch is provided. One driver seat and up to six passenger seats available.",
+        "A guided one-day off-road experience with three difficulty levels—easy, moderate, or advanced. Lunch is provided. One driver seat and up to six passenger seats available (Between two rigs).",
       img: "/images/guidedday1.png",
       bullets: [
         "3 difficulty levels",
