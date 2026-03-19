@@ -1181,14 +1181,14 @@ function StepPackage({ form, set }) {
       id: "knik-glacier-winter",
       tier: "Seasonal",
       title: "Knik Glacier Winter Day Tour (1-Day)",
-      price: "Driver $250 • Passengers $100",
+      price: "Driver $500 • Passengers $300",
       note: "Winter-only Knik Glacier day tour",
     },
     {
       id: "offroad-day-levels",
       tier: "Entry",
       title: "1-Day Off-Road Experience (Choose Your Level)",
-      price: "Driver $250 / $350 / $450 • Passengers $100",
+      price: "Driver $500 / $1000 / $1500 • Passengers $300",
       note: "Easy / Moderate / Advanced options",
     },
   ];
