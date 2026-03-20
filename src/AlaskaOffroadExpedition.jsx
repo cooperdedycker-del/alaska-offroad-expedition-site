@@ -67,9 +67,9 @@ export default function AlaskaOffroadExpedition() {
         <TripBuilder />
       </section>
       <About />
-      <FAQ />
       <Sponsors />
       <Contact />
+        <FAQ />
       <Footer />
     </div>
   );
@@ -330,7 +330,7 @@ function Excursions() {
       {/* Centered header + description */}
       <div className="mb-10 text-center">
         <h2 className="text-3xl md:text-4xl font-bold">
-          Excursions &amp; Local Partners
+          Local Alaska Experiences
         </h2>
         <p className="mt-3 text-neutral-300 max-w-3xl mx-auto">
           We partner with proven Alaska outfitters to integrate bucket-list experiences into your expedition.
@@ -383,13 +383,12 @@ function Fleet() {
   <section id="fleet" className="mx-auto max-w-7xl px-4 py-16">
     <div className="mb-10 text-center">
       <h2 className="text-3xl md:text-4xl font-bold">
-        Expedition-Ready Fleet
+        Expedition-Ready Rigs
       </h2>
       <p className="mt-3 text-neutral-300 max-w-3xl mx-auto">
-        Professionally built expedition vehicles equipped for Alaska’s most demanding terrain.
-        37&quot; tires • 4–6&quot; suspension lift • Heavy-duty bumpers &amp; winches • 
-        Rooftop and hard-shell tents • Comms &amp; navigation • Full recovery and safety gear • 
-        Airport pickup &amp; drop-off available.
+        Built expedition vehicles equipped for Alaska’s most demanding terrain.
+        37&quot; Lifted &quot; Heavy-duty bumpers &amp; winches • 
+        Camping gear &amp; Full recovery.
       </p>
     </div>
 
@@ -407,7 +406,7 @@ function Fleet() {
               Jeep Gladiator Expedition Build
             </h3>
             <p className="mt-2 text-neutral-300">
-              37&quot; tires with a 4.5&quot; lift, steel bumpers, integrated winch,
+              37&quot; tires, steel bumpers, integrated winch,
               expedition suspension, comms, recovery equipment, and a SmartCap-based
               camp system designed for long-range travel in remote terrain.
             </p>
@@ -428,7 +427,7 @@ function Fleet() {
             </h3>
             <p className="mt-2 text-neutral-300">
               2019 Tacoma TRD Off-Road on 37&quot; tires with a 6&quot; lift, heavy-duty
-              bumpers and winch, OVS topper and tent system, satellite comms,
+              bumper and winch, OVS topper and tent system, satellite comms,
               recovery gear, and cold-weather camping equipment for true off-grid comfort.
             </p>
           </div>
@@ -462,10 +461,66 @@ function About() {
 
 function FAQ() {
   const qa = [
-    { q: "Do I need off-road experience?", a: "No—our guides coach you on trail. We tailor obstacles to your comfort level and conditions." },
-    { q: "What’s included on overnights?", a: "Camp setup, three meals per day, hot drinks, and all safety gear. Bring personal layers and boots." },
-    { q: "Can you pick us up at the airport?", a: "Yes. Airport pickup / drop-off and hotel transfers are available." },
-    { q: "What about weather & safety?", a: "We monitor conditions, carry satellite comms, and build conservative go/no-go plans for each route." }
+    {
+      q: "Do I need off-road experience?",
+      a: "No—our guides coach you on the trail. We tailor obstacles to your comfort level and conditions.",
+    },
+    {
+      q: "What’s included on overnights?",
+      a: "Camp setup and all safety gear are included. Bring personal layers and boots. Gear runs are available if needed.",
+    },
+    {
+      q: "Is food included on the expedition?",
+      a: "Not all food is provided. We plan dinners for guests while on the trail. Guests are responsible for breakfast and lunch.",
+    },
+    {
+      q: "Can you pick us up at the airport?",
+      a: "Yes. Airport pickup and drop-off, as well as hotel transfers, are available.",
+    },
+    {
+      q: "What about weather & safety?",
+      a: "We monitor conditions, carry satellite communications, and build conservative go/no-go plans for each route.",
+    },
+    {
+  q: "What should I pack for the expedition?",
+  a: "We provide a recommended packing list after booking. Guests should bring weather-appropriate clothing, sturdy boots, and personal items. All critical expedition gear and safety equipment are provided."
+},
+{
+  q: "How physically demanding are the expeditions?",
+  a: "Trips can be tailored to your comfort level. Most experiences are moderate, but some activities like hiking, glacier travel, or technical terrain can be more demanding depending on your selections."
+},
+{
+  q: "Are your vehicles automatic or manual?",
+  a: "All expedition vehicles are automatic and equipped for ease of use, even for drivers with limited off-road experience."
+},
+{
+  q: "What happens if weather impacts the trip?",
+  a: "Safety is our top priority. We may adjust routes, timing, or activities due to weather conditions. When possible, we provide equal or better alternative experiences."
+},
+{
+  q: "Is there a minimum or maximum group size?",
+  a: "We focus on small group experiences to maintain quality and safety. Most trips accommodate 1–2 drivers and up to 6 passengers depending on the package and vehicles."
+},
+{
+  q: "Can we customize our expedition?",
+  a: "Yes—every trip is customizable. You can choose your duration, rig, lodging style, and add-on excursions like helicopter flights or glacier tours."
+},
+{
+  q: "Do you provide recovery support if something goes wrong?",
+  a: "Yes. All expeditions include professional recovery equipment and trained guides. In the rare case of a mechanical issue or stuck vehicle, we handle recovery and logistics."
+},
+{
+  q: "Is fuel included in the trip cost?",
+  a: "Fuel is typically included for guided expeditions. Specific details will be outlined in your final itinerary depending on trip length and route."
+},
+{
+  q: "Can beginners drive the vehicles?",
+  a: "Yes. Our vehicles are built for capability and ease of use. Guides provide instruction and support to ensure you are comfortable and confident behind the wheel."
+},
+{
+  q: "Do you operate year-round?",
+  a: "Yes. Summer expeditions focus on remote trails and overlanding, while winter offers snow-based adventures such as glacier tours and snowmachine experiences."
+},
   ];
   return (
     <section id="faq" className="mx-auto max-w-7xl px-4 py-16">
