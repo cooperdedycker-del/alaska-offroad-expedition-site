@@ -645,7 +645,7 @@ function Sponsors() {
   img: "/images/sponsors/akgearworks.jpg",
   description:
     "Local Offroad shop located in Wasilla, Alaska.",
-  website: "https://www.facebook.com/people/AKGearworks/61587939817297/#",
+  website: "https://trailtoyz.com",
   badge: "Local Shop",
   discountCode: "",
   featured: false,
