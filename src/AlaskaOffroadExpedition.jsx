@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Link } from "react-router-dom";
+
 
 
 export default function AlaskaOffroadExpedition() {
@@ -38,7 +38,7 @@ export default function AlaskaOffroadExpedition() {
             <a href="#faq" className="hover:text-white">FAQ</a>
             <a href="#sponsors" className="hover:text-white">Sponsors</a>
             <a href="#contact" className="hover:text-white">Contact</a>
-            <Link to="/lionsclub" className="hover:text-white font-semibold text-amber-400">Off-Road Nonprofit</Link>
+            <a href="https://alaskaoffroadlions.org" target="_blank" rel="noopener noreferrer" className="hover:text-white font-semibold text-amber-400">Off-Road Nonprofit</a>
           </nav>
           <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className="md:hidden text-white">☰</button>
           <a href="#trip-builder" className="hidden md:inline-flex items-center gap-2 rounded-2xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition">Book an Expedition</a>
@@ -53,7 +53,7 @@ export default function AlaskaOffroadExpedition() {
             <a href="#faq" onClick={() => setMobileNavOpen(false)}>FAQ</a>
             <a href="#sponsors" onClick={() => setMobileNavOpen(false)}>Sponsors</a>
             <a href="#contact" onClick={() => setMobileNavOpen(false)}>Contact</a>
-            <Link to="/lionsclub" className="hover:text-white font-semibold text-amber-400">Off-Road Nonprofit</Link>
+            <a href="https://alaskaoffroadlions.org" target="_blank" rel="noopener noreferrer" className="hover:text-white font-semibold text-amber-400" onClick={() => setMobileNavOpen(false)}>Off-Road Nonprofit</a>
           </nav>
         )}
       </header>
@@ -825,7 +825,6 @@ function TripBuilder() {
   const [step, setStep] = useState(1);
 
 const [form, setForm] = useState({
-  packageId: "ultimate-multiweek",
   start: "",
   end: "",
   drivers: 1,
@@ -892,85 +891,45 @@ useEffect(() => {
   }, [form.start, form.end]);
 
 const price = useMemo(() => {
-  // Package base "starting at" prices (you can change anytime)
-  const packageBaseMap = {
-    "ultimate-multiweek": 15000,
-    "guided-week": 7500,
-    "remote-3day": 3500,
-    "overnight-2day": 2500,
-    "knik-glacier-winter": 0, // computed per seat below
-    "offroad-day-levels": 0,  // computed per seat below
-  };
+  const totalDays = Math.max(1, Number(nights || 0) +1); // fallback to 1 day minimum
 
-  const isDayTrip = ["knik-glacier-winter", "offroad-day-levels"].includes(form.packageId);
+  const baseDailyRate = 1000;
+  const passengerRate = 300;
 
-  // Day trip pricing (driver + passengers)
-  const dayTripPrices = {
-    knik: { driver: 500, passenger: 300 },
-    offroad: {
-      passenger: 300,
-      driverByLevel: { easy: 500, moderate: 1000, advanced: 1500 },
-    },
-  };
+  const baseCost = totalDays * baseDailyRate;
 
-  let packageBase = packageBaseMap[form.packageId] ?? 0;
+  const passengerCost =
+    totalDays * (Number(form.passengers || 0) * passengerRate);
 
-  if (form.packageId === "knik-glacier-winter") {
-    packageBase =
-      (form.drivers || 0) * dayTripPrices.knik.driver +
-      (form.passengers || 0) * dayTripPrices.knik.passenger;
-  }
+  const lodgeCost = (Number(form.lodgeNights || 0) * 150);
 
-  if (form.packageId === "offroad-day-levels") {
-    const driverRate = dayTripPrices.offroad.driverByLevel[form.dayLevel] ?? 250;
-    packageBase =
-      (form.drivers || 0) * driverRate +
-      (form.passengers || 0) * dayTripPrices.offroad.passenger;
-  }
-
-  // For now keep your rental math for multi-day packages (you can refine later)
-  const dailyRental = 850;
-  const rentalTotal = isDayTrip ? 0 : nights * dailyRental;
-
-  const guideTotal = form.guideDay ? 750 : 0;
-  const overnightAdd = (form.overnight || 0) * 1000;
-
-  // Excursions: numeric costs later. For now, set to null and display TBD.
+  // Add-ons (still optional / TBD)
   const addOnMap = {
-    glacier: null,
-    helicopter: null,
-    bushplane: null,
-    zipline: null,
-    mine: null,
-    dirtBikes: null,
+    glacier: 0,
+    helicopter: 0,
+    bushplane: 0,
+    zipline: 0,
+    mine: 0,
+    dirtBikes: 0,
   };
 
-  // Sum only numeric add-ons (ignore null/TBD)
   const addOnSum = Object.entries(form.addOns)
-    .filter(([k, v]) => typeof v === "boolean" && v === true)
-    .reduce((a, [k]) => {
-      const cost = addOnMap[k];
-      return typeof cost === "number" ? a + cost : a;
-    }, 0);
+    .filter(([k, v]) => v === true)
+    .reduce((sum, [k]) => sum + (addOnMap[k] || 0), 0);
 
-  const lodgeCost = (form.addOns.lodgeNights || 0) * 350;
-
-  const total = packageBase + rentalTotal + guideTotal + overnightAdd + addOnSum + lodgeCost;
+  const total = baseCost + passengerCost + lodgeCost + addOnSum;
 
   return {
-    packageBase,
-    rentalTotal,
-    guideTotal,
-    overnightAdd,
-    addOnSum,
+    totalDays,
+    baseCost,
+    passengerCost,
     lodgeCost,
+    addOnSum,
     total,
-    isDayTrip,
   };
 }, [form, nights]);
 
-
-  const next = () => setStep((s) => Math.min(5, s + 1));
+  const next = () => setStep((s) => Math.min(4, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));
   const set = (patch) => setForm((f) => ({ ...f, ...patch }));
 
@@ -1055,11 +1014,10 @@ const price = useMemo(() => {
 
           <div className="mt-8 grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-6">
-              {step === 1 && <StepPackage form={form} set={set} />}
-              {step === 2 && <StepDates form={form} set={set} nights={nights} />}
-              {step === 3 && <StepRigAndExtras form={form} set={set} />}
-              {step === 4 && <StepAddOns form={form} set={set} />}
-              {step === 5 && <StepContact form={form} set={set} />}
+              {step === 1 && <StepDates form={form} set={set} nights={nights} />}
+              {step === 2 && <StepRigAndExtras form={form} set={set} nights={nights} />}
+              {step === 3 && <StepAddOns form={form} set={set} />}
+              {step === 4 && <StepContact form={form} set={set} />}
 
               {/* ✅ Inline success / error messages near the buttons */}
               {tripStatus === "success" && (
@@ -1084,7 +1042,7 @@ const price = useMemo(() => {
                     Back
                   </button>
                 )}
-                {step < 5 ? (
+                {step < 4 ? (
                   <button
                     onClick={next}
                     className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200"
@@ -1117,7 +1075,7 @@ const price = useMemo(() => {
 }
 
 function Stepper({ step }) {
-  const steps = ["Package", "Dates", "Rig", "Add-ons", "Contact"];
+  const steps = ["Dates", "Rig", "Add-ons", "Contact"];
   return (
     <div className="hidden md:flex items-center gap-2 text-sm text-neutral-300">
       {steps.map((label, i) => {
@@ -1307,9 +1265,9 @@ function StepDates({ form, set, nights }) {
               onChange={(e) => set({ dayLevel: e.target.value })}
               className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
             >
-              <option value="easy">Easy (Driver $250)</option>
-              <option value="moderate">Moderate (Driver $350)</option>
-              <option value="advanced">Advanced (Driver $450)</option>
+              <option value="easy">Easy (Driver $500)</option>
+              <option value="moderate">Moderate (Driver $1000)</option>
+              <option value="advanced">Advanced (Driver $1500)</option>
             </select>
           </div>
         )}
@@ -1597,13 +1555,7 @@ function StepAddOns({ form, set }) {
     img: "/images/addons/bushplane.jpg",
     desc: "Remote access flight segment for true off-grid destinations with Denali Flightseeting Tours or K2 Aviation",
   },
-  {
-    key: "Alaska Adventure Tours",
-    label: "ATV or snow machine tours",
-    note: "TBD",
-    img: "/images/addons/HPATVT Winter.jpg",
-    desc: "Explore Alaska’s backcountry on a guided ride through the rugged Talkeetna Mountains of Hatcher Pass with unmatched panoramic views, creek crossings, and Denali views on clear days—without sacrificing comfort.",
-  },
+ 
   {
     key: "zipline",
     label: "Zipline",
@@ -1617,6 +1569,13 @@ function StepAddOns({ form, set }) {
     note: "TBD",
     img: "/images/addons/dirtbikes.jpg",
     desc: "Add a dirt bike tour day—availability varies by season and location.",
+  },
+  {
+    key: "Alaska Adventure Tours",
+    label: "ATV or snow machine tours",
+    note: "TBD",
+    img: "/images/addons/7-Summer-ATV-Tours.webp",
+    desc: "Explore Hatcher Pass with unmatched panoramic views, creek crossings, and Denali views on clear days—without sacrificing comfort.",
   },
 ];
 
@@ -1810,39 +1769,41 @@ function SummaryCard({ form, nights, price }) {
       </div>
 
       <div className="mt-4 rounded-xl bg-neutral-800 p-4 text-sm text-neutral-200">
-        <div className="flex justify-between">
-          <span>Package</span>
-          <span>${(price?.packageBase || 0).toLocaleString()}</span>
-        </div>
+  <div className="flex justify-between">
+    <span>Expedition (${price.totalDays} day{price.totalDays > 1 ? "s" : ""})</span>
+    <span>${price.baseCost.toLocaleString()}</span>
+  </div>
 
-        <div className="flex justify-between">
-          <span>Rental</span>
-          <span>${(price?.rentalTotal || 0).toLocaleString()}</span>
-        </div>
+  {form.passengers > 0 && (
+    <div className="flex justify-between">
+      <span>Passengers ({form.passengers} × $300 × {price.totalDays} days)</span>
+      <span>${price.passengerCost.toLocaleString()}</span>
+    </div>
+  )}
 
-        {(price?.addOnSum || 0) > 0 && (
-          <div className="flex justify-between">
-            <span>Add-ons</span>
-            <span>${price.addOnSum.toLocaleString()}</span>
-          </div>
-        )}
+  {form.lodgeNights > 0 && (
+    <div className="flex justify-between">
+      <span>Lodge Nights ({form.lodgeNights} × $150)</span>
+      <span>${price.lodgeCost.toLocaleString()}</span>
+    </div>
+  )}
 
-        {(price?.lodgeCost || 0) > 0 && (
-          <div className="flex justify-between">
-            <span>Lodging (est.)</span>
-            <span>${price.lodgeCost.toLocaleString()}</span>
-          </div>
-        )}
+  {price.addOnSum > 0 && (
+    <div className="flex justify-between">
+      <span>Excursions</span>
+      <span>${price.addOnSum.toLocaleString()}</span>
+    </div>
+  )}
 
-        <div className="mt-3 flex justify-between text-base font-semibold">
-          <span>Total (est.)</span>
-          <span>${(price?.total || 0).toLocaleString()}</span>
-        </div>
+  <div className="mt-3 flex justify-between text-base font-semibold">
+    <span>Total (est.)</span>
+    <span>${price.total.toLocaleString()}</span>
+  </div>
 
-        <div className="text-xs text-neutral-400 mt-1">
-          Final price confirmed after permits & vendor availability.
-        </div>
-      </div>
+  <div className="text-xs text-neutral-400 mt-1">
+    Final pricing confirmed after itinerary planning and availability.
+  </div>
+</div>
     </div>
   );
 }
