@@ -831,9 +831,6 @@ const [form, setForm] = useState({
   passengers: 0,
   dayLevel: "easy",
   rig: "gladiator-expedition",
-
-  // NEW
-  expeditionType: "guided", // "guided" | "selfGuided"
   campNights: 0,
   lodgingOnly: false,
 
@@ -901,7 +898,11 @@ const price = useMemo(() => {
   const passengerCost =
     totalDays * (Number(form.passengers || 0) * passengerRate);
 
-  const lodgeCost = (Number(form.lodgeNights || 0) * 150);
+  const lodgeNights = form.lodgingOnly
+  ? Number(nights || 0)
+  : Math.max(0, Number(nights || 0) - Number(form.campNights || 0));
+
+const lodgeCost = lodgeNights * 150;
 
   // Add-ons (still optional / TBD)
   const addOnMap = {
@@ -1356,106 +1357,7 @@ function StepRigAndExtras({ form, set, nights }) {
         </div>
       </div>
 
-      {/* Expedition type */}
-      <div>
-        <div className="text-sm text-neutral-300 mb-2">Expedition type</div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Guided */}
-          <button
-            type="button"
-            onClick={() => set({ expeditionType: "guided" })}
-            className={`text-left rounded-2xl border p-5 transition ${
-              form.expeditionType === "guided"
-                ? "border-white/40 bg-white/10"
-                : "border-white/10 bg-neutral-900/40 hover:bg-white/5"
-            }`}
-          >
-           <div className="font-semibold text-neutral-100">
-  Guided Expedition (Recommended)
-</div>
-
-<p className="mt-2 text-sm text-neutral-300">
-  A fully guided Alaska Offroad Expedition where a professional expedition guide
-  travels with you for the duration of your trip, handling route planning, daily
-  logistics, navigation, and on-trail decision making. Guided expeditions are
-  designed for guests who want full access to Alaska’s remote backcountry while
-  maintaining a high level of safety, efficiency, and flexibility.
-</p>
-
-<p className="mt-2 text-sm text-neutral-300">
-  Your guide leads technical sections, coordinates fuel, food, lodging, and camp
-  setup, and provides real-time adjustments based on weather, trail conditions,
-  and group comfort—while still building in intentional downtime and privacy at
-  lodges, camps, and during select portions of the itinerary.
-</p>
-
-<ul className="mt-3 space-y-1 text-sm text-neutral-300">
-  <li className="flex gap-2">
-    <span className="text-neutral-500">•</span>
-    Full access to approved off-road trails, remote routes, and technical terrain
-  </li>
-  <li className="flex gap-2">
-    <span className="text-neutral-500">•</span>
-    Professional navigation, recovery support, and risk management
-  </li>
-  <li className="flex gap-2">
-    <span className="text-neutral-500">•</span>
-    Ideal for multi-day expeditions, remote camping, glacier access, and complex itineraries
-  </li>
-</ul>
-``
-
-          </button>
-
-          {/* Self-guided */}
-          <button
-            type="button"
-            onClick={() => set({ expeditionType: "selfGuided" })}
-            className={`text-left rounded-2xl border p-5 transition ${
-              form.expeditionType === "selfGuided"
-                ? "border-white/40 bg-white/10"
-                : "border-white/10 bg-neutral-900/40 hover:bg-white/5"
-            }`}
-          >
- <div className="font-semibold text-neutral-100">
-  Self-Guided Vehicle Rental (Returning Guests Only)
-</div>
-
-<p className="mt-2 text-sm text-neutral-300">
-  Self-guided expeditions are available exclusively to returning guests who have
-  previously completed a guided Alaska Offroad Expedition with us. This ensures
-  familiarity with our vehicles, safety standards, and route expectations.
-</p>
-
-<p className="mt-2 text-sm text-neutral-300">
-  Guests rent the expedition vehicle for independent exploration over 1–3 days,
-  traveling primarily on approved roads and dirt routes depending on location and
-  conditions. Extreme off-roading is not permitted on self-guided rentals with out approval.
-</p>
-
-<ul className="mt-3 space-y-1 text-sm text-neutral-300">
-  <li className="flex gap-2">
-    <span className="text-neutral-500">•</span>
-    Completion of a guided expedition is required prior to approval
-  </li>
-  <li className="flex gap-2">
-    <span className="text-neutral-500">•</span>
-    Vehicles are GPS tracked for safety and recovery response
-  </li>
-  <li className="flex gap-2">
-    <span className="text-neutral-500">•</span>
-    Same pricing as guided experiences — privacy is a premium feature
-  </li>
-</ul>
-
-          </button>
-        </div>
-
-        <div className="mt-3 text-xs text-neutral-500">
-          Guided is the default for expedition packages. Self-guided rentals are limited access and may be seasonal.
-        </div>
-      </div>
+      
 
       {/* Overnight style */}
       <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
@@ -1676,18 +1578,7 @@ function StepContact({ form, set }) {
 }
 
 function SummaryCard({ form, nights, price }) {
-  const packageNameMap = {
-    "ultimate-multiweek": "Ultimate Alaska Expedition (Multi-Week)",
-    "guided-week": "7-Day Guided Expedition (All-In)",
-    "remote-3day": "3-Day Remote Adventure",
-    "overnight-2day": "Overnight Remote Camp (2-Day)",
-    "knik-glacier-winter": "Knik Glacier Winter Day Tour (1-Day)",
-    "offroad-day-levels": "1-Day Off-Road Experience",
-  };
-
-  const airportIncluded = !["knik-glacier-winter", "offroad-day-levels"].includes(
-    form.packageId
-  );
+  const airportIncluded = Math.max(1, Number(nights || 0) + 1) > 1;
 
   const prettyAddOnLabel = (k) => {
     const map = {
@@ -1705,22 +1596,21 @@ function SummaryCard({ form, nights, price }) {
     .filter(([k, v]) => typeof v === "boolean" && v)
     .map(([k]) => prettyAddOnLabel(k));
 
+  const lodgeNights = form.lodgingOnly
+    ? Number(nights || 0)
+    : Math.max(0, Number(nights || 0) - Number(form.campNights || 0));
+
   return (
     <div className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5">
       <div className="font-semibold text-lg">Summary</div>
 
       <div className="mt-3 space-y-2 text-sm text-neutral-300">
         <div className="flex justify-between gap-4">
-          <span className="text-neutral-400">Package</span>
-          <span className="text-neutral-100">
-            {packageNameMap[form.packageId] || "—"}
-          </span>
-        </div>
-
-        <div className="flex justify-between gap-4">
           <span className="text-neutral-400">Pickup</span>
           <span className="text-neutral-100">
-            {airportIncluded ? "Airport pickup & drop-off included" : "Meetup location (day trip)"}
+            {airportIncluded
+              ? "Airport pickup & drop-off included"
+              : "Meetup location (day trip)"}
           </span>
         </div>
 
@@ -1750,7 +1640,7 @@ function SummaryCard({ form, nights, price }) {
           </div>
           <div className="flex justify-between gap-4">
             <span className="text-neutral-400">Lodge nights</span>
-            <span className="text-neutral-100">{form.lodgeNights || 0}</span>
+            <span className="text-neutral-100">{lodgeNights}</span>
           </div>
         </div>
 
@@ -1769,41 +1659,41 @@ function SummaryCard({ form, nights, price }) {
       </div>
 
       <div className="mt-4 rounded-xl bg-neutral-800 p-4 text-sm text-neutral-200">
-  <div className="flex justify-between">
-    <span>Expedition (${price.totalDays} day{price.totalDays > 1 ? "s" : ""})</span>
-    <span>${price.baseCost.toLocaleString()}</span>
-  </div>
+        <div className="flex justify-between">
+          <span>Expedition ({price.totalDays} day{price.totalDays > 1 ? "s" : ""})</span>
+          <span>${price.baseCost.toLocaleString()}</span>
+        </div>
 
-  {form.passengers > 0 && (
-    <div className="flex justify-between">
-      <span>Passengers ({form.passengers} × $300 × {price.totalDays} days)</span>
-      <span>${price.passengerCost.toLocaleString()}</span>
-    </div>
-  )}
+        {form.passengers > 0 && (
+          <div className="flex justify-between">
+            <span>Passengers ({form.passengers} × $300 × {price.totalDays} days)</span>
+            <span>${price.passengerCost.toLocaleString()}</span>
+          </div>
+        )}
 
-  {form.lodgeNights > 0 && (
-    <div className="flex justify-between">
-      <span>Lodge Nights ({form.lodgeNights} × $150)</span>
-      <span>${price.lodgeCost.toLocaleString()}</span>
-    </div>
-  )}
+        {lodgeNights > 0 && (
+          <div className="flex justify-between">
+            <span>Lodge Nights ({lodgeNights} × $150)</span>
+            <span>${price.lodgeCost.toLocaleString()}</span>
+          </div>
+        )}
 
-  {price.addOnSum > 0 && (
-    <div className="flex justify-between">
-      <span>Excursions</span>
-      <span>${price.addOnSum.toLocaleString()}</span>
-    </div>
-  )}
+        {price.addOnSum > 0 && (
+          <div className="flex justify-between">
+            <span>Excursions</span>
+            <span>${price.addOnSum.toLocaleString()}</span>
+          </div>
+        )}
 
-  <div className="mt-3 flex justify-between text-base font-semibold">
-    <span>Total (est.)</span>
-    <span>${price.total.toLocaleString()}</span>
-  </div>
+        <div className="mt-3 flex justify-between text-base font-semibold">
+          <span>Total (est.)</span>
+          <span>${price.total.toLocaleString()}</span>
+        </div>
 
-  <div className="text-xs text-neutral-400 mt-1">
-    Final pricing confirmed after itinerary planning and availability.
-  </div>
-</div>
+        <div className="text-xs text-neutral-400 mt-1">
+          Final pricing confirmed after itinerary planning and availability.
+        </div>
+      </div>
     </div>
   );
 }
