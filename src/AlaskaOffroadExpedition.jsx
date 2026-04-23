@@ -15,7 +15,7 @@ export default function AlaskaOffroadExpedition() {
           <div className="flex items-center gap-3">
             <a href="#top" className="h-9 w-9 rounded-lg overflow-hidden">
   <img
-    src="/images/android-chrome-512x512.png"
+    src="/images/Newlogo.png"
     alt="Alaska Offroad Expedition logo"
     className="h-full w-full object-contain"
   />
@@ -38,7 +38,7 @@ export default function AlaskaOffroadExpedition() {
             <a href="#faq" className="hover:text-white">FAQ</a>
             <a href="#sponsors" className="hover:text-white">Sponsors</a>
             <a href="#contact" className="hover:text-white">Contact</a>
-            <a href="https://alaskaoffroadlions.org" target="_blank" rel="noopener noreferrer" className="hover:text-white font-semibold text-amber-400">Off-Road Nonprofit</a>
+           
           </nav>
           <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className="md:hidden text-white">☰</button>
           <a href="#trip-builder" className="hidden md:inline-flex items-center gap-2 rounded-2xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition">Book an Expedition</a>
@@ -53,7 +53,7 @@ export default function AlaskaOffroadExpedition() {
             <a href="#faq" onClick={() => setMobileNavOpen(false)}>FAQ</a>
             <a href="#sponsors" onClick={() => setMobileNavOpen(false)}>Sponsors</a>
             <a href="#contact" onClick={() => setMobileNavOpen(false)}>Contact</a>
-            <a href="https://alaskaoffroadlions.org" target="_blank" rel="noopener noreferrer" className="hover:text-white font-semibold text-amber-400" onClick={() => setMobileNavOpen(false)}>Off-Road Nonprofit</a>
+            
           </nav>
         )}
       </header>
