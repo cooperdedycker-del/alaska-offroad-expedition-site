@@ -1607,6 +1607,7 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
             onChange={(date) => {
   if (startDate && date && doesRangeOverlapBlockedDates(startDate, date)) {
     alert("Those dates overlap with an unavailable expedition booking.");
+    set({ end: "" });
     return;
   }
 
