@@ -1552,7 +1552,6 @@ function StepPackage({ form, set }) {
 
 
 function StepDates({ form, set, nights, blockedRanges = [] }) {
-  console.log("Blocked ranges inside StepDates:", blockedRanges);
   const isDayTrip = ["knik-glacier-winter", "offroad-day-levels"].includes(form.packageId);
 
   const startDate = form.start ? new Date(`${form.start}T12:00:00`) : null;
