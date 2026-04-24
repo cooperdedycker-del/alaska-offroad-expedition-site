@@ -1199,11 +1199,11 @@ const price = useMemo(() => {
   });
 };
 
-const doesRangeOverlapBlockedDates = (startDate, endDate) => {
-  if (!startDate || !endDate) return false;
+const doesRangeOverlapBlockedDates = (start, end) => {
+  if (!start || !end) return false;
 
-  const tripStart = new Date(startDate);
-  const tripEnd = new Date(endDate);
+  const tripStart = new Date(start);
+  const tripEnd = new Date(end);
 
   tripStart.setHours(0, 0, 0, 0);
   tripEnd.setHours(23, 59, 59, 999);
@@ -1605,12 +1605,21 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
           <DatePicker
             selected={endDate}
             onChange={(date) => {
-  if (startDate && date && doesRangeOverlapBlockedDates(startDate, date)) {
+  if (!date) {
+    set({ end: "" });
+    return;
+  }
+
+  const formattedEnd = formatDateForForm(date);
+
+  if (startDate && doesRangeOverlapBlockedDates(startDate, date)) {
     alert("Those dates overlap with an unavailable expedition booking.");
     set({ end: "" });
     return;
   }
 
+  set({ end: formattedEnd });
+}}
   set({ end: formatDateForForm(date) });
 }}
             minDate={startDate || new Date()}
