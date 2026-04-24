@@ -1332,7 +1332,14 @@ const lodgeCost = lodgeNights * 150;
 
           <div className="mt-8 grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-6">
-              {step === 1 && <StepDates form={form} set={set} nights={nights} />}
+              {step === 1 && (
+  <StepDates
+    form={form}
+    set={set}
+    nights={nights}
+    blockedRanges={blockedRanges}
+  />
+)}
               {step === 2 && <StepRigAndExtras form={form} set={set} nights={nights} />}
               {step === 3 && <StepAddOns form={form} set={set} />}
               {step === 4 && <StepContact form={form} set={set} />}
@@ -1517,34 +1524,76 @@ function StepPackage({ form, set }) {
 }
 
 
-function StepDates({ form, set, nights }) {
+function StepDates({ form, set, nights, blockedRanges = [] }) {
+  console.log("Blocked ranges inside StepDates:", blockedRanges);
   const isDayTrip = ["knik-glacier-winter", "offroad-day-levels"].includes(form.packageId);
+
+  const startDate = form.start ? new Date(`${form.start}T12:00:00`) : null;
+  const endDate = form.end ? new Date(`${form.end}T12:00:00`) : null;
+
+  const formatDateForForm = (date) => {
+    if (!date) return "";
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const day = `${date.getDate()}`.padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const isDateBlocked = (date) => {
+  return blockedRanges.some((range) => {
+    const checkDate = new Date(date);
+    checkDate.setHours(12, 0, 0, 0);
+
+    const start = new Date(range.start);
+    const end = new Date(range.end);
+
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
+    return checkDate >= start && checkDate <= end;
+  });
+};
+
 
   return (
     <div className="space-y-4">
+      
       <div className="grid md:grid-cols-3 gap-4">
         <div>
           <label className="text-sm text-neutral-300">Start date</label>
-          <input
-            value={form.start}
-            onChange={(e) => set({ start: e.target.value })}
-            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
-            type="date"
+          <DatePicker
+            selected={startDate}
+            onChange={(date) => {
+              const formatted = formatDateForForm(date);
+
+              set({
+                start: formatted,
+                end: isDayTrip ? formatted : form.end,
+              });
+            }}
+            minDate={new Date()}
+            placeholderText="Select start date"
+            dateFormat="yyyy-MM-dd"
+            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3 text-white"
+            filterDate={(date) => !isDateBlocked(date)}
           />
         </div>
 
         <div>
           <label className="text-sm text-neutral-300">End date</label>
-          <input
-            value={form.end}
-            onChange={(e) => set({ end: e.target.value })}
-            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
-            type="date"
+          <DatePicker
+            selected={endDate}
+            onChange={(date) => set({ end: formatDateForForm(date) })}
+            minDate={startDate || new Date()}
+            placeholderText="Select end date"
+            dateFormat="yyyy-MM-dd"
+            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3 text-white"
             disabled={isDayTrip}
+            filterDate={(date) => !isDateBlocked(date)}
           />
           {isDayTrip && (
             <div className="mt-1 text-xs text-neutral-500">
-              Day trips are single-day bookings (end date not required).
+              Day trips are single-day bookings.
             </div>
           )}
         </div>
