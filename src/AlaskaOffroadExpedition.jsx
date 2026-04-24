@@ -1169,6 +1169,23 @@ useEffect(() => {
     );
   }, [form.start, form.end]);
 
+  const selectedDatesOverlapBlocked = useMemo(() => {
+  if (!form.start || !form.end || !blockedRanges.length) return false;
+
+  const tripStart = new Date(`${form.start}T00:00:00`);
+  const tripEnd = new Date(`${form.end}T23:59:59`);
+
+  return blockedRanges.some((range) => {
+    const blockedStart = new Date(range.start);
+    const blockedEnd = new Date(range.end);
+
+    blockedStart.setHours(0, 0, 0, 0);
+    blockedEnd.setHours(23, 59, 59, 999);
+
+    return tripStart <= blockedEnd && tripEnd >= blockedStart;
+  });
+}, [form.start, form.end, blockedRanges]);
+
 const price = useMemo(() => {
   const totalDays = Math.max(1, Number(nights || 0) +1); // fallback to 1 day minimum
 
@@ -1358,8 +1375,17 @@ const lodgeCost = lodgeNights * 150;
                 </div>
               )}
 
+              {step === 1 && selectedDatesOverlapBlocked && (
+  <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+    Those dates overlap with an unavailable expedition booking. Please choose a different start or end date before continuing.
+  </div>
+)}
+
+
               <div className="flex items-center gap-3">
                 {step > 1 && (
+                  
+
                   <button
                     onClick={back}
                     className="rounded-xl border border-white/20 px-5 py-3 font-semibold hover:bg-white/10"
@@ -1369,11 +1395,12 @@ const lodgeCost = lodgeNights * 150;
                 )}
                 {step < 4 ? (
                   <button
-                    onClick={next}
-                    className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200"
-                  >
-                    Continue
-                  </button>
+  onClick={next}
+  disabled={step === 1 && selectedDatesOverlapBlocked}
+  className="rounded-xl bg-white text-neutral-900 px-5 py-3 font-semibold hover:bg-neutral-200 disabled:opacity-60 disabled:cursor-not-allowed"
+>
+  Continue
+</button>
                 ) : (
                   <button
                     onClick={submit}
@@ -1603,31 +1630,16 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
         <div>
           <label className="text-sm text-neutral-300">End date</label>
           <DatePicker
-            selected={endDate}
-            onChange={(date) => {
-  if (!date) {
-    set({ end: "" });
-    return;
-  }
-
-  const formattedEnd = formatDateForForm(date);
-
-  if (startDate && doesRangeOverlapBlockedDates(startDate, date)) {
-    alert("Those dates overlap with an unavailable expedition booking.");
-    set({ end: "" });
-    return;
-  }
-
-  set({ end: formattedEnd });
-}}
-
-            minDate={startDate || new Date()}
-            placeholderText="Select end date"
-            dateFormat="yyyy-MM-dd"
-            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3 text-white"
-            disabled={isDayTrip}
-            filterDate={(date) => !isDateBlocked(date)}
-          />
+  selected={endDate}
+  onChange={(date) => {
+    set({ end: formatDateForForm(date) });
+  }}
+  minDate={startDate || new Date()}
+  placeholderText="Select end date"
+  dateFormat="yyyy-MM-dd"
+  className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3 text-white"
+  disabled={isDayTrip}
+/>
           {isDayTrip && (
             <div className="mt-1 text-xs text-neutral-500">
               Day trips are single-day bookings.
@@ -1678,8 +1690,14 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
       </div>
 
       {!isDayTrip && (
-        <div className="text-sm text-neutral-400">{nights} night(s) selected.</div>
-      )}
+  <div className="text-sm text-neutral-400">{nights} night(s) selected.</div>
+)}
+
+{!isDayTrip && startDate && endDate && doesRangeOverlapBlockedDates(startDate, endDate) && (
+  <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+    Those dates overlap with an unavailable expedition booking. Please choose different dates.
+  </div>
+)}
     </div>
   );
 }
