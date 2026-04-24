@@ -1552,7 +1552,9 @@ function StepPackage({ form, set }) {
 
 
 function StepDates({ form, set, nights, blockedRanges = [] }) {
-  const isDayTrip = ["knik-glacier-winter", "offroad-day-levels"].includes(form.packageId);
+  const isDayTrip = ["knik-glacier-winter", "offroad-day-levels"].includes(
+    form.packageId
+  );
 
   const startDate = form.start ? new Date(`${form.start}T12:00:00`) : null;
   const endDate = form.end ? new Date(`${form.end}T12:00:00`) : null;
@@ -1566,82 +1568,66 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
   };
 
   const isDateBlocked = (date) => {
-  return blockedRanges.some((range) => {
-    const checkDate = new Date(date);
-    checkDate.setHours(12, 0, 0, 0);
-    const doesRangeOverlapBlockedDates = (start, end) => {
-  if (!start || !end) return false;
+    return blockedRanges.some((range) => {
+      const checkDate = new Date(date);
+      checkDate.setHours(12, 0, 0, 0);
 
-  const tripStart = new Date(start);
-  const tripEnd = new Date(end);
+      const start = new Date(range.start);
+      const end = new Date(range.end);
 
-  tripStart.setHours(0, 0, 0, 0);
-  tripEnd.setHours(23, 59, 59, 999);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
 
-  return blockedRanges.some((range) => {
-    const blockedStart = new Date(range.start);
-    const blockedEnd = new Date(range.end);
-
-    blockedStart.setHours(0, 0, 0, 0);
-    blockedEnd.setHours(23, 59, 59, 999);
-
-    return tripStart <= blockedEnd && tripEnd >= blockedStart;
-  });
-};
-
-    const start = new Date(range.start);
-    const end = new Date(range.end);
-
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
-
-    return checkDate >= start && checkDate <= end;
-  });
-};
-
+      return checkDate >= start && checkDate <= end;
+    });
+  };
 
   return (
     <div className="space-y-4">
-
       <div className="grid md:grid-cols-3 gap-4">
         <div>
           <label className="text-sm text-neutral-300">Start date</label>
           <DatePicker
             selected={startDate}
             onChange={(date) => {
-  const formatted = formatDateForForm(date);
+              const formatted = formatDateForForm(date);
 
-  set({
-    start: formatted,
-    end: isDayTrip ? formatted : "",
-  });
-}}
+              set({
+                start: formatted,
+                end: isDayTrip ? formatted : "",
+              });
+            }}
             minDate={new Date()}
+            filterDate={(date) => !isDateBlocked(date)}
             placeholderText="Select start date"
             dateFormat="yyyy-MM-dd"
             className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3 text-white"
-            filterDate={(date) => !isDateBlocked(date)}
-
-
           />
         </div>
 
         <div>
           <label className="text-sm text-neutral-300">End date</label>
           <DatePicker
-  selected={endDate}
-  onChange={(date) => {
-    set({ end: formatDateForForm(date) });
-  }}
-  minDate={startDate || new Date()}
-  placeholderText="Select end date"
-  dateFormat="yyyy-MM-dd"
-  className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3 text-white"
-  disabled={isDayTrip}
-/>
+            selected={endDate}
+            onChange={(date) => {
+              set({ end: formatDateForForm(date) });
+            }}
+            minDate={startDate || new Date()}
+            placeholderText="Select end date"
+            dateFormat="yyyy-MM-dd"
+            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3 text-white"
+            disabled={isDayTrip || !startDate}
+          />
+
           {isDayTrip && (
             <div className="mt-1 text-xs text-neutral-500">
               Day trips are single-day bookings.
+            </div>
+          )}
+
+          {!isDayTrip && !startDate && (
+            <div className="mt-1 text-xs text-neutral-500">
+              Select a start date first.
             </div>
           )}
         </div>
@@ -1689,14 +1675,10 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
       </div>
 
       {!isDayTrip && (
-  <div className="text-sm text-neutral-400">{nights} night(s) selected.</div>
-)}
-
-{!isDayTrip && startDate && endDate && doesRangeOverlapBlockedDates(startDate, endDate) && (
-  <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-    Those dates overlap with an unavailable expedition booking. Please choose different dates.
-  </div>
-)}
+        <div className="text-sm text-neutral-400">
+          {nights} night(s) selected.
+        </div>
+      )}
     </div>
   );
 }
