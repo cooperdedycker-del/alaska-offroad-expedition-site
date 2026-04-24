@@ -9,17 +9,24 @@ export default async function handler(req, res) {
     if (!clientEmail || !privateKey || !calendarId) {
       return res.status(500).json({
         error: "Missing Google Calendar environment variables.",
+        hasClientEmail: Boolean(clientEmail),
+        hasPrivateKey: Boolean(privateKey),
+        hasCalendarId: Boolean(calendarId),
       });
     }
 
-    const auth = new google.auth.JWT(
-      clientEmail,
-      null,
-      privateKey,
-      ["https://www.googleapis.com/auth/calendar.readonly"]
-    );
+    const auth = new google.auth.JWT({
+      email: clientEmail,
+      key: privateKey,
+      scopes: ["https://www.googleapis.com/auth/calendar.readonly"],
+    });
 
-    const calendar = google.calendar({ version: "v3", auth });
+    await auth.authorize();
+
+    const calendar = google.calendar({
+      version: "v3",
+      auth,
+    });
 
     const now = new Date();
     const oneYearOut = new Date();
@@ -42,6 +49,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ busy });
   } catch (error) {
     console.error("Calendar availability error:", error);
+
     return res.status(500).json({
       error: "Failed to fetch calendar availability.",
       details: error.message,
