@@ -1610,13 +1610,13 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
           <DatePicker
             selected={startDate}
             onChange={(date) => {
-              const formatted = formatDateForForm(date);
+  const formatted = formatDateForForm(date);
 
-              set({
-                start: formatted,
-                end: isDayTrip ? formatted : form.end,
-              });
-            }}
+  set({
+    start: formatted,
+    end: isDayTrip ? formatted : "",
+  });
+}}
             minDate={new Date()}
             placeholderText="Select start date"
             dateFormat="yyyy-MM-dd"
