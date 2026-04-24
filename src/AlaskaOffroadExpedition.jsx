@@ -1543,6 +1543,25 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
   return blockedRanges.some((range) => {
     const checkDate = new Date(date);
     checkDate.setHours(12, 0, 0, 0);
+    const doesRangeOverlapBlockedDates = (start, end) => {
+  if (!start || !end) return false;
+
+  const tripStart = new Date(start);
+  const tripEnd = new Date(end);
+
+  tripStart.setHours(0, 0, 0, 0);
+  tripEnd.setHours(23, 59, 59, 999);
+
+  return blockedRanges.some((range) => {
+    const blockedStart = new Date(range.start);
+    const blockedEnd = new Date(range.end);
+
+    blockedStart.setHours(0, 0, 0, 0);
+    blockedEnd.setHours(23, 59, 59, 999);
+
+    return tripStart <= blockedEnd && tripEnd >= blockedStart;
+  });
+};
 
     const start = new Date(range.start);
     const end = new Date(range.end);
@@ -1557,7 +1576,7 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
 
   return (
     <div className="space-y-4">
-      
+
       <div className="grid md:grid-cols-3 gap-4">
         <div>
           <label className="text-sm text-neutral-300">Start date</label>
@@ -1576,6 +1595,8 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
             dateFormat="yyyy-MM-dd"
             className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3 text-white"
             filterDate={(date) => !isDateBlocked(date)}
+
+
           />
         </div>
 
@@ -1583,7 +1604,14 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
           <label className="text-sm text-neutral-300">End date</label>
           <DatePicker
             selected={endDate}
-            onChange={(date) => set({ end: formatDateForForm(date) })}
+            onChange={(date) => {
+  if (startDate && date && doesRangeOverlapBlockedDates(startDate, date)) {
+    alert("Those dates overlap with an unavailable expedition booking.");
+    return;
+  }
+
+  set({ end: formatDateForForm(date) });
+}}
             minDate={startDate || new Date()}
             placeholderText="Select end date"
             dateFormat="yyyy-MM-dd"
