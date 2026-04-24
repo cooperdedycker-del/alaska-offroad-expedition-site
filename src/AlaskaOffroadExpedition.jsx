@@ -1620,8 +1620,7 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
 
   set({ end: formattedEnd });
 }}
-  set({ end: formatDateForForm(date) });
-}}
+
             minDate={startDate || new Date()}
             placeholderText="Select end date"
             dateFormat="yyyy-MM-dd"
