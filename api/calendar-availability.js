@@ -29,22 +29,38 @@ export default async function handler(req, res) {
     });
 
     const now = new Date();
-const oneYearOut = new Date(now);
-oneYearOut.setMonth(oneYearOut.getMonth() + 3);
 
-    const response = await calendar.freebusy.query({
-      requestBody: {
-        timeMin: now.toISOString(),
-        timeMax: oneYearOut.toISOString(),
-        items: [{ id: calendarId }],
-      },
-    });
+const rangesToQuery = [];
 
-    const busy =
-      response.data.calendars?.[calendarId]?.busy?.map((range) => ({
-        start: range.start,
-        end: range.end,
-      })) || [];
+for (let i = 0; i < 12; i += 3) {
+  const start = new Date(now);
+  start.setMonth(start.getMonth() + i);
+
+  const end = new Date(now);
+  end.setMonth(end.getMonth() + i + 3);
+
+  rangesToQuery.push({ start, end });
+}
+
+let busy = [];
+
+for (const range of rangesToQuery) {
+  const response = await calendar.freebusy.query({
+    requestBody: {
+      timeMin: range.start.toISOString(),
+      timeMax: range.end.toISOString(),
+      items: [{ id: calendarId }],
+    },
+  });
+
+  const calendarBusy =
+    response.data.calendars?.[calendarId]?.busy?.map((item) => ({
+      start: item.start,
+      end: item.end,
+    })) || [];
+
+  busy.push(...calendarBusy);
+}
 
     return res.status(200).json({ busy });
   } catch (error) {
