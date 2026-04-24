@@ -29,8 +29,8 @@ export default async function handler(req, res) {
     });
 
     const now = new Date();
-    const oneYearOut = new Date();
-    oneYearOut.setMonth(oneYearOut.getMonth() + 12);
+const oneYearOut = new Date(now);
+oneYearOut.setMonth(oneYearOut.getMonth() + 6);
 
     const response = await calendar.freebusy.query({
       requestBody: {
