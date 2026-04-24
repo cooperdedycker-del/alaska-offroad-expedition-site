@@ -1061,6 +1061,10 @@ const [form, setForm] = useState({
   contact: { name: "", email: "", phone: "" },
 });
 
+const [blockedRanges, setBlockedRanges] = useState([]);
+const [availabilityLoading, setAvailabilityLoading] = useState(true);
+const [availabilityError, setAvailabilityError] = useState("");
+
   const didMountRef = useRef(false);
 
 useEffect(() => {
@@ -1078,6 +1082,69 @@ useEffect(() => {
     });
   }
 }, [step]);
+
+useEffect(() => {
+  async function loadAvailability() {
+    try {
+      setAvailabilityLoading(true);
+      setAvailabilityError("");
+
+      const res = await fetch("/api/calendar-availability");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to load availability");
+      }
+
+      const ranges = (data.busy || []).map((range) => ({
+        start: new Date(range.start),
+        end: new Date(range.end),
+      }));
+
+      setBlockedRanges(ranges);
+
+      // 👇 This lets us verify it's working
+      console.log("Calendar blocked ranges:", ranges);
+    } catch (error) {
+      console.error("Calendar fetch failed:", error);
+      setAvailabilityError("Could not load calendar availability.");
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  }
+
+  loadAvailability();
+}, []);
+
+useEffect(() => {
+  async function loadAvailability() {
+    try {
+      setAvailabilityLoading(true);
+      setAvailabilityError("");
+
+      const res = await fetch("/api/calendar-availability");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to load availability");
+      }
+
+      const ranges = (data.busy || []).map((range) => ({
+        start: new Date(range.start),
+        end: new Date(range.end),
+      }));
+
+      setBlockedRanges(ranges);
+    } catch (error) {
+      console.error("Failed to load calendar availability:", error);
+      setAvailabilityError("Could not load available dates right now.");
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  }
+
+  loadAvailability();
+}, []);
 
 
 
@@ -1116,6 +1183,41 @@ const price = useMemo(() => {
   const lodgeNights = form.lodgingOnly
   ? Number(nights || 0)
   : Math.max(0, Number(nights || 0) - Number(form.campNights || 0));
+
+  const isDateBlocked = (date) => {
+  return blockedRanges.some((range) => {
+    const checkDate = new Date(date);
+    checkDate.setHours(12, 0, 0, 0);
+
+    const start = new Date(range.start);
+    const end = new Date(range.end);
+
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
+    return checkDate >= start && checkDate <= end;
+  });
+};
+
+const doesRangeOverlapBlockedDates = (startDate, endDate) => {
+  if (!startDate || !endDate) return false;
+
+  const tripStart = new Date(startDate);
+  const tripEnd = new Date(endDate);
+
+  tripStart.setHours(0, 0, 0, 0);
+  tripEnd.setHours(23, 59, 59, 999);
+
+  return blockedRanges.some((range) => {
+    const blockedStart = new Date(range.start);
+    const blockedEnd = new Date(range.end);
+
+    blockedStart.setHours(0, 0, 0, 0);
+    blockedEnd.setHours(23, 59, 59, 999);
+
+    return tripStart <= blockedEnd && tripEnd >= blockedStart;
+  });
+};
 
 const lodgeCost = lodgeNights * 150;
 
