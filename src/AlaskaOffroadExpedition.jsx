@@ -867,14 +867,7 @@ function Contact() {
           <div className="text-2xl md:text-3xl font-extrabold text-amber-400 tracking-wide">
             907-406-7901
           </div>
-          <a
-  href="mailto:Cooper@alaskaoffroadexpedition.com"
-  className="text-sm md:text-base font-semibold text-neutral-300 hover:text-white transition"
->
-  Cooper@alaskaoffroadexpedition.com
-</a>
-
-
+          
           <div className="text-sm text-neutral-400 max-w-xl">
             Speak directly with an expedition planner to discuss availability, routes, and custom options.
           </div>
