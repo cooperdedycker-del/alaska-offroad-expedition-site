@@ -319,7 +319,7 @@ function Excursions() {
     {
       name: "Become a partner Today!",
       type: "Give us a call to get added to our list",
-      desc: "We are always looking for bussniess to add to our partner list. Contact us today!",
+      desc: "We are always looking for businesses to add to our partner list. Contact us today!",
       img: "/images/excursions/Looking for1.png",
       website: "https://www.alaskaoffroadexpedition.com/#contact",
     },
