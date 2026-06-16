@@ -81,18 +81,18 @@ export default function ReservationConfirmed() {
               </Link>
 
               <a
-                href="/#merch"
-                className="rounded-xl border border-white/20 px-6 py-3 text-center font-semibold hover:border-orange-400 transition"
-              >
-                Shop Merch
-              </a>
+  href="https://www.alaskaoffroadexpedition.com/#merch"
+  className="rounded-xl border border-white/20 px-6 py-3 text-center font-semibold hover:border-orange-400 transition"
+>
+  Shop Merch
+</a>
 
-              <a
-                href="/#faq"
-                className="rounded-xl border border-white/20 px-6 py-3 text-center font-semibold hover:border-orange-400 transition"
-              >
-                FAQ
-              </a>
+<a
+  href="https://www.alaskaoffroadexpedition.com/#faq"
+  className="rounded-xl border border-white/20 px-6 py-3 text-center font-semibold hover:border-orange-400 transition"
+>
+  FAQ
+</a>
             </div>
           </div>
         </div>

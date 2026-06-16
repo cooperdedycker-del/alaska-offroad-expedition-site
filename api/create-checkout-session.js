@@ -33,22 +33,15 @@ export default async function handler(req, res) {
             currency: "usd",
             unit_amount: Math.round(pricing.depositDue * 100),
             product_data: {
-  name: "Alaska Offroad Expedition 25% Deposit",
+  name: "Alaska Offroad Expedition Deposit",
   description: [
-    `${form.start} to ${form.end}`,
-    `Jeep Gladiator Expedition Rig`,
-    `${form.drivers || 1} driver${Number(form.drivers || 1) !== 1 ? "s" : ""}`,
-    `${form.passengers || 0} passenger${Number(form.passengers || 0) !== 1 ? "s" : ""}`,
-    `${pricing.totalGuests || 1} total guest${Number(pricing.totalGuests || 1) !== 1 ? "s" : ""}`,
-    `Lodging: ${form.lodgingPreference || "lodging"}`,
-    pricing.selectedExcursions?.length
-      ? `Excursions: ${pricing.selectedExcursions.map((x) => x.name).join(", ")}`
-      : "Excursions: None selected",
-    `Total estimate: $${Number(pricing.total || 0).toLocaleString()}`,
-    `Balance after deposit: $${Number(pricing.balanceDue || 0).toLocaleString()}`,
-  ]
-    .join(" • ")
-    .slice(0, 950),
+    `${form.start} → ${form.end}`,
+    `${pricing.totalGuests || 1} guests`,
+    `${form.drivers || 1} drivers / ${form.passengers || 0} passengers`,
+    `Rig: Jeep Gladiator`,
+    `Total: $${Number(pricing.total || 0).toLocaleString()}`,
+    `Balance: $${Number(pricing.balanceDue || 0).toLocaleString()}`,
+  ].join(" | ").slice(0, 300),
 },
           },
         },
