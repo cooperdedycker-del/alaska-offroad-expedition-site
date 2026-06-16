@@ -114,16 +114,22 @@ async function sendReservationEmails(metadata) {
 
   const from =
     process.env.EMAIL_FROM ||
-    "Alaska Offroad Expedition <bookings@alaskaoffroadexpedition.com>";
+    "Alaska Offroad Expedition <noreply@alaskaoffroadexpedition.com>";
 
   const adminTo =
     process.env.SALES_INBOX_EMAIL || "cooper@alaskaoffroadexpedition.com";
 
+  const contactBlock = `
+Questions or changes?
+Email: cooper@alaskaoffroadexpedition.com
+Call/Text: 907-406-7901
+  `.trim();
+
   const subjectAdmin = `PAID Reservation - ${metadata.customerName} - ${metadata.tripStart}`;
   const subjectCustomer = "Your Alaska Offroad Expedition reservation is confirmed";
 
-  const text = `
-Alaska Offroad Expedition Reservation Confirmed
+  const adminText = `
+NEW PAID RESERVATION
 
 Customer:
 ${metadata.customerName}
@@ -152,32 +158,19 @@ Total Estimate: ${money(metadata.totalEstimate)}
 Deposit Paid: ${money(metadata.depositPaid)}
 Balance Due: ${money(metadata.balanceDue)}
 
-Your dates are now reserved.
+${contactBlock}
   `.trim();
 
-  await Promise.all([
-    resend.emails.send({
-      from,
-      to: adminTo,
-      reply_to: metadata.customerEmail,
-      subject: subjectAdmin,
-      text,
-    }),
-
-    resend.emails.send({
-      from,
-      to: metadata.customerEmail,
-      subject: subjectCustomer,
-      text: `
-        Participants:
-${formatParticipants(metadata)}
-        
+  const customerText = `
 Hi ${metadata.customerName},
 
 Your Alaska Offroad Expedition reservation is confirmed.
 
 Trip Dates:
 ${metadata.tripStart} to ${metadata.tripEnd}
+
+Participants:
+${formatParticipants(metadata)}
 
 Deposit Paid:
 ${money(metadata.depositPaid)}
@@ -190,9 +183,24 @@ ${metadata.selectedExcursions || "None selected"}
 
 Your dates are now reserved. We’ll follow up with next steps, waiver, packing details, and final itinerary planning.
 
-Alaska Offroad Expedition
-907-406-7901
-      `.trim(),
+${contactBlock}
+  `.trim();
+
+  await Promise.all([
+    resend.emails.send({
+      from,
+      to: adminTo,
+      reply_to: metadata.customerEmail,
+      subject: subjectAdmin,
+      text: adminText,
+    }),
+
+    resend.emails.send({
+      from,
+      to: metadata.customerEmail,
+      reply_to: "cooper@alaskaoffroadexpedition.com",
+      subject: subjectCustomer,
+      text: customerText,
     }),
   ]);
 }
