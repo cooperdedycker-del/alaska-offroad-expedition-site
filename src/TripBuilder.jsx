@@ -285,7 +285,8 @@ const price = useMemo(() => {
   const lodgeNights = Number(nights || 0);
   const lodgeCost = lodgeNights * 300;
 
-  const totalGuests = 1 + Number(form.passengers || 0);
+  const totalGuests =
+  Number(form.drivers || 1) + Number(form.passengers || 0);
 
   const selectedExcursions = excursions
     .filter((x) => x.tripBuilder && form.addOns?.[x.key])

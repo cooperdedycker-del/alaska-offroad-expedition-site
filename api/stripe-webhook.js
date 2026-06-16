@@ -21,6 +21,26 @@ function money(value) {
   return `$${n.toLocaleString()}`;
 }
 
+function formatParticipants(metadata) {
+  try {
+    const participants = JSON.parse(metadata.participants || "[]");
+
+    if (!participants.length) {
+      return "No participant details provided.";
+    }
+
+    return participants
+      .map((p, index) => {
+        return `${index + 1}. ${p.name || "N/A"} — Age: ${
+          p.age || "N/A"
+        } — Shirt: ${p.shirtSize || "N/A"}`;
+      })
+      .join("\n");
+  } catch {
+    return metadata.participants || "No participant details provided.";
+  }
+}
+
 async function createCalendarReservation(metadata) {
   const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
   const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
@@ -61,6 +81,9 @@ Rig: ${metadata.rig}
 Drivers: ${metadata.drivers}
 Passengers: ${metadata.passengers}
 Total Guests: ${metadata.totalGuests}
+
+Participants:
+${formatParticipants(metadata)}
 
 Lodging:
 ${metadata.lodgingPreference}
@@ -114,6 +137,9 @@ Drivers: ${metadata.drivers}
 Passengers: ${metadata.passengers}
 Total Guests: ${metadata.totalGuests}
 
+Participants:
+${formatParticipants(metadata)}
+
 Lodging:
 ${metadata.lodgingPreference}
 ${metadata.lodgingNotes || ""}
@@ -143,6 +169,9 @@ Your dates are now reserved.
       to: metadata.customerEmail,
       subject: subjectCustomer,
       text: `
+        Participants:
+${formatParticipants(metadata)}
+        
 Hi ${metadata.customerName},
 
 Your Alaska Offroad Expedition reservation is confirmed.
