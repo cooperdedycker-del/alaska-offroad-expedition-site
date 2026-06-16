@@ -107,6 +107,14 @@ const [form, setForm] = useState({
   },
 
   contact: { name: "", email: "", phone: "" },
+
+participants: [
+  {
+    name: "",
+    age: "",
+    shirtSize: "",
+  },
+],
 });
 
 const [blockedRanges, setBlockedRanges] = useState([]);
@@ -114,6 +122,29 @@ const [availabilityLoading, setAvailabilityLoading] = useState(true);
 const [availabilityError, setAvailabilityError] = useState("");
 
   const didMountRef = useRef(false);
+  useEffect(() => {
+  const totalGuests =
+  Number(form.drivers || 1) + Number(form.passengers || 0);
+
+  setForm((current) => {
+    const existing = current.participants || [];
+
+    const updated = Array.from({ length: totalGuests }, (_, i) => {
+      return (
+        existing[i] || {
+          name: "",
+          age: "",
+          shirtSize: "",
+        }
+      );
+    });
+
+    return {
+      ...current,
+      participants: updated,
+    };
+  });
+}, [form.drivers, form.passengers]);
 
 useEffect(() => {
   // Prevent auto-scroll on initial page load
@@ -330,6 +361,16 @@ const price = useMemo(() => {
     setStep(1);
     return;
   }
+  const missingParticipantInfo = (form.participants || []).some(
+  (p) => !p.name || !p.age || !p.shirtSize
+);
+
+if (missingParticipantInfo) {
+  setTripStatus("error");
+  setTripError("Please enter name, age, and shirt size for every participant.");
+  setStep(4);
+  return;
+}
 
   try {
     setTripStatus("loading");
@@ -923,8 +964,33 @@ function StepAddOns({ form, set }) {
 function StepContact({ form, set }) {
   const c = form.contact;
   const setC = (patch) => set({ contact: { ...c, ...patch } });
+
+  const updateParticipant = (index, patch) => {
+    const participants = [...(form.participants || [])];
+
+    participants[index] = {
+      ...participants[index],
+      ...patch,
+    };
+
+    set({ participants });
+  };
+
+  const shirtSizes = [
+    "Youth S",
+    "Youth M",
+    "Youth L",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "2XL",
+    "3XL",
+    "4XL",
+  ];
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="text-sm text-neutral-300">Full name</label>
@@ -935,6 +1001,7 @@ function StepContact({ form, set }) {
             placeholder="Your name"
           />
         </div>
+
         <div>
           <label className="text-sm text-neutral-300">Email</label>
           <input
@@ -946,6 +1013,7 @@ function StepContact({ form, set }) {
           />
         </div>
       </div>
+
       <div>
         <label className="text-sm text-neutral-300">Phone</label>
         <input
@@ -955,9 +1023,82 @@ function StepContact({ form, set }) {
           placeholder="+1 (___) ___-____"
         />
       </div>
+
+      <div className="rounded-2xl border border-white/10 bg-neutral-900/50 p-5">
+        <div className="text-lg font-semibold text-white">
+          Participant Details
+        </div>
+
+        <p className="mt-2 text-sm text-neutral-400">
+          Please enter each guest’s name, age, and shirt size. This helps us
+          prepare waivers, gear, and expedition welcome items.
+        </p>
+
+        <div className="mt-5 space-y-4">
+          {(form.participants || []).map((participant, index) => (
+            <div
+              key={index}
+              className="rounded-xl border border-white/10 bg-neutral-800/60 p-4"
+            >
+              <div className="mb-3 font-semibold text-neutral-100">
+               {index < Number(form.drivers || 1)
+  ? `Driver ${index + 1}`
+  : `Passenger ${index - Number(form.drivers || 1) + 1}`}
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className="text-sm text-neutral-300">Name</label>
+                  <input
+                    value={participant.name || ""}
+                    onChange={(e) =>
+                      updateParticipant(index, { name: e.target.value })
+                    }
+                    className="mt-1 w-full rounded-xl bg-neutral-900 px-4 py-3"
+                    placeholder="Full name"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-neutral-300">Age</label>
+                  <input
+                    value={participant.age || ""}
+                    onChange={(e) =>
+                      updateParticipant(index, { age: e.target.value })
+                    }
+                    className="mt-1 w-full rounded-xl bg-neutral-900 px-4 py-3"
+                    placeholder="Age"
+                    type="number"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-neutral-300">Shirt size</label>
+                  <select
+                    value={participant.shirtSize || ""}
+                    onChange={(e) =>
+                      updateParticipant(index, { shirtSize: e.target.value })
+                    }
+                    className="mt-1 w-full rounded-xl bg-neutral-900 px-4 py-3"
+                  >
+                    <option value="">Select size</option>
+                    {shirtSizes.map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="text-sm text-neutral-400">
-        Submitting will create a reservation request. We’ll reply with
-        availability, a deposit link (Stripe), and an e-signature waiver.
+        Your 25% deposit reserves your expedition dates. Confirmation, waiver,
+        packing list, and remaining balance details will be sent after payment.
       </div>
     </div>
   );

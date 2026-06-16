@@ -52,6 +52,8 @@ export default async function handler(req, res) {
   passengers: String(form.passengers || 0),
   totalGuests: String(pricing.totalGuests || 1),
 
+participants: JSON.stringify(form.participants || []).slice(0, 450),
+
   lodgingPreference: form.lodgingPreference || "",
   lodgingNotes: form.lodgingNotes || "",
 
@@ -65,7 +67,7 @@ export default async function handler(req, res) {
   depositPaid: String(pricing.depositDue || 0),
   balanceDue: String(pricing.balanceDue || 0),
 },
-      success_url: `${siteUrl}/?checkout=success&session_id={CHECKOUT_SESSION_ID}#trip-builder`,
+      success_url: `${siteUrl}/reservation-confirmed?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/?checkout=cancelled#trip-builder`,
     });
 
