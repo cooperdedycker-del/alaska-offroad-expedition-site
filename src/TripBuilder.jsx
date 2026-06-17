@@ -86,10 +86,13 @@ export default function TripBuilder() {
 
 const [form, setForm] = useState({
   start: "",
-  end: "",
-  drivers: 1,
-  passengers: 0,
-  dayLevel: "easy",
+end: "",
+experienceType: "selfDrive", // selfDrive | rideAlong | tagAlong
+drivers: 1,
+passengers: 0,
+riders: 1,
+customerRigs: 1,
+dayLevel: "easy",
   rig: "Jeep Gladiator Expedition Rig",
   campNights: 0,
  
@@ -123,8 +126,19 @@ const [availabilityError, setAvailabilityError] = useState("");
 
   const didMountRef = useRef(false);
   useEffect(() => {
-  const totalGuests =
-  Number(form.drivers || 1) + Number(form.passengers || 0);
+  let totalGuests = 1;
+
+  if (form.experienceType === "selfDrive") {
+    totalGuests = Number(form.drivers || 1) + Number(form.passengers || 0);
+  }
+
+  if (form.experienceType === "rideAlong") {
+    totalGuests = Number(form.riders || 1);
+  }
+
+  if (form.experienceType === "tagAlong") {
+    totalGuests = Number(form.passengers || 1);
+  }
 
   setForm((current) => {
     const existing = current.participants || [];
@@ -144,7 +158,7 @@ const [availabilityError, setAvailabilityError] = useState("");
       participants: updated,
     };
   });
-}, [form.drivers, form.passengers]);
+}, [form.experienceType, form.drivers, form.passengers, form.riders]);
 
 useEffect(() => {
   // Prevent auto-scroll on initial page load
@@ -268,16 +282,33 @@ useEffect(() => {
 const price = useMemo(() => {
   const totalDays = Math.max(1, Number(nights || 0) + 1);
 
-  const baseDailyRate = 1000;
-  const passengerRate = 100;
-  const passengerCount = Number(form.passengers || 0);
-  const passengerDailyTotal = passengerCount * passengerRate;
+  let baseDailyRate = 1000;
+let passengerRate = 100;
+let passengerCount = Number(form.passengers || 0);
+let passengerDailyTotal = passengerCount * passengerRate;
+let totalGuests = Number(form.drivers || 1) + passengerCount;
 
-  const discountedBase = calculateDiscountedDailyTotal(
-    totalDays,
-    baseDailyRate,
-    passengerDailyTotal
-  );
+if (form.experienceType === "rideAlong") {
+  baseDailyRate = 500;
+  passengerRate = 350;
+  passengerCount = Math.max(0, Number(form.riders || 1) - 1);
+  passengerDailyTotal = passengerCount * passengerRate;
+  totalGuests = Number(form.riders || 1);
+}
+
+if (form.experienceType === "tagAlong") {
+  baseDailyRate = Number(form.customerRigs || 1) * 350;
+  passengerRate = 0;
+  passengerCount = Number(form.passengers || 1);
+  passengerDailyTotal = 0;
+  totalGuests = passengerCount;
+}
+
+const discountedBase = calculateDiscountedDailyTotal(
+  totalDays,
+  baseDailyRate,
+  passengerDailyTotal
+);
 
   const baseCost = discountedBase.baseCost;
   const discountSavings = discountedBase.discountSavings;
@@ -285,8 +316,6 @@ const price = useMemo(() => {
   const lodgeNights = Number(nights || 0);
   const lodgeCost = lodgeNights * 300;
 
-  const totalGuests =
-  Number(form.drivers || 1) + Number(form.passengers || 0);
 
   const selectedExcursions = excursions
     .filter((x) => x.tripBuilder && form.addOns?.[x.key])
@@ -663,6 +692,90 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-2xl border border-white/10 bg-neutral-900/50 p-5">
+  <div className="text-lg font-semibold text-white">
+    Choose Your Expedition Style
+  </div>
+
+  <p className="mt-2 text-sm text-neutral-400">
+    Pick the experience that best fits your group. You can drive our Jeep
+    Gladiator, ride along with your guide, or bring your own capable rig.
+  </p>
+
+  <div className="mt-5 grid gap-4 md:grid-cols-3">
+    {[
+      {
+        value: "selfDrive",
+        title: "Self-Drive Expedition",
+        desc:
+          "Drive our Jeep Gladiator Expedition Rig with guide support and full itinerary planning.",
+        price: "$1,000/day base • passengers $100/day",
+      },
+      {
+        value: "rideAlong",
+        title: "Guided Ride-Along",
+        desc:
+          "Ride with your guide and experience Alaska off-road without driving.",
+        price: "$500/day first rider • additional riders $350/day",
+      },
+      {
+        value: "tagAlong",
+        title: "Tag-Along / Bring Your Own Rig",
+        desc:
+          "Bring your own capable off-road vehicle and follow along on a guided expedition.",
+        price: "$350/day per customer rig",
+      },
+    ].map((option) => (
+      <label
+        key={option.value}
+        className={`rounded-2xl border p-4 cursor-pointer transition ${
+          form.experienceType === option.value
+            ? "border-orange-400/70 bg-orange-500/10"
+            : "border-white/10 bg-neutral-800/60 hover:bg-white/5"
+        }`}
+      >
+        <div className="flex items-start gap-3">
+          <input
+            type="radio"
+            name="experienceType"
+            value={option.value}
+            checked={form.experienceType === option.value}
+            onChange={(e) =>
+              set({
+                experienceType: e.target.value,
+                drivers: e.target.value === "selfDrive" ? 1 : 0,
+                passengers: e.target.value === "tagAlong" ? 1 : 0,
+                riders: e.target.value === "rideAlong" ? 1 : form.riders,
+                customerRigs:
+                  e.target.value === "tagAlong" ? 1 : form.customerRigs,
+              })
+            }
+            className="mt-1"
+          />
+
+          <div>
+            <div className="font-semibold text-neutral-100">
+              {option.title}
+            </div>
+            <p className="mt-1 text-sm text-neutral-400">{option.desc}</p>
+            <p className="mt-3 text-xs font-semibold text-orange-300">
+              {option.price}
+            </p>
+          </div>
+        </div>
+      </label>
+    ))}
+  </div>
+
+  {form.experienceType === "tagAlong" && (
+    <div className="mt-4 rounded-xl border border-orange-400/20 bg-orange-500/10 p-4 text-sm text-neutral-300">
+      Tag-along guests must provide their own capable off-road vehicle,
+      insurance, fuel, food, recovery gear, communications, camping gear, and be
+      prepared for remote Alaska conditions. Final approval may depend on vehicle
+      capability, route conditions, and safety requirements.
+    </div>
+  )}
+</div>
       <div className="grid md:grid-cols-3 gap-4">
         <div>
           <label className="text-sm text-neutral-300">Start date</label>
@@ -711,31 +824,83 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
           )}
         </div>
 
-        <div>
-          <label className="text-sm text-neutral-300">Drivers</label>
-          <input
-            value={form.drivers}
-            onChange={(e) => set({ drivers: Number(e.target.value) })}
-            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
-            type="number"
-            min={1}
-            max={2}
-          />
-        </div>
-      </div>
+        {form.experienceType === "selfDrive" && (
+  <div className="grid md:grid-cols-3 gap-4">
+    <div>
+      <label className="text-sm text-neutral-300">Drivers</label>
+      <input
+        value={form.drivers}
+        onChange={(e) => set({ drivers: Number(e.target.value) })}
+        className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+        type="number"
+        min={1}
+        max={2}
+      />
+    </div>
 
-      <div className="grid md:grid-cols-3 gap-4">
-        <div>
-          <label className="text-sm text-neutral-300">Passengers</label>
-          <input
-            value={form.passengers}
-            onChange={(e) => set({ passengers: Number(e.target.value) })}
-            className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
-            type="number"
-            min={0}
-            max={6}
-          />
-        </div>
+    <div>
+      <label className="text-sm text-neutral-300">Passengers</label>
+      <input
+        value={form.passengers}
+        onChange={(e) => set({ passengers: Number(e.target.value) })}
+        className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+        type="number"
+        min={0}
+        max={6}
+      />
+    </div>
+  </div>
+)}
+
+{form.experienceType === "rideAlong" && (
+  <div className="grid md:grid-cols-3 gap-4">
+    <div>
+      <label className="text-sm text-neutral-300">Riders</label>
+      <input
+        value={form.riders}
+        onChange={(e) => set({ riders: Number(e.target.value) })}
+        className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+        type="number"
+        min={1}
+        max={6}
+      />
+      <div className="mt-1 text-xs text-neutral-500">
+        First rider is $500/day. Additional riders are $350/day each.
+      </div>
+    </div>
+  </div>
+)}
+
+{form.experienceType === "tagAlong" && (
+  <div className="grid md:grid-cols-3 gap-4">
+    <div>
+      <label className="text-sm text-neutral-300">Customer rigs</label>
+      <input
+        value={form.customerRigs}
+        onChange={(e) => set({ customerRigs: Number(e.target.value) })}
+        className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+        type="number"
+        min={1}
+        max={6}
+      />
+      <div className="mt-1 text-xs text-neutral-500">
+        $350/day per customer-provided rig.
+      </div>
+    </div>
+
+    <div>
+      <label className="text-sm text-neutral-300">Participants</label>
+      <input
+        value={form.passengers}
+        onChange={(e) => set({ passengers: Number(e.target.value) })}
+        className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
+        type="number"
+        min={1}
+        max={12}
+      />
+    </div>
+  </div>
+)}
 
         {form.packageId === "offroad-day-levels" && (
           <div className="md:col-span-2">
@@ -769,11 +934,11 @@ function StepRigAndExtras({ form, set, nights }) {
     <div className="space-y-6">
       <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
         <img
-          src="/images/Wrangler140.jpg"
-          alt="Jeep Gladiator Expedition Build"
-          className="h-64 w-full object-cover"
-          loading="lazy"
-        />
+  src="/images/Wrangler140.jpg"
+  alt="Jeep Gladiator Expedition Build"
+  className="w-full h-auto object-contain"
+  loading="lazy"
+/>
 
         <div className="p-5">
           <div className="text-sm uppercase tracking-wider text-neutral-400">
@@ -1042,7 +1207,13 @@ function StepContact({ form, set }) {
               className="rounded-xl border border-white/10 bg-neutral-800/60 p-4"
             >
               <div className="mb-3 font-semibold text-neutral-100">
-               {index < Number(form.drivers || 1)
+              {form.experienceType === "rideAlong"
+  ? index === 0
+    ? "Primary Rider"
+    : `Additional Rider ${index}`
+  : form.experienceType === "tagAlong"
+  ? `Participant ${index + 1}`
+  : index < Number(form.drivers || 1)
   ? `Driver ${index + 1}`
   : `Passenger ${index - Number(form.drivers || 1) + 1}`}
               </div>
