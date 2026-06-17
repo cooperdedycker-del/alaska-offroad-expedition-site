@@ -17,7 +17,7 @@ export default function Experiences() {
         <div className="relative aspect-video w-full">
           <iframe
             className="absolute inset-0 h-full w-full"
-            src="https://www.youtube.com/embed/YOUR_VIDEO_ID"
+            src="https://www.youtube.com/embed/7XZfwhz1fjw"
             title="Alaska Offroad Expedition video"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
