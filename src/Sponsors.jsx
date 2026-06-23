@@ -11,6 +11,46 @@ export default function Sponsors() {
       featured: true,
     },
     {
+  name: "Bubba Rope",
+  img: "/images/sponsors/bubbarope.png",
+  description:
+    "Bubba Rope produces industry-leading kinetic recovery ropes and soft shackles designed for safe, efficient, and powerful vehicle recoveries.",
+  website: "https://bubbarope.com",
+  badge: "Recovery gear",
+  discountCode: "AKOE10",
+  featured: true,
+},
+{
+  name: "PullPal",
+  img: "/images/sponsors/Pulpall.png",
+  description:
+    "PullPal manufactures portable land anchors that allow for self-recovery in terrain where natural anchor points are not available—essential for remote off-road travel.",
+  website: "https://pullpal.com",
+  badge: "Recovery equipment",
+  discountCode: "",
+  featured: true,
+},
+{
+  name: "Method Race Wheels",
+  img: "/images/sponsors/Method.png",
+  description:
+    "Method Race Wheels builds high-performance wheels engineered for off-road strength, durability, and proven performance in extreme terrain.",
+  website: "https://www.methodracewheels.com",
+  badge: "Wheel partner",
+  discountCode: "",
+  featured: true,
+},
+    {
+  name: "OVS (Overland Vehicle Systems)",
+  img: "/images/sponsors/OVS.webp",
+  description:
+    "Overland Vehicle Systems builds high-quality rooftop tents, awnings, recovery gear, and overland equipment designed for durability in extreme environments.",
+  website: "https://overlandvehiclesystems.com",
+  badge: "Overland gear partner",
+  discountCode: "",
+  featured: true,
+},
+    {
       name: "Diode Dynamics",
       img: "/images/sponsors/Diodedynamics.png",
       description:
@@ -41,46 +81,7 @@ export default function Sponsors() {
       discountCode: "",
       featured: true,
     },
-    {
-  name: "OVS (Overland Vehicle Systems)",
-  img: "/images/sponsors/OVS.webp",
-  description:
-    "Overland Vehicle Systems builds high-quality rooftop tents, awnings, recovery gear, and overland equipment designed for durability in extreme environments.",
-  website: "https://overlandvehiclesystems.com",
-  badge: "Overland gear partner",
-  discountCode: "",
-  featured: true,
-},
-{
-  name: "Bubba Rope",
-  img: "/images/sponsors/bubbarope.png",
-  description:
-    "Bubba Rope produces industry-leading kinetic recovery ropes and soft shackles designed for safe, efficient, and powerful vehicle recoveries.",
-  website: "https://bubbarope.com",
-  badge: "Recovery gear",
-  discountCode: "AKOE10",
-  featured: true,
-},
-{
-  name: "PullPal",
-  img: "/images/sponsors/Pulpall.png",
-  description:
-    "PullPal manufactures portable land anchors that allow for self-recovery in terrain where natural anchor points are not available—essential for remote off-road travel.",
-  website: "https://pullpal.com",
-  badge: "Recovery equipment",
-  discountCode: "",
-  featured: true,
-},
-{
-  name: "Method Race Wheels",
-  img: "/images/sponsors/Method.png",
-  description:
-    "Method Race Wheels builds high-performance wheels engineered for off-road strength, durability, and proven performance in extreme terrain.",
-  website: "https://www.methodracewheels.com",
-  badge: "Wheel partner",
-  discountCode: "",
-  featured: true,
-},
+
 {
   name: "FCK Lightbars",
   img: "/images/sponsors/FCK lightbars.avif",
