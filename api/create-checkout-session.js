@@ -480,13 +480,15 @@ export default async function handler(req, res) {
         : `${siteUrl}/?checkout=cancelled#trip-builder`;
 
     const session =
-      await stripe.checkout.sessions.create({
-        mode: "payment",
+  await stripe.checkout.sessions.create({
+    mode: "payment",
 
-        customer_email:
-          form.contact.email,
+    customer_email:
+      form.contact.email,
 
-        line_items: [
+    allow_promotion_codes: true,
+
+    line_items: [
           {
             quantity: 1,
 
