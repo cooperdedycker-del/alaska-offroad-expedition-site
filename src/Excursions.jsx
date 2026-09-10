@@ -67,6 +67,13 @@ export default function Excursions() {
             <AutoSlideshow images={p.images} alt={p.name} />
 
             <div className="p-5">
+              {p.availability && (
+  <div className="mb-3">
+    <span className="inline-flex rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1 text-xs font-semibold text-emerald-300">
+      Available {p.availability}
+    </span>
+  </div>
+)} 
               <div className="text-xs uppercase tracking-wider text-white/60">
                 {p.type}
               </div>

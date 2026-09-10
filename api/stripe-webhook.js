@@ -1,250 +1,355 @@
 import Stripe from "stripe";
-import { google } from "googleapis";
-import { Resend } from "resend";
 
-export const config = {
-  api: {
-    bodyParser: false,
+const PACKAGE_CONFIG = {
+  "winter-knik-glacier": {
+    name: "Winter Knik Glacier Experience",
+    driverPrice: 695,
+    passengerPrice: 395,
+    maxDrivers: 2,
+    maxPassengers: 11,
   },
 };
 
-async function buffer(readable) {
+function splitMetadataValue(value, chunkSize = 450) {
+  const text = String(value || "");
   const chunks = [];
-  for await (const chunk of readable) {
-    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
-  }
-  return Buffer.concat(chunks);
-}
 
-function money(value) {
-  const n = Number(value || 0);
-  return `$${n.toLocaleString()}`;
-}
-
-function formatParticipants(metadata) {
-  try {
-    const participants = JSON.parse(metadata.participants || "[]");
-
-    if (!participants.length) {
-      return "No participant details provided.";
-    }
-
-    return participants
-      .map((p, index) => {
-        return `${index + 1}. ${p.name || "N/A"} — Age: ${
-          p.age || "N/A"
-        } — Shirt: ${p.shirtSize || "N/A"}`;
-      })
-      .join("\n");
-  } catch {
-    return metadata.participants || "No participant details provided.";
-  }
-}
-
-async function createCalendarReservation(metadata) {
-  const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-  const calendarId = process.env.GOOGLE_CALENDAR_ID;
-
-  if (!clientEmail || !privateKey || !calendarId) {
-    throw new Error("Missing Google Calendar env variables.");
+  for (let i = 0; i < text.length; i += chunkSize) {
+    chunks.push(text.slice(i, i + chunkSize));
   }
 
-  const auth = new google.auth.JWT({
-    email: clientEmail,
-    key: privateKey,
-    scopes: ["https://www.googleapis.com/auth/calendar"],
-  });
-
-  await auth.authorize();
-
-  const calendar = google.calendar({ version: "v3", auth });
-
-  const startDate = metadata.tripStart;
-  const endDate = metadata.tripEnd;
-
-  await calendar.events.insert({
-    calendarId,
-    requestBody: {
-      summary: `PAID Reservation - ${metadata.customerName}`,
-      description: `
-Alaska Offroad Expedition Paid Reservation
-
-Customer:
-${metadata.customerName}
-${metadata.customerEmail}
-${metadata.customerPhone || ""}
-
-Trip:
-${metadata.tripStart} to ${metadata.tripEnd}
-Rig: ${metadata.rig}
-Drivers: ${metadata.drivers}
-Passengers: ${metadata.passengers}
-Total Guests: ${metadata.totalGuests}
-
-Participants:
-${formatParticipants(metadata)}
-
-Lodging:
-${metadata.lodgingPreference}
-${metadata.lodgingNotes || ""}
-
-Excursions:
-${metadata.selectedExcursions || "None selected"}
-
-Pricing:
-Total Estimate: ${money(metadata.totalEstimate)}
-Deposit Paid: ${money(metadata.depositPaid)}
-Balance Due: ${money(metadata.balanceDue)}
-
-Stripe payment confirmed.
-      `.trim(),
-      start: {
-        date: startDate,
-      },
-      end: {
-        date: endDate,
-      },
-    },
-  });
+  return chunks;
 }
 
-async function sendReservationEmails(metadata) {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+function addOneDay(dateString) {
+  const date = new Date(
+    `${dateString}T00:00:00Z`
+  );
 
-  const from =
-    process.env.EMAIL_FROM ||
-    "Alaska Offroad Expedition <noreply@alaskaoffroadexpedition.com>";
+  date.setUTCDate(
+    date.getUTCDate() + 1
+  );
 
-  const adminTo =
-    process.env.SALES_INBOX_EMAIL || "cooper@alaskaoffroadexpedition.com";
-
-  const contactBlock = `
-Questions or changes?
-Email: cooper@alaskaoffroadexpedition.com
-Call/Text: 907-406-7901
-  `.trim();
-
-  const subjectAdmin = `PAID Reservation - ${metadata.customerName} - ${metadata.tripStart}`;
-  const subjectCustomer = "Your Alaska Offroad Expedition reservation is confirmed";
-
-  const adminText = `
-NEW PAID RESERVATION
-
-Customer:
-${metadata.customerName}
-${metadata.customerEmail}
-${metadata.customerPhone || ""}
-
-Trip:
-${metadata.tripStart} to ${metadata.tripEnd}
-Rig: ${metadata.rig}
-Drivers: ${metadata.drivers}
-Passengers: ${metadata.passengers}
-Total Guests: ${metadata.totalGuests}
-
-Participants:
-${formatParticipants(metadata)}
-
-Lodging:
-${metadata.lodgingPreference}
-${metadata.lodgingNotes || ""}
-
-Excursions:
-${metadata.selectedExcursions || "None selected"}
-
-Pricing:
-Total Estimate: ${money(metadata.totalEstimate)}
-Deposit Paid: ${money(metadata.depositPaid)}
-Balance Due: ${money(metadata.balanceDue)}
-
-${contactBlock}
-  `.trim();
-
-  const customerText = `
-Hi ${metadata.customerName},
-
-Your Alaska Offroad Expedition reservation is confirmed.
-
-Trip Dates:
-${metadata.tripStart} to ${metadata.tripEnd}
-
-Participants:
-${formatParticipants(metadata)}
-
-Deposit Paid:
-${money(metadata.depositPaid)}
-
-Estimated Remaining Balance:
-${money(metadata.balanceDue)}
-
-Selected Excursions:
-${metadata.selectedExcursions || "None selected"}
-
-Your dates are now reserved. We’ll follow up with next steps, waiver, packing details, and final itinerary planning.
-
-${contactBlock}
-  `.trim();
-
-  await Promise.all([
-    resend.emails.send({
-      from,
-      to: adminTo,
-      reply_to: metadata.customerEmail,
-      subject: subjectAdmin,
-      text: adminText,
-    }),
-
-    resend.emails.send({
-      from,
-      to: metadata.customerEmail,
-      reply_to: "cooper@alaskaoffroadexpedition.com",
-      subject: subjectCustomer,
-      text: customerText,
-    }),
-  ]);
+  return date
+    .toISOString()
+    .slice(0, 10);
 }
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-  const signature = req.headers["stripe-signature"];
-
-  let event;
-
-  try {
-    const rawBody = await buffer(req);
-
-    event = stripe.webhooks.constructEvent(
-      rawBody,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (error) {
-    console.error("Webhook signature error:", error.message);
-    return res.status(400).send(`Webhook Error: ${error.message}`);
+    return res.status(405).json({
+      error: "Method not allowed",
+    });
   }
 
   try {
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-      if (session.payment_status === "paid") {
-        const metadata = session.metadata || {};
+    const { form, pricing } = req.body;
 
-        await createCalendarReservation(metadata);
-        await sendReservationEmails(metadata);
-      }
+    if (!form?.contact?.name || !form?.contact?.email) {
+      return res.status(400).json({
+        error: "Missing customer contact info",
+      });
     }
 
-    return res.status(200).json({ received: true });
+    if (!form?.start || !form?.end) {
+      return res.status(400).json({
+        error: "Missing trip dates",
+      });
+    }
+
+    const isPackageBooking =
+      form.bookingType === "package";
+
+    let amountDue = 0;
+    let totalEstimate = 0;
+    let balanceDue = 0;
+
+    let productName =
+      "Alaska Offroad Expedition Deposit";
+
+    let packageName = "";
+    let packageId = "";
+    let packageSlug = "";
+
+    let drivers = Number(form.drivers ?? 0);
+    let passengers = Number(form.passengers ?? 0);
+    let totalGuests = 0;
+
+    /*
+     * PACKAGE BOOKING
+     */
+    if (isPackageBooking) {
+      packageId = form.packageId;
+      packageSlug = form.packageSlug || form.packageId;
+
+      const packageConfig =
+        PACKAGE_CONFIG[packageId];
+
+      if (!packageConfig) {
+        return res.status(400).json({
+          error: "Invalid expedition package",
+        });
+      }
+
+      packageName = packageConfig.name;
+
+      if (
+        !Number.isInteger(drivers) ||
+        drivers < 0 ||
+        drivers > packageConfig.maxDrivers
+      ) {
+        return res.status(400).json({
+          error: `Driver seats must be between 0 and ${packageConfig.maxDrivers}.`,
+        });
+      }
+
+      if (
+        !Number.isInteger(passengers) ||
+        passengers < 0 ||
+        passengers > packageConfig.maxPassengers
+      ) {
+        return res.status(400).json({
+          error: `Passenger seats must be between 0 and ${packageConfig.maxPassengers}.`,
+        });
+      }
+
+      totalGuests = drivers + passengers;
+
+      if (totalGuests < 1) {
+        return res.status(400).json({
+          error:
+            "At least one driver or passenger must be selected.",
+        });
+      }
+
+      const driverTotal =
+        drivers * packageConfig.driverPrice;
+
+      const passengerTotal =
+        passengers * packageConfig.passengerPrice;
+
+      totalEstimate =
+        driverTotal + passengerTotal;
+
+      amountDue = totalEstimate;
+
+      balanceDue = 0;
+
+      productName = packageConfig.name;
+    }
+
+    /*
+     * NORMAL TRIP BUILDER
+     *
+     * This intentionally keeps the existing
+     * Trip Builder deposit system unchanged.
+     */
+    if (!isPackageBooking) {
+      if (
+        !pricing?.depositDue ||
+        Number(pricing.depositDue) <= 0
+      ) {
+        return res.status(400).json({
+          error: "Invalid deposit amount",
+        });
+      }
+
+      amountDue = Number(pricing.depositDue);
+
+      totalEstimate = Number(
+        pricing.total || 0
+      );
+
+      balanceDue = Number(
+        pricing.balanceDue || 0
+      );
+
+      totalGuests = Number(
+        pricing.totalGuests ?? 1
+      );
+
+      drivers = Number(form.drivers ?? 0);
+      passengers = Number(
+        form.passengers ?? 0
+      );
+    }
+
+    /*
+     * PARTICIPANTS
+     *
+     * Stripe metadata has a length limit,
+     * so large groups are split across
+     * multiple metadata fields.
+     */
+    const participantJson = JSON.stringify(
+      form.participants || []
+    );
+
+    const participantChunks =
+      splitMetadataValue(participantJson);
+
+    const participantMetadata = {};
+
+    participantChunks.forEach(
+      (chunk, index) => {
+        const key =
+          index === 0
+            ? "participants"
+            : `participants${index + 1}`;
+
+        participantMetadata[key] = chunk;
+      }
+    );
+
+    const siteUrl =
+      process.env.SITE_URL ||
+      "http://localhost:5173";
+
+    const description = isPackageBooking
+      ? [
+          form.start,
+          `${drivers} driver${
+            drivers === 1 ? "" : "s"
+          }`,
+          `${passengers} passenger${
+            passengers === 1 ? "" : "s"
+          }`,
+          `${totalGuests} total guests`,
+          `Paid in full: $${totalEstimate.toLocaleString()}`,
+        ]
+          .join(" | ")
+          .slice(0, 300)
+      : [
+          `${form.start} → ${form.end}`,
+          `${totalGuests} guests`,
+          `${drivers} drivers / ${passengers} passengers`,
+          "Rig: Jeep Gladiator",
+          `Total: $${totalEstimate.toLocaleString()}`,
+          `Balance: $${balanceDue.toLocaleString()}`,
+        ]
+          .join(" | ")
+          .slice(0, 300);
+
+    const metadata = {
+      bookingType: isPackageBooking
+        ? "package"
+        : "trip-builder",
+
+      paymentType: isPackageBooking
+        ? "full"
+        : "deposit",
+
+      packageId,
+      packageSlug,
+      packageName,
+
+      customerName: form.contact.name,
+      customerEmail: form.contact.email,
+      customerPhone:
+        form.contact.phone || "",
+
+      tripStart: form.start,
+      tripEnd: form.end,
+
+      rig: isPackageBooking
+        ? "Alaska Offroad Expedition Fleet"
+        : form.rig ||
+          "Jeep Gladiator Expedition Rig",
+
+      experienceType:
+        form.experienceType || "",
+
+      drivers: String(drivers),
+      passengers: String(passengers),
+      totalGuests: String(totalGuests),
+
+      ...participantMetadata,
+
+      lodgingPreference:
+        form.lodgingPreference || "",
+
+      lodgingNotes:
+        form.lodgingNotes || "",
+
+      selectedExcursions:
+        pricing?.selectedExcursions
+          ?.map((x) => x.name)
+          .join(", ")
+          .slice(0, 450) || "",
+
+      totalEstimate:
+        String(totalEstimate),
+
+      depositPaid:
+        String(amountDue),
+
+      paymentAmount:
+        String(amountDue),
+
+      balanceDue:
+        String(balanceDue),
+
+      cancellationPolicy:
+        isPackageBooking
+          ? "Full refund if canceled before the day of the expedition. Same-day cancellation receives a 50% refund."
+          : "",
+    };
+
+    const cancelUrl = isPackageBooking
+      ? `${siteUrl}/book-package?package=${encodeURIComponent(
+          packageSlug
+        )}&checkout=cancelled`
+      : `${siteUrl}/?checkout=cancelled#trip-builder`;
+
+    const session =
+      await stripe.checkout.sessions.create({
+        mode: "payment",
+
+        customer_email:
+          form.contact.email,
+
+        line_items: [
+          {
+            quantity: 1,
+
+            price_data: {
+              currency: "usd",
+
+              unit_amount: Math.round(
+                amountDue * 100
+              ),
+
+              product_data: {
+                name: productName,
+                description,
+              },
+            },
+          },
+        ],
+
+        metadata,
+
+        success_url:
+          `${siteUrl}/reservation-confirmed?session_id={CHECKOUT_SESSION_ID}`,
+
+        cancel_url: cancelUrl,
+      });
+
+    return res.status(200).json({
+      url: session.url,
+    });
   } catch (error) {
-    console.error("Stripe webhook processing error:", error);
+    console.error(
+      "Create checkout session error:",
+      error
+    );
+
     return res.status(500).json({
-      error: error.message || "Webhook processing failed",
+      error:
+        error.message ||
+        "Failed to create checkout session",
     });
   }
 }

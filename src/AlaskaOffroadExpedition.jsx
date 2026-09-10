@@ -1,4 +1,5 @@
 import { useState, } from "react";
+import Packages from "./components/Packages";
 import TripBuilder from "./TripBuilder";
 import Experiences from "./Experiences";
 import Excursions from "./Excursions";
@@ -60,13 +61,15 @@ export default function AlaskaOffroadExpedition() {
         )}
       </header>
 
-      <Hero />
+<Hero />
 
 <div className="mx-auto max-w-7xl px-4 py-4">
   <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 </div>
 
 <Experiences />
+
+<Packages />
 
 <section id="trip-builder" className="relative">
   <TripBuilder />

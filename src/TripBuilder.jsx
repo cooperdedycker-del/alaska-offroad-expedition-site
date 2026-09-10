@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { excursions } from "./data/excursions";
+import Packages from "./components/Packages";
 
 function calculateDiscountedDailyTotal(totalDays, dailyRate, passengerDailyTotal) {
   let baseCost = 0;
@@ -25,6 +26,38 @@ function calculateDiscountedDailyTotal(totalDays, dailyRate, passengerDailyTotal
     baseCost: Math.round(baseCost),
     discountSavings: Math.round(discountSavings),
   };
+}
+
+function getMonthDay(dateString) {
+  if (!dateString) return null;
+
+  const date = new Date(`${dateString}T12:00:00`);
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+
+  return `${month}-${day}`;
+}
+
+function isExcursionInSeason(excursion, tripStart, tripEnd) {
+  if (!excursion.seasonStart || !excursion.seasonEnd) {
+    return true;
+  }
+
+  if (!tripStart || !tripEnd) {
+    return true;
+  }
+
+  const tripStartMD = getMonthDay(tripStart);
+  const tripEndMD = getMonthDay(tripEnd);
+
+  if (!tripStartMD || !tripEndMD) {
+    return true;
+  }
+
+  return (
+    tripStartMD >= excursion.seasonStart &&
+    tripEndMD <= excursion.seasonEnd
+  );
 }
 
 export default function TripBuilder() {
@@ -318,7 +351,12 @@ const discountedBase = calculateDiscountedDailyTotal(
 
 
   const selectedExcursions = excursions
-    .filter((x) => x.tripBuilder && form.addOns?.[x.key])
+  .filter(
+    (x) =>
+      x.tripBuilder &&
+      form.addOns?.[x.key] &&
+      isExcursionInSeason(x, form.start, form.end)
+  )
     .map((x) => {
       const priceType = x.priceType || "flat";
       const unitPrice = Number(x.price || 0);
@@ -341,11 +379,85 @@ const discountedBase = calculateDiscountedDailyTotal(
     0
   );
 
-  const total = baseCost + lodgeCost + addOnSum;
-  const depositDue = Math.round(total * 0.25);
-  const balanceDue = total - depositDue;
+  const lineItems = [
+  {
+    label:
+      form.experienceType === "rideAlong"
+        ? "Guided Ride-Along"
+        : form.experienceType === "tagAlong"
+        ? "Tag-Along / Bring Your Own Rig"
+        : "Self-Drive Expedition",
+    detail: `${totalDays} day${totalDays !== 1 ? "s" : ""}`,
+    amount: baseCost,
+  },
+];
 
-  return {
+if (form.experienceType === "selfDrive" && passengerCount > 0) {
+  lineItems.push({
+    label: "Passenger Fees",
+    detail: `${passengerCount} passenger${
+      passengerCount !== 1 ? "s" : ""
+    } × $${passengerRate}/day × ${totalDays} day${
+      totalDays !== 1 ? "s" : ""
+    }`,
+    amount: passengerDailyTotal * totalDays,
+  });
+}
+
+if (form.experienceType === "rideAlong" && passengerCount > 0) {
+  lineItems.push({
+    label: "Additional Riders",
+    detail: `${passengerCount} additional rider${
+      passengerCount !== 1 ? "s" : ""
+    } × $${passengerRate}/day × ${totalDays} day${
+      totalDays !== 1 ? "s" : ""
+    }`,
+    amount: passengerDailyTotal * totalDays,
+  });
+}
+
+if (form.experienceType === "tagAlong") {
+  lineItems.push({
+    label: "Customer Rigs",
+    detail: `${form.customerRigs || 1} rig${
+      Number(form.customerRigs || 1) !== 1 ? "s" : ""
+    } × $350/day × ${totalDays} day${totalDays !== 1 ? "s" : ""}`,
+    amount: Number(form.customerRigs || 1) * 350 * totalDays,
+  });
+}
+
+if (lodgeCost > 0) {
+  lineItems.push({
+    label: "Lodging Estimate",
+    detail: `${lodgeNights} night${lodgeNights !== 1 ? "s" : ""} × $300/night`,
+    amount: lodgeCost,
+  });
+}
+
+if (discountSavings > 0) {
+  lineItems.push({
+    label: "Stay Longer Savings",
+    detail: "Multi-day discount applied",
+    amount: -discountSavings,
+  });
+}
+
+selectedExcursions.forEach((x) => {
+  lineItems.push({
+    label: x.name,
+    detail:
+  x.priceType === "perPerson"
+    ? `${totalGuests} guests × $${x.unitPrice.toLocaleString()}`
+    : "Flat-rate excursion",
+    amount: Number(x.totalPrice || 0),
+  });
+});
+
+const total = baseCost + lodgeCost + addOnSum;
+const depositDue = Math.round(total * 0.25);
+const balanceDue = total - depositDue;
+
+return {
     totalDays,
     totalGuests,
     baseDailyRate,
@@ -1066,62 +1178,106 @@ function StepRigAndExtras({ form, set, nights }) {
 
 
 function StepAddOns({ form, set }) {
-  const toggle = (k) =>
-    set({ addOns: { ...form.addOns, [k]: !form.addOns[k] } });
+  const toggle = (x) => {
+    const inSeason = isExcursionInSeason(x, form.start, form.end);
+
+    if (!inSeason) return;
+
+    set({
+      addOns: {
+        ...form.addOns,
+        [x.key]: !form.addOns[x.key],
+      },
+    });
+  };
 
   const items = excursions.filter((x) => x.tripBuilder);
 
   return (
     <div className="space-y-4">
       <div className="grid md:grid-cols-2 gap-3">
-        {items.map((x) => (
-          <label
-            key={x.key}
-            className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/40 hover:bg-white/5 cursor-pointer"
-          >
-            <div className="flex gap-4 p-4">
-              <input
-                type="checkbox"
-                checked={!!form.addOns[x.key]}
-                onChange={() => toggle(x.key)}
-                className="mt-1 h-4 w-4"
-              />
+        {items.map((x) => {
+          const inSeason = isExcursionInSeason(x, form.start, form.end);
 
-              <div className="flex-1">
-                <div className="font-semibold">{x.name}</div>
+          return (
+            <label
+              key={x.key}
+              className={`overflow-hidden rounded-2xl border bg-neutral-900/40 transition ${
+                inSeason
+                  ? "border-white/10 hover:bg-white/5 cursor-pointer"
+                  : "border-red-500/30 opacity-60 cursor-not-allowed"
+              }`}
+            >
+              <div className="flex gap-4 p-4">
+                <input
+                  type="checkbox"
+                  checked={!!form.addOns[x.key] && inSeason}
+                  disabled={!inSeason}
+                  onChange={() => toggle(x)}
+                  className="mt-1 h-4 w-4 disabled:cursor-not-allowed"
+                />
 
-                <div className="text-sm text-neutral-400 mt-1">
-                  {x.desc}
-                </div>
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="font-semibold">{x.name}</div>
 
-                {x.features?.length > 0 && (
-                  <ul className="mt-3 space-y-1 text-sm text-neutral-300">
-                    {x.features.map((feature) => (
-                      <li key={feature} className="flex gap-2">
-                        <span className="text-orange-400">✔</span>
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                    {x.availability && (
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                          inSeason
+                            ? "bg-emerald-500/15 text-emerald-300 border border-emerald-400/30"
+                            : "bg-red-500/15 text-red-300 border border-red-400/30"
+                        }`}
+                      >
+                        {inSeason
+                          ? `Available ${x.availability}`
+                          : `Unavailable ${x.availability}`}
+                      </span>
+                    )}
+                  </div>
 
-                <div className="text-xs text-neutral-500 mt-3">
-                  Cost: ${Number(x.price || 0).toLocaleString()}
-{x.priceType === "perPerson" ? " per person" : ""}
+                  <div className="text-sm text-neutral-400 mt-1">
+                    {x.desc}
+                  </div>
+
+                  {!inSeason && (
+                    <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-xs text-red-200">
+                      This excursion is outside the season for your selected
+                      trip dates and cannot be added to this itinerary.
+                    </div>
+                  )}
+
+                  {x.features?.length > 0 && (
+                    <ul className="mt-3 space-y-1 text-sm text-neutral-300">
+                      {x.features.map((feature) => (
+                        <li key={feature} className="flex gap-2">
+                          <span className="text-orange-400">✔</span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className="text-xs text-neutral-500 mt-3">
+                    Cost: ${Number(x.price || 0).toLocaleString()}
+                    {x.priceType === "perPerson" ? " per person" : ""}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="px-4 pb-4">
-              <img
-                src={x.images?.[0]}
-                alt={x.name}
-                className="h-36 w-full rounded-xl object-cover border border-white/10"
-                loading="lazy"
-              />
-            </div>
-          </label>
-        ))}
+              <div className="px-4 pb-4">
+                <img
+                  src={x.images?.[0]}
+                  alt={x.name}
+                  className={`h-36 w-full rounded-xl object-cover border border-white/10 ${
+                    !inSeason ? "grayscale" : ""
+                  }`}
+                  loading="lazy"
+                />
+              </div>
+            </label>
+          );
+        })}
       </div>
     </div>
   );
