@@ -87,7 +87,7 @@ export default function BookPackage() {
           end: new Date(range.end),
         }));
 
-        ssetBlockedRanges(ranges);
+        setBlockedRanges(ranges);
         setBlockedDates(data.blockedDates || []);
       } catch (error) {
         console.error("Calendar availability error:", error);
@@ -460,9 +460,16 @@ export default function BookPackage() {
   filterDate={(date) =>
     isDateInSeason(date) && !isDateBlocked(date)
   }
-  placeholderText="Select available date"
+  disabled={availabilityLoading || !!availabilityError}
+  placeholderText={
+    availabilityLoading
+      ? "Checking availability..."
+      : availabilityError
+      ? "Availability unavailable"
+      : "Select available date"
+  }
   dateFormat="MMMM d, yyyy"
-  className="mt-2 w-full rounded-xl border border-white/10 bg-neutral-800 px-4 py-3 text-white"
+  className="mt-2 w-full rounded-xl border border-white/10 bg-neutral-800 px-4 py-3 text-white disabled:cursor-not-allowed disabled:opacity-50"
 />
 
 <div className="mt-3 text-sm text-neutral-400">
