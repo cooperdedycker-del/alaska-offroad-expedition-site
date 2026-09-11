@@ -510,8 +510,11 @@ export default async function handler(req, res) {
 
         metadata,
 
-        success_url:
-          `${siteUrl}/reservation-confirmed?session_id={CHECKOUT_SESSION_ID}`,
+       success_url: isPackageBooking
+  ? `${siteUrl}/reservation-confirmed?booking=package&package=${encodeURIComponent(
+      packageSlug
+    )}&session_id={CHECKOUT_SESSION_ID}`
+  : `${siteUrl}/reservation-confirmed?booking=trip-builder&session_id={CHECKOUT_SESSION_ID}`,
 
         cancel_url:
           cancelUrl,
