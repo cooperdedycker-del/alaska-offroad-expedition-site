@@ -281,10 +281,10 @@ export default async function handler(req, res) {
         });
       }
 
-      /*
-       * Calculate package price SERVER SIDE.
-       */
-     const driverTotal =
+ /*
+ * Calculate package price SERVER SIDE.
+ */
+const driverTotal =
   drivers * packageConfig.driverPrice;
 
 const passengerTotal =
@@ -301,52 +301,61 @@ const lodgingNights =
   Number(lodgingAfter);
 
 const lodgingTotal =
-  lodgingNights *
-  packageConfig.lodgingPrice;
+  lodgingNights * 300;
 
 totalEstimate =
   driverTotal +
   passengerTotal +
   lodgingTotal;
-    }
 
-    /*
-     * NORMAL TRIP BUILDER
-     *
-     * Leave existing deposit system alone.
-     */
-    if (!isPackageBooking) {
-      if (
-        !pricing?.depositDue ||
-        Number(pricing.depositDue) <= 0
-      ) {
-        return res.status(400).json({
-          error: "Invalid deposit amount",
-        });
-      }
+// Stripe charges the full package amount
+amountDue = totalEstimate;
 
-      amountDue =
-        Number(pricing.depositDue);
+// Package is paid in full
+balanceDue = 0;
 
-      totalEstimate =
-        Number(pricing.total || 0);
+// Use the package name in Stripe
+productName = packageConfig.name;
 
-      balanceDue =
-        Number(pricing.balanceDue || 0);
+} // <-- closes if (isPackageBooking)
 
-      totalGuests =
-        Number(pricing.totalGuests ?? 1);
+/*
+ * NORMAL TRIP BUILDER
+ *
+ * Leave existing deposit system alone.
+ */
+if (!isPackageBooking) {
+  if (
+    !pricing?.depositDue ||
+    Number(pricing.depositDue) <= 0
+  ) {
+    return res.status(400).json({
+      error: "Invalid deposit amount",
+    });
+  }
 
-      drivers =
-        Number(form.drivers ?? 0);
+  amountDue =
+    Number(pricing.depositDue);
 
-      passengers =
-        Number(form.passengers ?? 0);
-    }
+  totalEstimate =
+    Number(pricing.total || 0);
 
-    /*
-     * PARTICIPANTS
-     */
+  balanceDue =
+    Number(pricing.balanceDue || 0);
+
+  totalGuests =
+    Number(pricing.totalGuests ?? 1);
+
+  drivers =
+    Number(form.drivers ?? 0);
+
+  passengers =
+    Number(form.passengers ?? 0);
+}
+
+/*
+ * PARTICIPANTS
+ */
     const participantJson =
       JSON.stringify(
         form.participants || []
