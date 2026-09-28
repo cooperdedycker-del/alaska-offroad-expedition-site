@@ -38,7 +38,7 @@ export default function AlaskaOffroadExpedition() {
   <a href="#experiences" className="hover:text-white">
     Intro
   </a>
-  
+
    <a href="#trip-builder" className="hover:text-white">
     Trip Builder
   </a>
@@ -163,16 +163,54 @@ export default function AlaskaOffroadExpedition() {
 function Hero() {
   return (
     <section className="w-full">
-      <div className="relative h-[55vh] md:h-[70vh] overflow-hidden">
+      {/* Mobile Hero */}
+      <div className="block md:hidden bg-black">
+        <div className="px-4 pt-6">
+          <img
+            src="/images/hero-mobile-sticker.png"
+            alt="Alaska Offroad Expedition"
+            className="mx-auto w-full max-w-md h-auto object-contain"
+            loading="eager"
+          />
+        </div>
+
+        <div className="mx-auto max-w-7xl px-4 pb-6 pt-4">
+          <div className="flex flex-wrap justify-center gap-3">
+            <a
+              href="#trip-builder"
+              className="rounded-xl bg-white px-5 py-3 text-sm font-semibold text-neutral-900 shadow-lg transition hover:bg-neutral-200"
+            >
+              Build Your Trip
+            </a>
+
+            <a
+              href="#packages"
+              className="rounded-xl border border-white/40 bg-black/30 px-5 py-3 text-sm font-semibold text-white shadow-lg backdrop-blur-sm transition hover:bg-white/10"
+            >
+              View Packages
+            </a>
+            <a
+  href="https://www.youtube.com/@AlaskaOffroadExpedition"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="rounded-xl border border-white/40 bg-black/30 px-6 py-3 font-semibold text-white shadow-lg backdrop-blur-sm transition hover:bg-white/10"
+>
+  Watch Videos
+</a>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Hero */}
+      <div className="relative hidden md:block overflow-hidden">
         <img
           src="/images/hero-illustration.png"
           alt="Alaska mountains"
-          className="h-full w-full object-cover object-center"
-          loading="lazy"
+          className="h-[70vh] w-full object-cover object-center"
+          loading="eager"
         />
 
         <div className="absolute inset-0 bg-black/10" />
-
 
         <div className="absolute bottom-0 left-0 right-0">
           <div className="mx-auto max-w-7xl px-4 pb-8 md:pb-10">
@@ -185,12 +223,10 @@ function Hero() {
               </a>
 
               <a
-                  href="https://www.youtube.com/@alaskaoffroadexpeditions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-xl border border-white/40 bg-black/30 px-6 py-3 font-semibold text-white shadow-lg backdrop-blur-sm transition hover:bg-white/10"
-                >
-                  Watch Video
+                href="#packages"
+                className="rounded-xl border border-white/40 bg-black/30 px-6 py-3 font-semibold text-white shadow-lg backdrop-blur-sm transition hover:bg-white/10"
+              >
+                View Packages
               </a>
             </div>
           </div>
