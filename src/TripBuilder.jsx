@@ -129,9 +129,8 @@ dayLevel: "easy",
   rig: "Jeep Gladiator Expedition Rig",
   campNights: 0,
  
-  lodgingPreference: "lodging",
-  lodgingNotes: "",
-  homebaselodging: false,
+  lodgingPreference: "AOE first and last night lodging",
+lodgingNotes: "",
 
   addOns: {
     glacier: false,
@@ -346,9 +345,19 @@ const discountedBase = calculateDiscountedDailyTotal(
   const baseCost = discountedBase.baseCost;
   const discountSavings = discountedBase.discountSavings;
 
-  const lodgeNights = Number(nights || 0);
-  const lodgeCost = lodgeNights * 300;
+ const totalOvernights = Number(nights || 0);
 
+// AOE lodging is used for the first and last night.
+// If the expedition has only one overnight, charge for one lodging night.
+const lodgeNights = Math.min(totalOvernights, 2);
+
+// Nights between first and last are backcountry camping and included.
+const includedCampingNights = Math.max(
+  0,
+  totalOvernights - lodgeNights
+);
+
+const lodgeCost = lodgeNights * 300;
 
   const selectedExcursions = excursions
   .filter(
@@ -428,8 +437,11 @@ if (form.experienceType === "tagAlong") {
 
 if (lodgeCost > 0) {
   lineItems.push({
-    label: "Lodging Estimate",
-    detail: `${lodgeNights} night${lodgeNights !== 1 ? "s" : ""} × $300/night`,
+    label: "Alaska Offroad Expedition Lodging",
+    detail:
+      lodgeNights === 1
+        ? "1 night × $300"
+        : "First & last night × $300/night",
     amount: lodgeCost,
   });
 }
@@ -458,22 +470,23 @@ const depositDue = Math.round(total * 0.25);
 const balanceDue = total - depositDue;
 
 return {
-    totalDays,
-    totalGuests,
-    baseDailyRate,
-    passengerRate,
-    passengerCount,
-    passengerDailyTotal,
-    baseCost,
-    discountSavings,
-    lodgeNights,
-    lodgeCost,
-    selectedExcursions,
-    addOnSum,
-    total,
-    depositDue,
-    balanceDue,
-  };
+  totalDays,
+  totalGuests,
+  baseDailyRate,
+  passengerRate,
+  passengerCount,
+  passengerDailyTotal,
+  baseCost,
+  discountSavings,
+  lodgeNights,
+  includedCampingNights,
+  lodgeCost,
+  selectedExcursions,
+  addOnSum,
+  total,
+  depositDue,
+  balanceDue,
+};
 }, [form, nights]);
 
   const next = () => setStep((s) => Math.min(4, s + 1));
@@ -1042,15 +1055,25 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
 function StepRigAndExtras({ form, set, nights }) {
   const totalNights = Math.max(0, Number(nights || 0));
 
+  const aoeLodgingNights = Math.min(totalNights, 2);
+
+  const campingNights = Math.max(
+    0,
+    totalNights - aoeLodgingNights
+  );
+
+  const lodgingCost = aoeLodgingNights * 300;
+
   return (
     <div className="space-y-6">
+      {/* Expedition Rig */}
       <div className="rounded-2xl overflow-hidden border border-white/10 bg-neutral-900/40">
         <img
-  src="/images/Wrangler140.jpg"
-  alt="Jeep Gladiator Expedition Build"
-  className="w-full h-auto object-contain"
-  loading="lazy"
-/>
+          src="/images/Wrangler140.jpg"
+          alt="Jeep Gladiator Expedition Build"
+          className="w-full h-auto object-contain"
+          loading="lazy"
+        />
 
         <div className="p-5">
           <div className="text-sm uppercase tracking-wider text-neutral-400">
@@ -1062,10 +1085,9 @@ function StepRigAndExtras({ form, set, nights }) {
           </h3>
 
           <p className="mt-3 text-neutral-300">
-            Built for Alaska's remote trails, river crossings, glaciers, and
-            backcountry adventures. This fully equipped Gladiator is designed to
-            provide capability, comfort, and confidence while exploring some of
-            the most incredible places Alaska has to offer.
+            Built for Alaska's remote trails, river crossings, glaciers,
+            and backcountry adventures. Your expedition vehicle is equipped
+            for remote travel and changing Alaska conditions.
           </p>
 
           <div className="mt-5 rounded-xl border border-amber-400/20 bg-amber-400/10 p-4">
@@ -1074,78 +1096,122 @@ function StepRigAndExtras({ form, set, nights }) {
             </div>
 
             <p className="mt-2 text-sm text-neutral-300">
-              Every expedition includes recovery gear, air compressor, tire
-              repair equipment, first aid supplies, satellite communications,
-              and essential safety equipment so you're prepared for Alaska's
-              changing conditions.
+              Recovery gear, air compressor, tire repair equipment,
+              first aid supplies, communications equipment, and essential
+              safety equipment are provided with your expedition.
             </p>
           </div>
         </div>
       </div>
 
+      {/* Lodging Plan */}
       <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
-        <div className="text-sm font-semibold text-neutral-100">
-          Lodging & Camping Preference
+        <div className="text-sm uppercase tracking-wider text-neutral-400">
+          Expedition Lodging
         </div>
 
-        <p className="mt-2 text-sm text-neutral-300">
-          We build each itinerary around your comfort level. Lodging is
-          estimated at $300 per night whether that is our private Home Base
-          lodging in town or a lodge along the route. Camping can be worked into
-          the itinerary at no extra lodging cost when conditions and route allow.
+        <h3 className="mt-2 text-2xl font-bold text-white">
+          Lodging & Backcountry Camping
+        </h3>
+
+        <p className="mt-3 text-neutral-300">
+          Multi-day expeditions are designed around a combination of Alaska
+          Offroad Expedition lodging and backcountry camping.
         </p>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {[
-            {
-              value: "lodging",
-              title: "Lodging every night",
-              desc: "Best for guests who want a bed, shower, and warm reset each night.",
-            },
-            {
-              value: "mixed",
-              title: "Mix lodging and camping",
-              desc: "Best for guests who want comfort stops but are open to a true expedition camp.",
-            },
-            {
-              value: "camping",
-              title: "Camping preferred",
-              desc: "Best for guests who want the most remote, off-grid Alaska experience.",
-            },
-          ].map((option) => (
-            <label
-              key={option.value}
-              className={`rounded-2xl border p-4 cursor-pointer transition ${
-                form.lodgingPreference === option.value
-                  ? "border-amber-400/60 bg-amber-400/10"
-                  : "border-white/10 bg-neutral-800/60 hover:bg-white/5"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <input
-                  type="radio"
-                  name="lodgingPreference"
-                  value={option.value}
-                  checked={form.lodgingPreference === option.value}
-                  onChange={(e) =>
-                    set({ lodgingPreference: e.target.value })
-                  }
-                  className="mt-1"
-                />
+        {totalNights > 0 ? (
+          <div className="mt-6 space-y-4">
+            {/* First Night */}
+            <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 p-4">
+              <div className="font-semibold text-amber-300">
+                First Night — Alaska Offroad Expedition Lodging
+              </div>
 
-                <div>
-                  <div className="font-semibold text-neutral-100">
-                    {option.title}
-                  </div>
-                  <p className="mt-1 text-sm text-neutral-400">
-                    {option.desc}
-                  </p>
+              <p className="mt-2 text-sm text-neutral-300">
+                Start your expedition with a comfortable night at our lodging
+                before heading into the backcountry.
+              </p>
+
+              <div className="mt-2 text-sm font-semibold text-white">
+                $300/night
+              </div>
+            </div>
+
+            {/* Camping */}
+            {campingNights > 0 && (
+              <div className="rounded-xl border border-white/10 bg-neutral-800/60 p-4">
+                <div className="font-semibold text-white">
+                  Backcountry Camping
+                </div>
+
+                <p className="mt-2 text-sm text-neutral-300">
+                  {campingNights} night
+                  {campingNights !== 1 ? "s" : ""} of camping during the
+                  expedition are included at no additional lodging charge.
+                </p>
+
+                <div className="mt-2 text-sm font-semibold text-emerald-300">
+                  Included
                 </div>
               </div>
-            </label>
-          ))}
+            )}
+
+            {/* Last Night */}
+            {totalNights > 1 && (
+              <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 p-4">
+                <div className="font-semibold text-amber-300">
+                  Last Night — Alaska Offroad Expedition Lodging
+                </div>
+
+                <p className="mt-2 text-sm text-neutral-300">
+                  Finish the expedition back at our lodging for a warm shower,
+                  comfortable bed, and final night before departure.
+                </p>
+
+                <div className="mt-2 text-sm font-semibold text-white">
+                  $300/night
+                </div>
+              </div>
+            )}
+
+            {/* Price summary */}
+            <div className="rounded-xl border border-white/10 bg-neutral-800/50 p-4">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-neutral-300">
+                  Alaska Offroad Expedition Lodging
+                </span>
+
+                <span className="font-bold text-white">
+                  ${lodgingCost.toLocaleString()}
+                </span>
+              </div>
+
+              <div className="mt-1 text-xs text-neutral-500">
+                {aoeLodgingNights} lodging night
+                {aoeLodgingNights !== 1 ? "s" : ""} × $300
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-5 rounded-xl border border-white/10 bg-neutral-800/50 p-4 text-sm text-neutral-400">
+            Select expedition dates to see your lodging and camping schedule.
+          </div>
+        )}
+
+        {/* On-road lodging */}
+        <div className="mt-5 rounded-xl border border-orange-400/20 bg-orange-500/10 p-4">
+          <div className="font-semibold text-orange-300">
+            Lodging While Traveling
+          </div>
+
+          <p className="mt-2 text-sm leading-6 text-neutral-300">
+            If the expedition route requires a hotel, lodge, cabin, or other
+            accommodations while traveling, that lodging is not included in
+            the expedition price and is paid by the customer.
+          </p>
         </div>
 
+        {/* Notes */}
         <div className="mt-5">
           <label className="text-sm text-neutral-300">
             Lodging or camping notes
@@ -1154,27 +1220,17 @@ function StepRigAndExtras({ form, set, nights }) {
           <textarea
             rows={3}
             value={form.lodgingNotes || ""}
-            onChange={(e) => set({ lodgingNotes: e.target.value })}
+            onChange={(e) =>
+              set({ lodgingNotes: e.target.value })
+            }
             className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3"
-            placeholder="Example: We want the first and last night at Home Base, but are open to camping one or two nights if the weather is good."
+            placeholder="Example: Mobility concerns, sleeping preferences, allergies, or other lodging/camping considerations."
           />
         </div>
-
-        <div className="mt-5 rounded-xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-neutral-300">
-          Lodging estimate: $300/night. Final lodging and camping layout is
-          confirmed when we build your custom itinerary.
-        </div>
-
-        {totalNights === 0 && (
-          <div className="mt-3 text-xs text-neutral-500">
-            Select dates first so we can estimate lodging nights.
-          </div>
-        )}
       </div>
     </div>
   );
 }
-
 
 
 function StepAddOns({ form, set }) {
@@ -1435,13 +1491,6 @@ function StepContact({ form, set }) {
 function SummaryCard({ form, nights, price }) {
   const airportIncluded = Math.max(1, Number(nights || 0) + 1) > 1;
 
-  const lodgingLabel =
-    form.lodgingPreference === "mixed"
-      ? "Mix lodging and camping"
-      : form.lodgingPreference === "camping"
-      ? "Camping preferred"
-      : "Lodging every night";
-
   return (
     <div className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5">
       <div className="text-xl font-bold">Trip Estimate</div>
@@ -1490,10 +1539,33 @@ function SummaryCard({ form, nights, price }) {
             </span>
           </div>
 
-          <div className="border-t border-white/10 pt-3">
-            <div className="text-neutral-400">Lodging Preference</div>
-            <div className="mt-1 text-neutral-100">{lodgingLabel}</div>
-          </div>
+         <div className="border-t border-white/10 pt-3">
+  <div className="text-neutral-400">
+    Overnight Plan
+  </div>
+
+  <div className="mt-2 space-y-1 text-neutral-100">
+    {price.lodgeNights > 0 && (
+      <div>
+        Alaska Offroad Expedition Lodging:{" "}
+        {price.lodgeNights} night
+        {price.lodgeNights !== 1 ? "s" : ""}
+      </div>
+    )}
+
+    {price.includedCampingNights > 0 && (
+      <div>
+        Backcountry Camping:{" "}
+        {price.includedCampingNights} night
+        {price.includedCampingNights !== 1 ? "s" : ""} — Included
+      </div>
+    )}
+
+    {price.totalDays <= 1 && (
+      <div>No overnight stay</div>
+    )}
+  </div>
+</div>
 
           <div className="border-t border-white/10 pt-3">
             <div className="text-neutral-400">Selected Excursions</div>
@@ -1548,7 +1620,7 @@ function SummaryCard({ form, nights, price }) {
 
           {price.lodgeNights > 0 && (
             <div className="flex justify-between gap-4">
-              <span>Lodging Estimate ({price.lodgeNights} × $300)</span>
+              <span>AOE Lodging ({price.lodgeNights} × $300)</span>
               <span>${price.lodgeCost.toLocaleString()}</span>
             </div>
           )}

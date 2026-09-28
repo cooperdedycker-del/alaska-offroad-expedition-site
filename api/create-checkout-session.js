@@ -11,6 +11,7 @@ const PACKAGE_CONFIG = {
     maxDrivers: 2,
     maxPassengers: 11,
     availableMonths: [11, 12, 1, 2],
+    lodgingPrice: 300,
   },
 };
 
@@ -283,24 +284,30 @@ export default async function handler(req, res) {
       /*
        * Calculate package price SERVER SIDE.
        */
-      const driverTotal =
-        drivers *
-        packageConfig.driverPrice;
+     const driverTotal =
+  drivers * packageConfig.driverPrice;
 
-      const passengerTotal =
-        passengers *
-        packageConfig.passengerPrice;
+const passengerTotal =
+  passengers * packageConfig.passengerPrice;
 
-      totalEstimate =
-        driverTotal + passengerTotal;
+const lodgingBefore =
+  form.lodgingBefore === true;
 
-      amountDue =
-        totalEstimate;
+const lodgingAfter =
+  form.lodgingAfter === true;
 
-      balanceDue = 0;
+const lodgingNights =
+  Number(lodgingBefore) +
+  Number(lodgingAfter);
 
-      productName =
-        packageConfig.name;
+const lodgingTotal =
+  lodgingNights *
+  packageConfig.lodgingPrice;
+
+totalEstimate =
+  driverTotal +
+  passengerTotal +
+  lodgingTotal;
     }
 
     /*
@@ -447,6 +454,26 @@ export default async function handler(req, res) {
 
       lodgingNotes:
         form.lodgingNotes || "",
+
+        lodgingBefore:
+  String(form.lodgingBefore === true),
+
+lodgingAfter:
+  String(form.lodgingAfter === true),
+
+lodgingNights:
+  String(
+    Number(form.lodgingBefore === true) +
+    Number(form.lodgingAfter === true)
+  ),
+
+lodgingTotal:
+  String(
+    (
+      Number(form.lodgingBefore === true) +
+      Number(form.lodgingAfter === true)
+    ) * 300
+  ),
 
       selectedExcursions:
         pricing?.selectedExcursions

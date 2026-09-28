@@ -15,6 +15,17 @@ export default function BookPackage() {
   const [drivers, setDrivers] = useState(0);
   const [passengers, setPassengers] = useState(1);
 
+  const [lodgingBefore, setLodgingBefore] = useState(false);
+const [lodgingAfter, setLodgingAfter] = useState(false);
+
+const LODGING_PRICE = 300;
+
+const lodgingNights =
+  Number(lodgingBefore) + Number(lodgingAfter);
+
+const lodgingTotal =
+  lodgingNights * LODGING_PRICE;
+
   const [contact, setContact] = useState({
     name: "",
     email: "",
@@ -40,17 +51,32 @@ export default function BookPackage() {
   const totalGuests = Number(drivers) + Number(passengers);
 
   const total = useMemo(() => {
-    if (!expeditionPackage) return 0;
+  if (!expeditionPackage) return 0;
 
-    const driverTotal =
-      Number(drivers) * Number(expeditionPackage.driverPrice || 0);
+  const driverTotal =
+    Number(drivers) * Number(expeditionPackage.driverPrice || 0);
 
-    const passengerTotal =
-      Number(passengers) * Number(expeditionPackage.passengerPrice || 0);
+  const passengerTotal =
+    Number(passengers) * Number(expeditionPackage.passengerPrice || 0);
 
-    return driverTotal + passengerTotal;
-  }, [drivers, passengers, expeditionPackage]);
+  const selectedLodgingNights =
+    Number(lodgingBefore) + Number(lodgingAfter);
 
+  const selectedLodgingTotal =
+    selectedLodgingNights * LODGING_PRICE;
+
+  return (
+    driverTotal +
+    passengerTotal +
+    selectedLodgingTotal
+  );
+}, [
+  drivers,
+  passengers,
+  lodgingBefore,
+  lodgingAfter,
+  expeditionPackage,
+]);
   useEffect(() => {
     const requiredParticipants = Math.max(0, totalGuests);
 
@@ -242,8 +268,21 @@ export default function BookPackage() {
 
         rig: "Alaska Offroad Expedition Fleet",
 
-        lodgingPreference: "Not applicable",
-        lodgingNotes: "",
+        lodgingPreference:
+  lodgingNights > 0
+    ? "Alaska Offroad Expedition Lodging"
+    : "No lodging",
+
+lodgingBefore,
+lodgingAfter,
+lodgingNights,
+
+lodgingNotes:
+  lodgingNights > 0
+    ? `${lodgingBefore ? "Night before. " : ""}${
+        lodgingAfter ? "Night after." : ""
+      }`.trim()
+    : "",
 
         addOns: {},
 
@@ -273,6 +312,10 @@ export default function BookPackage() {
         passengerTotal:
           Number(passengers) *
           Number(expeditionPackage.passengerPrice),
+
+          lodgingPrice: LODGING_PRICE,
+          lodgingNights,
+          lodgingTotal,
 
         total,
 
@@ -492,133 +535,261 @@ export default function BookPackage() {
             </section>
 
             {/* Seats */}
-            <section className="rounded-3xl border border-white/10 bg-neutral-900/60 p-6 md:p-8">
-              <div className="text-sm font-bold uppercase tracking-[0.15em] text-orange-400">
-                Step 2
-              </div>
+{/* Seats */}
+<section className="rounded-3xl border border-white/10 bg-neutral-900/60 p-6 md:p-8">
+  <div className="text-sm font-bold uppercase tracking-[0.15em] text-orange-400">
+    Step 2
+  </div>
 
-              <h2 className="mt-2 text-2xl font-bold">
-                Choose Your Seats
-              </h2>
+  <h2 className="mt-2 text-2xl font-bold">
+    Choose Your Seats
+  </h2>
 
-              <p className="mt-2 text-neutral-400">
-                Drive one of our expedition rigs or come along as a passenger.
-              </p>
+  <p className="mt-2 text-neutral-400">
+    Drive one of our expedition rigs or come along as a passenger.
+  </p>
 
-              <div className="mt-6 grid gap-5 md:grid-cols-2">
-                {/* Drivers */}
-                <div className="rounded-2xl border border-orange-400/30 bg-orange-400/5 p-5">
-                  <div className="text-xl font-bold text-white">
-                    Driver Seats
-                  </div>
+  <div className="mt-6 grid items-start gap-5 md:grid-cols-2">
+    {/* Drivers */}
+    <div className="rounded-2xl border border-orange-400/30 bg-orange-400/5 p-5">
+      <div className="text-xl font-bold text-white">
+        Driver Seats
+      </div>
 
-                  <div className="mt-1 text-2xl font-extrabold text-orange-400">
-                    $
-                    {expeditionPackage.driverPrice.toLocaleString()}
-                  </div>
+      <div className="mt-1 text-2xl font-extrabold text-orange-400">
+        ${expeditionPackage.driverPrice.toLocaleString()}
+      </div>
 
-                  <div className="mt-1 text-sm text-neutral-400">
-                    Per driver
-                  </div>
+      <div className="mt-1 text-sm text-neutral-400">
+        Per driver
+      </div>
 
-                  <p className="mt-4 text-sm leading-6 text-neutral-300">
-                    Take the wheel of one of our expedition rigs while following
-                    your guide through the Knik Glacier backcountry.
-                  </p>
+      <p className="mt-4 text-sm leading-6 text-neutral-300">
+        Take the wheel of one of our expedition rigs while following
+        your guide through the Knik Glacier backcountry.
+      </p>
 
-                  <div className="mt-5">
-                    <label className="text-sm text-neutral-300">
-                      Drivers
-                    </label>
+      <div className="mt-5">
+        <label className="text-sm text-neutral-300">
+          Drivers
+        </label>
 
-                    <select
-                      value={drivers}
-                      onChange={(e) =>
-                        setDrivers(Number(e.target.value))
-                      }
-                      className="mt-2 w-full rounded-xl bg-neutral-800 px-4 py-3"
-                    >
-                      {Array.from(
-                        {
-                          length:
-                            expeditionPackage.maxDrivers + 1,
-                        },
-                        (_, number) => (
-                          <option
-                            key={number}
-                            value={number}
-                          >
-                            {number}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </div>
-                </div>
+        <select
+          value={drivers}
+          onChange={(e) =>
+            setDrivers(Number(e.target.value))
+          }
+          className="mt-2 w-full rounded-xl bg-neutral-800 px-4 py-3"
+        >
+          {Array.from(
+            {
+              length: expeditionPackage.maxDrivers + 1,
+            },
+            (_, number) => (
+              <option
+                key={number}
+                value={number}
+              >
+                {number}
+              </option>
+            )
+          )}
+        </select>
+      </div>
+    </div>
 
-                {/* Passengers */}
-                <div className="rounded-2xl border border-white/10 bg-neutral-800/50 p-5">
-                  <div className="text-xl font-bold text-white">
-                    Passenger Seats
-                  </div>
+    {/* Passengers */}
+    <div className="rounded-2xl border border-white/10 bg-neutral-800/50 p-5">
+      <div className="text-xl font-bold text-white">
+        Passenger Seats
+      </div>
 
-                  <div className="mt-1 text-2xl font-extrabold text-white">
-                    $
-                    {expeditionPackage.passengerPrice.toLocaleString()}
-                  </div>
+      <div className="mt-1 text-2xl font-extrabold text-white">
+        ${expeditionPackage.passengerPrice.toLocaleString()}
+      </div>
 
-                  <div className="mt-1 text-sm text-neutral-400">
-                    Per passenger
-                  </div>
+      <div className="mt-1 text-sm text-neutral-400">
+        Per passenger
+      </div>
 
-                  <p className="mt-4 text-sm leading-6 text-neutral-300">
-                    Ride along and enjoy the expedition while your guide or
-                    another member of your group handles the driving.
-                  </p>
+      <p className="mt-4 text-sm leading-6 text-neutral-300">
+        Ride along and enjoy the expedition while your guide or another
+        member of your group handles the driving.
+      </p>
 
-                  <div className="mt-5">
-                    <label className="text-sm text-neutral-300">
-                      Passengers
-                    </label>
+      <div className="mt-5">
+        <label className="text-sm text-neutral-300">
+          Passengers
+        </label>
 
-                    <select
-                      value={passengers}
-                      onChange={(e) =>
-                        setPassengers(Number(e.target.value))
-                      }
-                      className="mt-2 w-full rounded-xl bg-neutral-800 px-4 py-3"
-                    >
-                      {Array.from(
-                        {
-                          length:
-                            expeditionPackage.maxPassengers + 1,
-                        },
-                        (_, number) => (
-                          <option
-                            key={number}
-                            value={number}
-                          >
-                            {number}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </div>
-                </div>
-              </div>
+        <select
+          value={passengers}
+          onChange={(e) =>
+            setPassengers(Number(e.target.value))
+          }
+          className="mt-2 w-full rounded-xl bg-neutral-800 px-4 py-3"
+        >
+          {Array.from(
+            {
+              length: expeditionPackage.maxPassengers + 1,
+            },
+            (_, number) => (
+              <option
+                key={number}
+                value={number}
+              >
+                {number}
+              </option>
+            )
+          )}
+        </select>
+      </div>
+    </div>
+  </div>
 
-              <div className="mt-5 rounded-xl border border-white/10 bg-neutral-800/40 p-4 text-sm text-neutral-300">
-                Up to{" "}
-                <strong>
-                  {expeditionPackage.maxDrivers} driver seats
-                </strong>{" "}
-                and{" "}
-                <strong>
-                  {expeditionPackage.maxPassengers} passenger seats
-                </strong>{" "}
-                are available per expedition.
-              </div>
-            </section>
+  <div className="mt-5 rounded-xl border border-white/10 bg-neutral-800/40 p-4 text-sm text-neutral-300">
+    Up to{" "}
+    <strong>
+      {expeditionPackage.maxDrivers} driver seats
+    </strong>{" "}
+    and{" "}
+    <strong>
+      {expeditionPackage.maxPassengers} passenger seats
+    </strong>{" "}
+    are available per expedition.
+  </div>
+</section>
+
+{/* Lodging Add-On */}
+<section className="rounded-3xl border border-white/10 bg-neutral-900/60 p-6 md:p-8">
+  <div className="text-sm font-bold uppercase tracking-[0.15em] text-orange-400">
+    Optional Add-On
+  </div>
+
+  <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h2 className="text-2xl font-bold">
+        Alaska Offroad Expedition Lodging
+      </h2>
+
+      <p className="mt-2 max-w-2xl text-neutral-400">
+        Add a comfortable night before or after your Knik Glacier
+        expedition.
+      </p>
+    </div>
+
+    <div className="text-left md:text-right">
+      <div className="text-sm text-neutral-400">
+        Per Night
+      </div>
+
+      <div className="text-2xl font-extrabold text-orange-400">
+        $300
+      </div>
+    </div>
+  </div>
+
+  <div className="mt-6 grid items-start gap-4 md:grid-cols-2">
+    {/* Night Before */}
+    <label
+      className={`cursor-pointer rounded-2xl border p-5 transition ${
+        lodgingBefore
+          ? "border-orange-400/60 bg-orange-400/10"
+          : "border-white/10 bg-neutral-800/50 hover:bg-white/5"
+      }`}
+    >
+      <div className="flex items-start gap-4">
+        <input
+          type="checkbox"
+          checked={lodgingBefore}
+          onChange={(e) =>
+            setLodgingBefore(e.target.checked)
+          }
+          className="mt-1 h-5 w-5 shrink-0"
+        />
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-4">
+            <div className="font-bold text-white">
+              Night Before Expedition
+            </div>
+
+            <div className="shrink-0 font-bold text-orange-400">
+              $300
+            </div>
+          </div>
+
+          <p className="mt-3 text-sm leading-6 text-neutral-400">
+            Stay at Alaska Offroad Expedition lodging the night before
+            your Knik Glacier expedition so you're ready to head out
+            the next morning.
+          </p>
+        </div>
+      </div>
+    </label>
+
+    {/* Night After */}
+    <label
+      className={`cursor-pointer rounded-2xl border p-5 transition ${
+        lodgingAfter
+          ? "border-orange-400/60 bg-orange-400/10"
+          : "border-white/10 bg-neutral-800/50 hover:bg-white/5"
+      }`}
+    >
+      <div className="flex items-start gap-4">
+        <input
+          type="checkbox"
+          checked={lodgingAfter}
+          onChange={(e) =>
+            setLodgingAfter(e.target.checked)
+          }
+          className="mt-1 h-5 w-5 shrink-0"
+        />
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-4">
+            <div className="font-bold text-white">
+              Night After Expedition
+            </div>
+
+            <div className="shrink-0 font-bold text-orange-400">
+              $300
+            </div>
+          </div>
+
+          <p className="mt-3 text-sm leading-6 text-neutral-400">
+            Stay after the expedition for a warm shower, comfortable
+            night, and an easier departure the following day.
+          </p>
+        </div>
+      </div>
+    </label>
+  </div>
+
+  {lodgingNights > 0 && (
+    <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-orange-400/20 bg-orange-400/10 p-4">
+      <div>
+        <div className="font-semibold text-white">
+          Lodging Added
+        </div>
+
+        <div className="mt-1 text-sm text-neutral-400">
+          {lodgingBefore && lodgingAfter
+            ? "Night before + night after"
+            : lodgingBefore
+            ? "Night before expedition"
+            : "Night after expedition"}
+        </div>
+      </div>
+
+      <div className="text-lg font-bold text-white">
+        {lodgingNights} night
+        {lodgingNights !== 1 ? "s" : ""} — $
+        {lodgingTotal.toLocaleString()}
+      </div>
+    </div>
+  )}
+</section>
 
             {/* Contact */}
             <section className="rounded-3xl border border-white/10 bg-neutral-900/60 p-6 md:p-8">
@@ -852,6 +1023,30 @@ export default function BookPackage() {
                   <span>{totalGuests}</span>
                 </div>
               </div>
+
+              {lodgingNights > 0 && (
+  <div className="border-t border-white/10 pt-4">
+    <div className="flex justify-between gap-4">
+      <span className="text-neutral-400">
+        AOE Lodging
+      </span>
+
+      <span>
+        {lodgingNights} × $300
+      </span>
+    </div>
+
+    <div className="mt-2 space-y-1 text-xs text-neutral-500">
+      {lodgingBefore && (
+        <div>✓ Night before expedition</div>
+      )}
+
+      {lodgingAfter && (
+        <div>✓ Night after expedition</div>
+      )}
+    </div>
+  </div>
+)}
 
               <div className="mt-5 flex items-end justify-between">
                 <div>

@@ -10,11 +10,11 @@ export default function FAQ() {
     },
     {
       q: "Is food included on the expedition?",
-      a: "Not all food is provided. We plan dinners for guests while on the trail. Guests are responsible for breakfast and lunch.",
+      a: "Food is not included. Before we hit the road all customers will have a chance to fill the coolers with exactly what they wont for food and drinks along the way. We provide the coolers and cooking systems.",
     },
     {
       q: "Can you pick us up at the airport?",
-      a: "Yes. Airport pickup and drop-off, as well as hotel transfers, are available.",
+      a: "Yes. Airport pickup and drop-off, as well as first and last night Alaska offroad expedition Air B&B is included in the pricing.",
     },
     {
       q: "What about weather & safety?",
