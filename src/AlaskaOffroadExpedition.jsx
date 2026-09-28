@@ -35,30 +35,101 @@ export default function AlaskaOffroadExpedition() {
 
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm text-neutral-300">
-            <a href="#experiences" className="hover:text-white">Expeditions</a>
-            <a href="#excursions" className="hover:text-white">Excursions</a>
-            <a href="#trip-builder" className="hover:text-white">Trip Builder</a>
-            <a href="#merch" className="hover:text-white">Merch</a>
-            <a href="#faq" className="hover:text-white">FAQ</a>
-            <a href="#sponsors" className="hover:text-white">Sponsors</a>
-            <a href="#contact" className="hover:text-white">Contact</a>
-           
-          </nav>
+  <a href="#experiences" className="hover:text-white">
+    Intro
+  </a>
+  
+   <a href="#trip-builder" className="hover:text-white">
+    Trip Builder
+  </a>
+
+  <a href="#packages" className="hover:text-white">
+    Packages
+  </a>
+
+  <a href="#excursions" className="hover:text-white">
+    Add on Excursions
+  </a>
+
+  <a href="#merch" className="hover:text-white">
+    Merch
+  </a>
+
+  <a href="#faq" className="hover:text-white">
+    FAQ
+  </a>
+
+  <a href="#sponsors" className="hover:text-white">
+    Sponsors
+  </a>
+
+  <a href="#contact" className="hover:text-white">
+    Contact
+  </a>
+</nav>
           <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className="md:hidden text-white">☰</button>
           <a href="#trip-builder" className="hidden md:inline-flex items-center gap-2 rounded-2xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition">Book an Expedition</a>
         </div>
         {mobileNavOpen && (
-          <nav className="md:hidden flex flex-col items-center gap-4 pb-4 text-sm text-neutral-300">
-            <a href="#experiences" onClick={() => setMobileNavOpen(false)}>Expeditions</a>
-            <a href="#excursions" onClick={() => setMobileNavOpen(false)}>Excursions</a>
-            <a href="#trip-builder" onClick={() => setMobileNavOpen(false)}>Trip Builder</a>
-            <a href="#merch" onClick={() => setMobileNavOpen(false)}>Merch</a>
-            <a href="#faq" onClick={() => setMobileNavOpen(false)}>FAQ</a>
-            <a href="#sponsors" onClick={() => setMobileNavOpen(false)}>Sponsors</a>
-            <a href="#contact" onClick={() => setMobileNavOpen(false)}>Contact</a>
-            
-          </nav>
-        )}
+  <nav className="md:hidden flex flex-col items-center gap-4 pb-4 text-sm text-neutral-300">
+    <a
+      href="#experiences"
+      onClick={() => setMobileNavOpen(false)}
+    >
+      Intro
+    </a>
+    <a
+      href="#trip-builder"
+      onClick={() => setMobileNavOpen(false)}
+    >
+      Trip Builder
+    </a>
+
+    <a
+      href="#packages"
+      onClick={() => setMobileNavOpen(false)}
+    >
+      Packages
+    </a>
+
+    <a
+      href="#excursions"
+      onClick={() => setMobileNavOpen(false)}
+    >
+      Add on Excursions
+    </a>
+
+    
+
+    <a
+      href="#merch"
+      onClick={() => setMobileNavOpen(false)}
+    >
+      Merch
+    </a>
+
+    <a
+      href="#faq"
+      onClick={() => setMobileNavOpen(false)}
+    >
+      FAQ
+    </a>
+
+    <a
+      href="#sponsors"
+      onClick={() => setMobileNavOpen(false)}
+    >
+      Sponsors
+    </a>
+
+    <a
+      href="#contact"
+      onClick={() => setMobileNavOpen(false)}
+    >
+      Contact
+    </a>
+  </nav>
+)}
       </header>
 
 <Hero />
@@ -69,9 +140,11 @@ export default function AlaskaOffroadExpedition() {
 
 <Experiences />
 
-<Packages />
+<section id="packages" className="relative scroll-mt-24">
+  <Packages />
+</section>
 
-<section id="trip-builder" className="relative">
+<section id="trip-builder" className="relative scroll-mt-24">
   <TripBuilder />
 </section>
 
