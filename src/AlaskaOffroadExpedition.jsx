@@ -190,7 +190,7 @@ function Hero() {
               View Packages
             </a>
             <a
-  href="https://www.youtube.com/@AlaskaOffroadExpedition"
+  href="https://www.youtube.com/@alaskaoffroadexpeditions"
   target="_blank"
   rel="noopener noreferrer"
   className="rounded-xl border border-white/40 bg-black/30 px-6 py-3 font-semibold text-white shadow-lg backdrop-blur-sm transition hover:bg-white/10"
