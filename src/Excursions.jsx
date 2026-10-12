@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { excursions } from "./data/excursions";
 
@@ -46,17 +47,27 @@ export default function Excursions() {
 
   return (
     <section id="excursions" className="mx-auto max-w-7xl px-4 py-16">
-      <div className="mb-10 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold">
-          Local Alaska Experiences
-        </h2>
+     <div className="mb-10 text-center">
+  <h2 className="text-3xl md:text-4xl font-bold">
+    Add-On Experiences
+  </h2>
 
-        <p className="mt-3 text-neutral-300 max-w-3xl mx-auto">
-          We partner with proven Alaska outfitters to integrate bucket-list
-          experiences into your expedition. We coordinate logistics, timing, and
-          planning so your trip flows smoothly.
-        </p>
-      </div>
+  <p className="mt-3 text-neutral-300 max-w-3xl mx-auto">
+    Make your Alaska expedition even more unforgettable!
+    From glacier adventures to unique Alaskan activities,
+    customize your trip with experiences that match your interests.
+    Select your favorite add-ons directly in our Trip Builder,
+    and we'll handle the planning and coordination.
+  </p>
+
+  <a
+    href="#trip-builder"
+    className="mt-5 inline-flex items-center gap-2 font-semibold text-orange-400 transition hover:text-orange-300"
+  >
+    Explore Add-Ons in the Trip Builder
+    <span aria-hidden="true">→</span>
+  </a>
+</div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {partners.map((p) => (
@@ -68,32 +79,28 @@ export default function Excursions() {
 
             <div className="p-5">
               {p.availability && (
-  <div className="mb-3">
-    <span className="inline-flex rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1 text-xs font-semibold text-emerald-300">
-      Available {p.availability}
-    </span>
-  </div>
-)} 
+                <div className="mb-3">
+                  <span className="inline-flex rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1 text-xs font-semibold text-emerald-300">
+                    Available {p.availability}
+                  </span>
+                </div>
+              )}
+
               <div className="text-xs uppercase tracking-wider text-white/60">
                 {p.type}
               </div>
 
-              <div className="mt-2 font-semibold">{p.name}</div>
-
-              <p className="mt-2 text-sm text-neutral-300">{p.desc}</p>
-
-              <a
-                href={p.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-neutral-100 hover:bg-white/20 transition"
-              >
-                Learn More
-              </a>
-
-              <div className="mt-3 text-xs text-neutral-500">
-                Excursion add-ons are selected in the Trip Builder.
+              <div className="mt-2 font-semibold">
+                {p.name}
               </div>
+
+              <p className="mt-2 text-sm text-neutral-300">
+                {p.desc}
+              </p>
+
+              <div className="mt-4 text-xs text-neutral-400">
+  Available as an add-on in our Trip Builder.
+</div>
             </div>
           </div>
         ))}
