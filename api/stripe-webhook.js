@@ -93,7 +93,7 @@ function formatParticipants(metadata) {
           participant.age || "N/A"
         } — Shirt: ${
           participant.shirtSize || "N/A"
-        }`;
+        } — Email: ${participant.email || "N/A"} — Phone: ${participant.phone || "N/A"}${participant.address ? ` — Address: ${participant.address}` : ""}`;
       })
       .join("\n");
   } catch (error) {
@@ -207,6 +207,9 @@ async function createCalendarReservation(
     Number(
       session.total_details?.amount_discount || 0
     ) / 100;
+  // Stripe promotion discounts reduce the total owed, not merely the payment record.
+  const adjustedTotal = Math.max(0, Number(metadata.totalEstimate || 0) - discountAmount);
+  const adjustedBalance = Math.max(0, adjustedTotal - amountCharged);
 
   const packagePayment = packageBooking
     ? `
@@ -230,7 +233,9 @@ Partner Transportation: ${money(metadata.partnerTransportTotal)}
 Quoted Package Total: ${money(metadata.totalEstimate)}
 Payment Type: ${metadata.paymentType === "full" ? "Paid in full" : "Reservation deposit"}
 Amount Paid Today: ${money(amountCharged)}
-Remaining Balance: ${money(metadata.balanceDue)}
+Stripe Promotion Discount: -${money(discountAmount)}
+Adjusted Total After Promo: ${money(adjustedTotal)}
+Remaining Balance: ${money(adjustedBalance)}
 `;
 
   const description = `
@@ -434,6 +439,9 @@ async function sendReservationEmails(
     Number(
       session.total_details?.amount_discount || 0
     ) / 100;
+  // Stripe promotion discounts reduce the total owed, not merely the payment record.
+  const adjustedTotal = Math.max(0, Number(metadata.totalEstimate || 0) - discountAmount);
+  const adjustedBalance = Math.max(0, adjustedTotal - amountCharged);
 
   const contactBlock = `
 Questions or changes?
@@ -508,13 +516,16 @@ PAYMENT
 Quoted Package Total: ${money(metadata.totalEstimate)}
 Extended-Stay Discount (included in quote): -${money(metadata.extendedStayDiscount)}
 ${metadata.paymentType === "full" ? "Full Payment Received" : "Deposit Received"}: ${money(amountCharged)}
-Remaining Balance: ${money(metadata.balanceDue)}
+Stripe Promotion Discount: -${money(discountAmount)}
+Adjusted Total After Promo: ${money(adjustedTotal)}
+Remaining Balance: ${money(adjustedBalance)}
 
 Selected Partner Excursions (pending provider confirmation):
 ${metadata.excursionBreakdown || metadata.selectedExcursions || "None selected"}
 
 Partner transportation: ${money(metadata.partnerTransportTotal)}
 Included lodging: ${metadata.lodgingPreference || "Not specified"}
+Additional trip information: ${metadata.guestNotes || "None provided"}
 
 Your AOE dates are now reserved. Partner excursion availability will be confirmed separately.
 
@@ -596,6 +607,9 @@ ${metadata.excursionBreakdown || metadata.selectedExcursions || "None selected"}
 PARTNER TRANSPORTATION
 ${money(metadata.partnerTransportTotal)}
 
+ADDITIONAL EXPEDITION INFORMATION
+${metadata.guestNotes || "None provided"}
+
 `
     : ""
 }PAYMENT
@@ -615,8 +629,11 @@ ${metadata.paymentType === "full" ? "Paid in full" : "Deposit"}
 Amount Paid:
 ${money(amountCharged)}
 
+Adjusted Package Total:
+${money(adjustedTotal)}
+
 Balance Due:
-${money(metadata.balanceDue)}
+${money(packageBooking ? 0 : adjustedBalance)}
 
 Stripe Session:
 ${session.id}

@@ -551,6 +551,9 @@ const [guestInfo, setGuestInfo] = useState({
   name: "",
   email: "",
   phone: "",
+  address: "",
+  shirtSize: "",
+  additionalGuests: [],
   notes: "",
 });
 
@@ -2022,8 +2025,8 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
   const [checkoutError,setCheckoutError] = useState("");
   async function handleCheckout() {
     setCheckoutError("");
-    if (!guestInfo.name.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestInfo.email.trim())) {
-      setCheckoutError("Enter your name and a valid email address."); return;
+    if (!contactValid) {
+      setCheckoutError("Complete the primary guest's contact details and all additional guest fields."); return;
     }
     setCheckoutLoading(true);
     try {
@@ -2041,7 +2044,15 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
   }
   const fieldStyle = "mt-2 w-full rounded-xl border border-white/20 bg-neutral-800 px-4 py-3 text-white outline-none focus:border-orange-400";
   const updateField = (field, value) => setGuestInfo(current => ({...current, [field]: value}));
-  const contactValid = Boolean(guestInfo.name.trim()) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestInfo.email.trim());
+  const validEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+  const extraGuests = Array.from({ length: Math.max(0, guestCount - 1) }, (_, i) => guestInfo.additionalGuests?.[i] || {});
+  const setExtraGuest = (index, field, value) => setGuestInfo(current => {
+    const additionalGuests = [...(current.additionalGuests || [])];
+    additionalGuests[index] = { ...(additionalGuests[index] || {}), [field]: value };
+    return { ...current, additionalGuests };
+  });
+  const contactValid = Boolean(guestInfo.name?.trim() && validEmail(guestInfo.email) && guestInfo.phone?.trim() && guestInfo.address?.trim() && guestInfo.shirtSize &&
+    extraGuests.every(g => g.name?.trim() && validEmail(g.email) && g.phone?.trim() && g.shirtSize));
   return (
     <main className="w-full min-w-0 px-4 pb-32 pt-10">
       <div className="mb-8 text-center">
@@ -2055,9 +2066,24 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
             <label className="text-sm font-semibold">Full name<input type="text" autoComplete="name" value={guestInfo.name} onChange={e=>updateField("name",e.target.value)} className={fieldStyle}/></label>
             <label className="text-sm font-semibold">Email address<input type="email" autoComplete="email" value={guestInfo.email} onChange={e=>updateField("email",e.target.value)} className={fieldStyle}/></label>
-            <label className="text-sm font-semibold sm:col-span-2">Phone number<input type="tel" autoComplete="tel" value={guestInfo.phone} onChange={e=>updateField("phone",e.target.value)} className={fieldStyle}/></label>
-            <label className="text-sm font-semibold sm:col-span-2">Special requests / arrival information<textarea rows={4} value={guestInfo.notes} onChange={e=>updateField("notes",e.target.value)} className={fieldStyle}/></label>
+            <label className="text-sm font-semibold">Phone number<input type="tel" autoComplete="tel" value={guestInfo.phone} onChange={e=>updateField("phone",e.target.value)} className={fieldStyle}/></label>
+            <label className="text-sm font-semibold">Shirt size<select value={guestInfo.shirtSize || ""} onChange={e=>updateField("shirtSize",e.target.value)} className={fieldStyle}><option value="">Select shirt size</option>{["XS","S","M","L","XL","2XL","3XL","4XL"].map(x=><option key={x} value={x}>{x}</option>)}</select></label>
+            <label className="text-sm font-semibold sm:col-span-2">Mailing address<input type="text" autoComplete="street-address" value={guestInfo.address || ""} onChange={e=>updateField("address",e.target.value)} className={fieldStyle} placeholder="Street, city, state, ZIP"/></label>
           </div>
+        </section>
+        {extraGuests.map((guest, index) => (
+          <section key={index} className="rounded-3xl border border-white/10 bg-neutral-900 p-6">
+            <h2 className="text-2xl font-bold">Additional Guest {index + 2}</h2>
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              <label className="text-sm font-semibold">Full name<input type="text" value={guest.name || ""} onChange={e=>setExtraGuest(index,"name",e.target.value)} className={fieldStyle}/></label>
+              <label className="text-sm font-semibold">Email address<input type="email" value={guest.email || ""} onChange={e=>setExtraGuest(index,"email",e.target.value)} className={fieldStyle}/></label>
+              <label className="text-sm font-semibold">Phone number<input type="tel" value={guest.phone || ""} onChange={e=>setExtraGuest(index,"phone",e.target.value)} className={fieldStyle}/></label>
+              <label className="text-sm font-semibold">Shirt size<select value={guest.shirtSize || ""} onChange={e=>setExtraGuest(index,"shirtSize",e.target.value)} className={fieldStyle}><option value="">Select shirt size</option>{["XS","S","M","L","XL","2XL","3XL","4XL"].map(x=><option key={x} value={x}>{x}</option>)}</select></label>
+            </div>
+          </section>
+        ))}
+        <section className="rounded-3xl border border-white/10 bg-neutral-900 p-6">
+          <label className="text-lg font-bold">Any additional information to make your expedition perfect?<textarea rows={4} value={guestInfo.notes || ""} onChange={e=>updateField("notes",e.target.value)} className={fieldStyle}/></label>
         </section>
         <section className="rounded-3xl border border-orange-400/30 bg-orange-500/10 p-6">
           <h2 className="text-xl font-bold">Reservation Summary</h2>
@@ -2080,7 +2106,7 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
             {checkoutLoading ? "Opening Secure Checkout..." : "Reserve Your Adventure →"}
           </button>
           {checkoutError && <p role="alert" className="mt-3 text-sm text-red-300">{checkoutError}</p>}
-          {!contactValid && <p className="mt-3 text-sm text-neutral-400">Please complete your name and a valid email address before reserving.</p>}
+          {!contactValid && <p className="mt-3 text-sm text-neutral-400">Please complete the primary guest and all additional guest contact details before reserving.</p>}
         </section>
       </div>
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-neutral-950/95 px-4 py-4 backdrop-blur">

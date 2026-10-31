@@ -330,8 +330,25 @@ if (
   // Customer arrival and departure are both reserved; departure remains blocked until the customer leaves.
   const lastBlockedDay = departureDate;
   if (!(await isFullVacationAvailable(arrivalDate,lastBlockedDay))) return res.status(409).json({error:"One or more vacation dates are unavailable."});
+  // Require complete contact details for each guest in the unified booking path.
+  const emailOk = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+  const extraGuests = Array.isArray(guestInfo.additionalGuests) ? guestInfo.additionalGuests.slice(0, guests - 1) : [];
+  if (!guestInfo.phone?.trim() || !guestInfo.address?.trim() || !guestInfo.shirtSize ||
+      extraGuests.length !== guests - 1 ||
+      extraGuests.some(g => !g || !g.name?.trim() || !emailOk(g.email) || !g.phone?.trim() || !g.shirtSize)) {
+    return res.status(400).json({error:"Complete contact information for each guest before checkout."});
+  }
+  const allParticipants = [
+    {name:guestInfo.name, email:guestInfo.email, phone:guestInfo.phone, shirtSize:guestInfo.shirtSize, address:guestInfo.address},
+    ...extraGuests.map(g=>({name:g.name,email:g.email,phone:g.phone,shirtSize:g.shirtSize})),
+  ];
+  // Stripe metadata values are limited; chunk participant JSON and validate the count.
+  const participantChunks = splitMetadataValue(JSON.stringify(allParticipants));
+  if (participantChunks.length > 20) return res.status(400).json({error:"Guest contact details are too long."});
+  const participantMetadata = Object.fromEntries(participantChunks.map((v,i)=>[i===0?"participants":`participants${i+1}`,v]));
   const selectedNames = details.map(item => item.name).join(", ");
   const metadata = {
+    ...participantMetadata, primaryGuestAddress:String(guestInfo.address).slice(0,450),
     bookingType:"unified", pricingVersion:"partner-markup-v4-extended-stay", paymentType:fullPaymentRequired ? "full":"deposit",
     packageName:dayTrip ? (details[0]?.name || "Winter day trip") : `${season === "summer" ? "Summer" : "Winter"} AOE vacation`,
     packageId:dayTrip ? (details[0]?.id || "") : `aoe-${season}-vacation`,
@@ -355,7 +372,7 @@ if (
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   const siteUrl = process.env.SITE_URL || "http://localhost:5173";
   const session = await stripe.checkout.sessions.create({
-    mode:"payment", customer_email:guestInfo.email.trim(),
+    mode:"payment", allow_promotion_codes:true, customer_email:guestInfo.email.trim(),
     client_reference_id:`aoe-${arrivalDate}-${departureDate}`,
     line_items:[{quantity:1,price_data:{currency:"usd",unit_amount:amountDueCents,
       product_data:{name:fullPaymentRequired ? `${metadata.packageName} — Full Payment` : `${metadata.packageName} — 25% Deposit`,
