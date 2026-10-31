@@ -1,8 +1,6 @@
-import { useState, } from "react";
-import Packages from "./components/Packages";
-import TripBuilder from "./TripBuilder";
+import { useState } from "react";
 import Experiences from "./Experiences";
-import Excursions from "./Excursions";
+import HomepageExperienceCatalog from "./HomepageExperienceCatalog";
 import Sponsors from "./Sponsors";
 import FAQ from "./FAQ";
 import Merch from "./Merch";
@@ -11,124 +9,66 @@ import Merch from "./Merch";
 
 export default function AlaskaOffroadExpedition() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [tripStatus, setTripStatus] = useState("idle"); // "idle" | "loading" | "success" | "error"
-  const [tripError, setTripError] = useState("");
   return (
       <div id="top" className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/70">
-        <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <a href="#top" className="h-9 w-9 rounded-lg overflow-hidden">
-  <img
-    src="/images/Newlogo.png"
-    alt="Alaska Offroad Expedition logo"
-    className="h-full w-full object-contain"
-  />
-</a>
-            <a
-  href="#top"
-  className="text-lg font-semibold tracking-wide hover:text-white/80 transition"
->
-  Alaska Offroad Expedition
-</a>
-
-
+      <header className="sticky top-0 z-40 border-b border-orange-400/20 bg-neutral-950/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <a href="#top" className="h-9 w-9 shrink-0 overflow-hidden rounded-lg">
+              <img src="/images/Newlogo.png" alt="Alaska Offroad Expedition logo" className="h-full w-full object-contain" />
+            </a>
+            <a href="#top" className="truncate text-sm font-semibold tracking-wide transition hover:text-white/80 sm:text-lg">
+              Alaska Offroad Expedition
+            </a>
           </div>
-          <nav className="hidden md:flex items-center gap-6 text-sm text-neutral-300">
-  <a href="#experiences" className="hover:text-white">
-    Intro
-  </a>
 
-   <a href="#trip-builder" className="hover:text-white">
-    Trip Builder
-  </a>
+          <nav className="hidden items-center gap-3 text-xs text-neutral-300 lg:flex xl:gap-5 xl:text-sm" aria-label="Main navigation">
+            <a href="/plan-your-trip" className="whitespace-nowrap hover:text-white">Plan Your Trip</a>
+            <a href="#excursions" className="whitespace-nowrap hover:text-white">Add on Excursions</a>
+            <a href="#merch" className="hover:text-white">Merch</a>
+            <a href="#faq" className="hover:text-white">FAQ</a>
+            <a href="#sponsors" className="hover:text-white">Sponsors</a>
+            <a href="#contact" className="hover:text-white">Contact</a>
+          </nav>
 
-  <a href="#packages" className="hover:text-white">
-    Packages
-  </a>
+          <div className="hidden shrink-0 items-center gap-2 lg:flex">
+            <a href="/plan-your-trip" className="inline-flex items-center justify-center whitespace-nowrap rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-3 py-2 text-xs font-extrabold text-white shadow-[0_0_16px_rgba(249,115,22,0.4)] transition hover:brightness-110 xl:px-4 xl:text-sm">
+              Book an Expedition <span aria-hidden="true" className="ml-1">→</span>
+            </a>
+            <a href="#contact" className="inline-flex items-center justify-center whitespace-nowrap rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-3 py-2 text-xs font-extrabold text-white shadow-[0_0_16px_rgba(249,115,22,0.4)] transition hover:brightness-110 xl:px-4 xl:text-sm">
+              Chat With Your Guide <span aria-hidden="true" className="ml-1">→</span>
+            </a>
+          </div>
 
-  <a href="#merch" className="hover:text-white">
-    Merch
-  </a>
-
-  <a href="#faq" className="hover:text-white">
-    FAQ
-  </a>
-
-  <a href="#sponsors" className="hover:text-white">
-    Sponsors
-  </a>
-
-    <a href="#excursions" className="hover:text-white">
-    Add on Excursions
-  </a>
-
-  <a href="#contact" className="hover:text-white">
-    Contact
-  </a>
-</nav>
-          <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className="md:hidden text-white">☰</button>
-          <a href="#trip-builder" className="hidden md:inline-flex items-center gap-2 rounded-2xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition">Book an Expedition</a>
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
+            aria-label="Toggle navigation menu"
+            aria-expanded={mobileNavOpen}
+            className="shrink-0 rounded-lg border border-white/20 px-3 py-2 text-white lg:hidden"
+          >
+            ☰
+          </button>
         </div>
+
         {mobileNavOpen && (
-  <nav className="md:hidden flex flex-col items-center gap-4 pb-4 text-sm text-neutral-300">
-    <a
-      href="#experiences"
-      onClick={() => setMobileNavOpen(false)}
-    >
-      Intro
-    </a>
-    <a
-      href="#trip-builder"
-      onClick={() => setMobileNavOpen(false)}
-    >
-      Trip Builder
-    </a>
-
-    <a
-      href="#packages"
-      onClick={() => setMobileNavOpen(false)}
-    >
-      Packages
-    </a>
-
-    <a
-      href="#merch"
-      onClick={() => setMobileNavOpen(false)}
-    >
-      Merch
-    </a>
-
-    <a
-      href="#faq"
-      onClick={() => setMobileNavOpen(false)}
-    >
-      FAQ
-    </a>
-
-    <a
-      href="#sponsors"
-      onClick={() => setMobileNavOpen(false)}
-    >
-      Sponsors
-    </a>
-
-       <a
-      href="#excursions"
-      onClick={() => setMobileNavOpen(false)}
-    >
-      Add on Excursions
-    </a>
-
-
-    <a
-      href="#contact"
-      onClick={() => setMobileNavOpen(false)}
-    >
-      Contact
-    </a>
-  </nav>
-)}
+          <nav className="flex flex-col items-stretch gap-3 border-t border-white/10 px-4 py-4 text-sm text-neutral-300 lg:hidden" aria-label="Mobile navigation">
+            <a href="/plan-your-trip" onClick={() => setMobileNavOpen(false)}>Plan Your Trip</a>
+            <a href="#excursions" onClick={() => setMobileNavOpen(false)}>Add on Excursions</a>
+            <a href="#merch" onClick={() => setMobileNavOpen(false)}>Merch</a>
+            <a href="#faq" onClick={() => setMobileNavOpen(false)}>FAQ</a>
+            <a href="#sponsors" onClick={() => setMobileNavOpen(false)}>Sponsors</a>
+            <a href="#contact" onClick={() => setMobileNavOpen(false)}>Contact</a>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <a href="/plan-your-trip" onClick={() => setMobileNavOpen(false)} className="rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-4 py-3 text-center font-extrabold text-white shadow-[0_0_16px_rgba(249,115,22,0.4)]">
+                Book an Expedition →
+              </a>
+              <a href="#contact" onClick={() => setMobileNavOpen(false)} className="rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-4 py-3 text-center font-extrabold text-white shadow-[0_0_16px_rgba(249,115,22,0.4)]">
+                Chat With Your Guide →
+              </a>
+            </div>
+          </nav>
+        )}
       </header>
 
 <Hero />
@@ -138,28 +78,18 @@ export default function AlaskaOffroadExpedition() {
 </div>
 
 <Experiences />
-<GuideCTA />
 
-<section id="packages" className="relative scroll-mt-24">
-  <Packages />
-  <GuideCTA />
-</section>
+<HomepageExperienceCatalog />
 
-<section id="trip-builder" className="relative scroll-mt-24">
-  <TripBuilder />
-</section>
 
-<GuideCTA />
+
 <Merch />
 
-<GuideCTA />
+
+
+<FAQ />
 <Sponsors />
 
-<GuideCTA />
-<Excursions />
-
-<GuideCTA />
-<FAQ />
 <Contact />
 <Footer />
     </div>
@@ -167,33 +97,44 @@ export default function AlaskaOffroadExpedition() {
 }
 
 
-function GuideCTA() {
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
-      <div className="flex justify-center">
+/* ---------------- Components ---------------- */
 
+function Hero() {
+  const actionButtonStyle = `
+    group relative inline-flex items-center justify-center
+    gap-2 md:gap-3
+    min-w-0 flex-1 md:flex-none
+    md:min-w-[270px]
+    rounded-2xl
+    border border-orange-300/50
+    bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500
+    px-3 py-4 md:px-10
+    text-xs sm:text-sm md:text-lg
+    font-extrabold tracking-wide text-white
+    text-center
+    shadow-[0_0_20px_rgba(249,115,22,0.55),0_0_45px_rgba(249,115,22,0.25)]
+    md:shadow-[0_0_25px_rgba(249,115,22,0.65),0_0_55px_rgba(249,115,22,0.3)]
+    transition-all duration-300
+    hover:scale-105
+    hover:from-orange-500 hover:via-orange-400 hover:to-amber-400
+    hover:shadow-[0_0_30px_rgba(249,115,22,0.9),0_0_65px_rgba(249,115,22,0.45)]
+    active:scale-95
+    focus-visible:outline-none
+    focus-visible:ring-2
+    focus-visible:ring-orange-300
+    focus-visible:ring-offset-2
+    focus-visible:ring-offset-black
+  `;
+
+  function ActionButtons() {
+    return (
+      <div className="flex w-full items-stretch justify-center gap-3 md:gap-5">
+
+        {/* Plan Your Trip */}
         <a
-          href="#contact"
-          className="
-            group relative inline-flex items-center justify-center
-            gap-3 overflow-hidden rounded-2xl
-            border border-orange-300/50
-            bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500
-            px-8 py-4
-            text-base font-extrabold tracking-wide text-white
-            shadow-[0_0_20px_rgba(249,115,22,0.45),0_0_45px_rgba(249,115,22,0.18)]
-            transition-all duration-300
-            hover:scale-105
-            hover:from-orange-500 hover:via-orange-400 hover:to-amber-400
-            hover:shadow-[0_0_30px_rgba(249,115,22,0.75),0_0_65px_rgba(249,115,22,0.35)]
-            active:scale-95
-            focus-visible:outline-none
-            focus-visible:ring-2 focus-visible:ring-orange-300
-            focus-visible:ring-offset-2 focus-visible:ring-offset-black
-          "
+          href="/plan-your-trip"
+          className={actionButtonStyle}
         >
-
-          {/* Chat Icon */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="22"
@@ -205,122 +146,93 @@ function GuideCTA() {
             strokeLinecap="round"
             strokeLinejoin="round"
             aria-hidden="true"
-            className="transition-transform duration-300 group-hover:rotate-[-10deg]"
+            className="hidden shrink-0 sm:block"
+          >
+            <path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6z" />
+            <path d="M9 3v15M15 6v15" />
+          </svg>
+
+          <span>Plan Your Trip</span>
+
+          <span
+            aria-hidden="true"
+            className="shrink-0 text-lg transition-transform duration-300 group-hover:translate-x-1"
+          >
+            →
+          </span>
+        </a>
+
+        {/* Chat With Your Guide */}
+        <a
+          href="#contact"
+          className={actionButtonStyle}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className="hidden shrink-0 sm:block"
           >
             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
           </svg>
 
           <span>Chat With Your Guide</span>
 
-          {/* Arrow */}
           <span
             aria-hidden="true"
-            className="text-xl transition-transform duration-300 group-hover:translate-x-1"
+            className="shrink-0 text-lg transition-transform duration-300 group-hover:translate-x-1"
           >
             →
           </span>
-
         </a>
 
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-
-/* ---------------- Components ---------------- */
-
-function Hero() {
   return (
     <section className="w-full">
 
-      {/* Mobile Hero */}
-      <div className="block md:hidden bg-black">
-        <div className="px-4 pt-6">
-          <img
-            src="/images/hero-mobile-sticker.png"
-            alt="Alaska Offroad Expedition"
-            className="mx-auto w-full max-w-md h-auto object-contain"
-            loading="eager"
-          />
-        </div>
+      {/* ========================================
+          MOBILE HERO
+      ======================================== */}
+      <div className="block bg-black md:hidden">
 
-        <div className="mx-auto max-w-7xl px-4 pb-6 pt-4">
-
-          {/* First Row - Two Buttons */}
-          <div className="flex flex-wrap justify-center gap-3">
-            <a
-              href="#trip-builder"
-              className="rounded-xl border border-white/40 bg-black/30 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-white/10"
-            >
-              Build Your Trip
-            </a>
-
-            <a
-              href="#packages"
-              className="rounded-xl border border-white/40 bg-black/30 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-white/10"
-            >
-              View Packages
-            </a>
-          </div>
-
-          
-{/* Mobile - Glowing Chat With Your Guide */}
-<div className="mt-5 flex justify-center">
-  <a
-    href="#contact"
-    className="
-      group relative inline-flex items-center justify-center
-      gap-3 rounded-2xl
-      border border-orange-300/50
-      bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500
-      px-8 py-4
-      text-sm font-extrabold tracking-wide text-white
-      shadow-[0_0_20px_rgba(249,115,22,0.55),0_0_45px_rgba(249,115,22,0.25)]
-      transition-all duration-300
-      hover:scale-105
-      hover:shadow-[0_0_30px_rgba(249,115,22,0.8),0_0_65px_rgba(249,115,22,0.4)]
-      active:scale-95
-    "
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-    </svg>
-
-    <span>Chat With Your Guide</span>
-    <span aria-hidden="true" className="text-xl">→</span>
-  </a>
+     {/* Mobile Hero Image */}
+<div className="flex w-full items-center justify-center bg-black px-4 pt-6">
+  <div className="mx-auto aspect-square w-full max-w-[420px] overflow-hidden rounded-full bg-black">
+    <img
+      src="/images/hero-mobile-sticker.png"
+      alt="Alaska Offroad Expedition"
+      className="block h-full w-full rounded-full object-cover"
+      loading="eager"
+    />
+  </div>
 </div>
 
+<div className="mx-auto max-w-7xl px-4 pb-8 pt-8">
 
-          {/* Third Row - Watch Videos */}
-          <div className="mt-4 flex justify-center">
-            <a
-              href="https://www.youtube.com/@alaskaoffroadexpeditions"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-xl border border-white/40 bg-black/30 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-white/10"
-            >
-              Watch Videos
-            </a>
-          </div>
+  {/* Mobile Main Buttons */}
+  <ActionButtons />
+
+   
 
         </div>
       </div>
 
-      {/* Desktop Hero */}
-      <div className="relative hidden md:block overflow-hidden">
+      {/* ========================================
+          DESKTOP HERO
+      ======================================== */}
+      <div className="relative hidden overflow-hidden md:block">
+
+        {/* Desktop Hero Image */}
         <img
           src="/images/hero-illustration.png"
           alt="Alaska mountains"
@@ -328,84 +240,23 @@ function Hero() {
           loading="eager"
         />
 
+        {/* Image Overlay */}
         <div className="absolute inset-0 bg-black/10" />
 
-        <div className="absolute bottom-0 left-0 right-0">
-          <div className="mx-auto max-w-7xl px-4 pb-8 md:pb-10">
+        {/* Desktop Main Buttons */}
+<div className="absolute bottom-0 left-0 right-0 z-20">
+  <div className="mx-auto max-w-7xl px-4 pb-0">
 
-            {/* First Row - Two Buttons */}
-            <div className="flex flex-wrap justify-center gap-4">
-              <a
-                href="#trip-builder"
-                className="rounded-xl border border-white/40 bg-black/30 px-6 py-3 font-semibold text-white shadow-lg backdrop-blur-sm transition hover:bg-white/10"
-              >
-                Build Your Trip
-              </a>
+    <ActionButtons />
 
-              <a
-                href="#packages"
-                className="rounded-xl border border-white/40 bg-black/30 px-6 py-3 font-semibold text-white shadow-lg backdrop-blur-sm transition hover:bg-white/10"
-              >
-                View Packages
-              </a>
-            </div>
-
-            
-{/* Desktop - Glowing Chat With Your Guide */}
-<div className="mt-5 flex justify-center">
-  <a
-    href="#contact"
-    className="
-      group relative inline-flex items-center justify-center
-      gap-3 rounded-2xl
-      border border-orange-300/50
-      bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500
-      px-10 py-4
-      text-lg font-extrabold tracking-wide text-white
-      shadow-[0_0_25px_rgba(249,115,22,0.65),0_0_55px_rgba(249,115,22,0.3)]
-      transition-all duration-300
-      hover:scale-105
-      hover:shadow-[0_0_35px_rgba(249,115,22,0.9),0_0_75px_rgba(249,115,22,0.45)]
-      active:scale-95
-    "
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="23"
-      height="23"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-    </svg>
-
-    <span>Chat With Your Guide</span>
-
-    <span
-      aria-hidden="true"
-      className="text-xl transition-transform duration-300 group-hover:translate-x-1"
-    >
-      →
-    </span>
-  </a>
+  </div>
 </div>
 
-
-          </div>
-        </div>
       </div>
 
     </section>
   );
 }
-
-
-
 
 
 
@@ -479,12 +330,12 @@ function Contact() {
 
  
   return (
-   <section id="contact" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-16">
-      <div className="rounded-3xl border border-white/10 bg-neutral-900/50 p-8 md:p-12">
+   <section id="contact" className="mx-auto max-w-7xl scroll-mt-40 px-4 py-16">
+      <div className="rounded-3xl border border-white/25 bg-neutral-900/30 p-5 shadow-xl sm:p-8 lg:p-10">
 
         
-<h2 className="text-3xl md:text-4xl font-bold text-center">
-  Talk Directly With Your Guide
+<h2 className="text-center text-4xl font-extrabold uppercase tracking-wide text-white md:text-5xl lg:text-6xl">
+  CONTACT YOUR GUIDE
 </h2>
 
 <p className="mt-3 text-center text-sm text-neutral-400">
@@ -645,7 +496,7 @@ function Footer() {
         <div className="grid grid-cols-2 gap-2">
           <a href="#experiences" className="hover:text-neutral-200">Experiences</a>
           <a href="#fleet" className="hover:text-neutral-200">Fleet</a>
-          <a href="#trip-builder" className="hover:text-neutral-200">Trip Builder</a>
+          <a href="/plan-your-trip" className="hover:text-neutral-200">Plan Your Trip</a>
           <a href="#faq" className="hover:text-neutral-200">FAQ</a>
           <a href="#about" className="hover:text-neutral-200">About</a>
           <a href="#contact" className="hover:text-neutral-200">Contact</a>

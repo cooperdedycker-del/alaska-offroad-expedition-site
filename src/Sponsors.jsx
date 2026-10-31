@@ -96,7 +96,7 @@ export default function Sponsors() {
   name: "TrailToyz Offroad",
   img: "/images/sponsors/trailtoyz.png",
   description:
-    "Local Offroad shop located in Wasilla, Alaska.",
+    "Local OFF-ROAD 4X4 shop located in Wasilla, Alaska.",
   website: "https://trailtoyz.com",
   badge: "Local Shop",
   discountCode: "",
@@ -118,9 +118,10 @@ export default function Sponsors() {
   const supportingSponsors = sponsors.filter((s) => !s.featured);
 
   return (
-    <section id="sponsors" className="mx-auto max-w-7xl px-4 py-16">
+    <section id="sponsors" className="mx-auto max-w-7xl scroll-mt-40 px-4 py-14">
+      <div className="rounded-3xl border border-white/25 bg-neutral-900/30 p-5 shadow-xl sm:p-8 lg:p-10">
       <div className="mb-12 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold">Featured Sponsors & Partners</h2>
+        <h2 className="text-4xl font-extrabold uppercase tracking-wide text-white md:text-5xl lg:text-6xl">OUR SPONSORS</h2>
         <p className="mt-3 text-neutral-300 max-w-3xl mx-auto">
           We’re proud to work with brands and companies that help power Alaska Offroad Expedition.
           These are products and partners we trust, use, and recommend.
@@ -242,6 +243,7 @@ export default function Sponsors() {
           </div>
         </div>
       )}
+      </div>
     </section>
   );
 }

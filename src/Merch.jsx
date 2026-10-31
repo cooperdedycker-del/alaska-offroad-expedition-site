@@ -182,16 +182,33 @@ export default function Merch() {
   };
 
   return (
-    <section id="merch" className="mx-auto max-w-7xl px-4 py-16">
+    <section id="merch" className="mx-auto max-w-7xl scroll-mt-40 px-4 py-14">
+      <div className="rounded-3xl border border-white/25 bg-neutral-900/30 p-5 shadow-xl sm:p-8 lg:p-10">
       <div className="mb-10 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold">
-          Alaska Offroad Expedition Merch
+        <h2 className="text-4xl font-extrabold uppercase tracking-wide text-white md:text-5xl lg:text-6xl">
+          MERCH
         </h2>
 
         <p className="mt-3 text-neutral-300 max-w-3xl mx-auto">
-          Grab official Alaska Offroad Expedition apparel and gear before your
-          next adventure.
-        </p>
+  Grab official Alaska Offroad Expedition apparel and gear before your
+  next adventure.
+</p>
+
+<a
+  href="https://26e0dd.myshopify.com/collections/all"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="
+    mt-6 inline-flex items-center justify-center gap-2
+    rounded-xl bg-gradient-to-r from-orange-600 to-orange-500
+    px-8 py-3 font-bold text-white
+    shadow-[0_0_20px_rgba(249,115,22,0.25)]
+    transition hover:brightness-110
+  "
+>
+  Shop Our Full Store
+  <span aria-hidden="true">→</span>
+</a>
       </div>
 
       {error && (
@@ -206,7 +223,7 @@ export default function Merch() {
         </div>
       ) : (
         <>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+         <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
@@ -281,6 +298,7 @@ export default function Merch() {
           </div>
         </>
       )}
+      </div>
     </section>
   );
 }
@@ -308,7 +326,7 @@ function ProductCard({ product, onAddToCart }) {
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/50">
-      <div className="aspect-square bg-neutral-800">
+      <div className="aspect-[4/3] overflow-hidden bg-neutral-800">
         {image ? (
           <img
             src={image}
@@ -323,9 +341,10 @@ function ProductCard({ product, onAddToCart }) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-5">
-        <h3 className="min-h-[44px] font-bold text-white">{product.title}</h3>
-
+      <div className="flex flex-1 flex-col p-3 sm:p-5">
+        <h3 className="line-clamp-2 min-h-[40px] text-sm font-bold leading-tight text-white sm:text-base">
+  {product.title}
+</h3>
         <div className="mt-2 text-lg font-extrabold text-orange-400">
           ${price}
         </div>
@@ -368,7 +387,7 @@ function ProductCard({ product, onAddToCart }) {
         <button
           onClick={() => onAddToCart(product, selectedVariant, quantity)}
           disabled={!selectedVariant?.availableForSale}
-          className="mt-5 rounded-xl bg-orange-500 px-4 py-3 font-bold text-white hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 rounded-lg bg-orange-500 px-2 py-2.5 text-xs font-bold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:py-3 sm:text-base"
         >
           {selectedVariant?.availableForSale ? "Add to Cart" : "Sold Out"}
         </button>

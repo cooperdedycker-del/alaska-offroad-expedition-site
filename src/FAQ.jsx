@@ -62,8 +62,9 @@ export default function FAQ() {
 },
   ];
   return (
-    <section id="faq" className="mx-auto max-w-7xl px-4 py-16">
-      <h2 className="text-3xl md:text-4xl font-bold">FAQ</h2>
+    <section id="faq" className="mx-auto max-w-7xl scroll-mt-40 px-4 py-14">
+      <div className="rounded-3xl border border-white/25 bg-neutral-900/30 p-5 shadow-xl sm:p-8 lg:p-10">
+      <h2 className="text-center text-4xl font-extrabold uppercase tracking-wide text-white md:text-5xl lg:text-6xl">FAQ</h2>
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         {qa.map((item, i) => (
           <div key={i} className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
@@ -71,6 +72,7 @@ export default function FAQ() {
             <div className="mt-2 text-neutral-300">{item.a}</div>
           </div>
         ))}
+      </div>
       </div>
     </section>
   );

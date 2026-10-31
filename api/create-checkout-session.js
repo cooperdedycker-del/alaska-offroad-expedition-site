@@ -1,5 +1,7 @@
 import Stripe from "stripe";
+import { partnerExperienceTotalCents, quotedBookingAmounts } from "../src/data/bookingPricing.mjs";
 import { google } from "googleapis";
+import { excursions, experiences, SEASONAL_RATES, BOOKING_RATES, getOperatingSeason } from "../src/data/experiences.js";
 
 const ALASKA_TIME_ZONE = "America/Anchorage";
 
@@ -130,6 +132,242 @@ async function isCalendarDateAvailable(dateString) {
   return !conflicts;
 }
 
+/* =====================================================
+   UNIFIED TRIP BUILDER CHECKOUT
+   25% Deposit / 14-Day Balance Policy
+===================================================== */
+
+// V2 five-step Trip Builder checkout. All prices are recalculated server-side.
+// Legacy form/package checkout below is preserved unchanged.
+function strictDate(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
+}
+function utcDayDiff(start, end) {
+  return Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86400000);
+}
+function datePlusDays(value, days) {
+  const parsed = new Date(`${value}T00:00:00Z`);
+  parsed.setUTCDate(parsed.getUTCDate() + days);
+  return parsed.toISOString().slice(0, 10);
+}
+async function isFullVacationAvailable(start, lastDayInclusive) {
+  const current = new Date(`${start}T00:00:00Z`);
+  const end = new Date(`${lastDayInclusive}T00:00:00Z`);
+  for (; current <= end; current.setUTCDate(current.getUTCDate() + 1)) {
+    if (!(await isCalendarDateAvailable(current.toISOString().slice(0, 10)))) return false;
+  }
+  return true;
+}
+
+async function createUnifiedCheckout(req, res) {
+  const booking = req.body?.booking;
+  if (!booking || typeof booking !== "object") return res.status(400).json({ error: "Missing reservation details." });
+  const { arrivalDate, departureDate, guestCount, expeditionStyle = "selfDrive",
+    driverCount = 1, selectedExperiences = [], experienceParticipants = {},
+    customerRigs = 1, guestInfo = {} } = booking;
+  if (!strictDate(arrivalDate) || !strictDate(departureDate) || departureDate < arrivalDate)
+    return res.status(400).json({error:"Choose valid arrival and departure dates."});
+  const todayAK = getAlaskaDateString(new Date());
+  if (arrivalDate < todayAK) return res.status(400).json({error:"Arrival date cannot be in the past."});
+  const nights = utcDayDiff(arrivalDate, departureDate);
+  if (nights > 365) return res.status(400).json({error:"Vacation exceeds the supported duration."});
+  const guests = Number(guestCount);
+  if (!Number.isInteger(guests) || guests < 1 || guests > 30) return res.status(400).json({error:"Invalid guest count."});
+  if (typeof guestInfo.name !== "string" || !guestInfo.name.trim() ||
+      typeof guestInfo.email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestInfo.email.trim()))
+    return res.status(400).json({error:"Enter your name and a valid email."});
+  if (!Array.isArray(selectedExperiences) || selectedExperiences.length > 30 ||
+      selectedExperiences.some(id => typeof id !== "string") || new Set(selectedExperiences).size !== selectedExperiences.length)
+    return res.status(400).json({error:"Invalid experiences selection."});
+  const season = getOperatingSeason(arrivalDate);
+  const dayTrip = season === "winter" && nights === 0;
+  if (season === "summer" && nights < 1) return res.status(400).json({error:"Summer expeditions require arrival and departure travel days."});
+  if (dayTrip && selectedExperiences.length !== 1) return res.status(400).json({error:"Choose exactly one winter day-trip experience."});
+  if (!season) return res.status(400).json({error:"Operating season is unavailable."});
+  // Allow one experience per winter expedition day.
+// Standalone day trips may select one experience.
+const maximumExperiences =
+  season === "winter"
+    ? Math.max(1, nights)
+    : Math.max(1, nights - 1);
+
+if (selectedExperiences.length > maximumExperiences) {
+  return res.status(400).json({
+    error: "Too many selected excursions for your vacation.",
+  });
+}
+  const rates = SEASONAL_RATES[season];
+ // Summer excludes arrival and departure travel days.
+// Winter bills the number of days between arrival and departure.
+// Same-day winter bookings have no expedition-day charge.
+// Each overnight is one billable expedition day in both seasons.
+const dailyExpeditionDays = nights;
+  let base = 0;
+  const lineItems = [];
+  if (season === "summer") {
+    const arrivalDeparture = 0;
+    let daily = 0;
+    if (expeditionStyle === "selfDrive") daily = rates.expeditionDay + Math.max(0, guests - 1) * rates.additionalGuestDay;
+    else if (expeditionStyle === "tagAlong") {
+      const rigs = Number(customerRigs);
+      if (!Number.isInteger(rigs) || rigs < 1 || rigs > 6 || rigs > guests) return res.status(400).json({error:"Invalid customer rig count."});
+      daily = rigs * rates.tagAlongRigDay;
+    } else if (expeditionStyle === "rideAlong") daily = guests * 350;
+    else return res.status(400).json({error:"Unknown expedition style."});
+    base = daily * dailyExpeditionDays + arrivalDeparture;
+    lineItems.push({name:"Summer AOE expedition", amount:base});
+  } else if (!dayTrip) {
+    const additionalGuests = Math.max(0, guests - 1);
+    const dailyRate = rates.expeditionDay + additionalGuests * rates.additionalGuestDay;
+    base = dailyExpeditionDays * dailyRate;
+    lineItems.push({name:`Winter AOE vacation (${dailyExpeditionDays} days, ${guests} guest(s))`,amount:base});
+  }
+  let excursionTotal = 0;
+  let transferTotal = 0;
+  const details = [];
+  for (const id of selectedExperiences) {
+    if (id === "custom-offroad-expedition") continue;
+    const ex = experiences.find(x => x.id === id && (x.operator === "AOE" ? x.active === true : Number(x.publishedBasePrice) > 0));
+    if (!ex) return res.status(400).json({error:`Unknown experience: ${id}`});
+    // Check every selected date, including arrival and departure.
+// Supports standalone day trips and multi-day bookings.
+if (
+  Array.isArray(ex.availableMonths) &&
+  !ex.availableMonths.some((month) => {
+    for (let day = 0; day <= nights; day++) {
+      const check = datePlusDays(arrivalDate, day);
+
+      if (Number(check.slice(5, 7)) === Number(month)) {
+        return true;
+      }
+    }
+
+    return false;
+  })
+) {
+  return res.status(400).json({
+    error: `${ex.name} is not listed for the selected dates.`,
+  });
+}
+     // Require a matching day in the published operating window.
+     const days = Array.from({length:nights+1}, (_,i)=>datePlusDays(arrivalDate,i));
+     const matchingDay = days.some(d=>{
+       const m=Number(d.slice(5,7));
+       if (Array.isArray(ex.availableMonths) && ex.availableMonths.length && !ex.availableMonths.map(Number).includes(m)) return false;
+       if ((!ex.availableMonths || !ex.availableMonths.length) && ex.season === "summer" && ![6,7,8,9].includes(m)) return false;
+       if ((!ex.availableMonths || !ex.availableMonths.length) && ex.season === "winter" && ![10,11,12,1,2,3,4,5].includes(m)) return false;
+       if (ex.seasonStart && ex.seasonEnd && /^\d{2}-\d{2}$/.test(ex.seasonStart) && /^\d{2}-\d{2}$/.test(ex.seasonEnd)) {
+         const md=d.slice(5), from=ex.seasonStart, to=ex.seasonEnd;
+         if (!(from <= to ? md>=from && md<=to : md>=from || md<=to)) return false;
+       }
+       return true;
+     });
+     if (!matchingDay) return res.status(400).json({error:`${ex.name} is outside its advertised season.`});
+    if (season === "summer" && ex.operator === "AOE") return res.status(400).json({error:"AOE summer expedition is already included."});
+    let price = 0; let participants = guests;
+    if (id === "winter-knik-glacier") {
+      if (season !== "winter") return res.status(400).json({error:"Knik winter tours require winter dates."});
+      const drivers = Number(driverCount);
+      if (!Number.isInteger(drivers) || drivers < 0 || drivers > 2 || drivers > guests || guests - drivers > 11)
+        return res.status(400).json({error:"Invalid Knik driver/passenger selection."});
+      price = dayTrip ? drivers * rates.knikDriver + (guests - drivers) * rates.knikPassenger : 0; // Multi-day winter Knik is included.
+    } else if (ex.operator !== "AOE") {
+       // Published provider rates are server-owned. Draft card visibility does
+       // not authorize arbitrary checkout amounts supplied by the browser.
+       const unit = ex.publishedPriceUnit;
+       if (!["perPerson", "perVehicle", "perCharter", "perNight"].includes(unit) || !(Number(ex.publishedBasePrice) > 0))
+         return res.status(400).json({error:`Price confirmation required for ${ex.name}.`});
+       participants = unit === "perPerson" ? Number(experienceParticipants[id] ?? guests) : 1;
+       if (!Number.isInteger(participants) || participants < 1 || (unit === "perPerson" && participants > guests))
+         return res.status(400).json({error:`Invalid quantity for ${ex.name}.`});
+       price = partnerExperienceTotalCents({providerUnitPriceDollars:Number(ex.publishedBasePrice),quantity:participants}) / 100;
+     } else {
+       return res.status(400).json({error:`Experience cannot be priced: ${ex.name}.`});
+     }
+        excursionTotal += price;
+
+    // Charge round-trip transportation only for standalone
+    // winter partner excursions. Multi-day AOE trips include transport.
+    // AOE-operated Knik Glacier trips never receive this fee.
+    const transfer =
+      dayTrip && ex.operator !== "AOE"
+        ? rates.partnerTransferPerExcursion
+        : 0;
+
+    transferTotal += transfer;
+
+    details.push({ id, name: ex.name, price, participants, transfer });
+
+    lineItems.push({
+      name:
+        price === 0 && id === "winter-knik-glacier"
+          ? `${ex.name} (included)`
+          : ex.name,
+      amount: price,
+    });
+  }
+
+  if (transferTotal > 0) {
+    lineItems.push({
+      name: "Round-Trip Partner Experience Transportation",
+      amount: transferTotal,
+    });
+  }
+  const daysUntilArrival = utcDayDiff(todayAK, arrivalDate);
+   const fullPaymentRequired = daysUntilArrival <= BOOKING_RATES.fullPaymentWithinDays;
+   let quote;
+   try {
+     quote = quotedBookingAmounts({
+       aoeExpeditionCents: Math.round(base * 100), expeditionDays: dailyExpeditionDays,
+       partnerExperienceCents: Math.round(excursionTotal * 100),
+       otherCents: Math.round(transferTotal * 100), fullPaymentRequired,
+     });
+   } catch (error) { return res.status(400).json({error:"Choose a priced expedition or excursion."}); }
+   const { totalCents, discountCents, dueNowCents: amountDueCents, balanceDueCents: remainingCents } = quote;
+   if (discountCents) lineItems.push({name:"Extended-stay AOE discount",amount:-discountCents/100});
+  // Customer arrival and departure are both reserved; departure remains blocked until the customer leaves.
+  const lastBlockedDay = departureDate;
+  if (!(await isFullVacationAvailable(arrivalDate,lastBlockedDay))) return res.status(409).json({error:"One or more vacation dates are unavailable."});
+  const selectedNames = details.map(item => item.name).join(", ");
+  const metadata = {
+    bookingType:"unified", pricingVersion:"partner-markup-v4-extended-stay", paymentType:fullPaymentRequired ? "full":"deposit",
+    packageName:dayTrip ? (details[0]?.name || "Winter day trip") : `${season === "summer" ? "Summer" : "Winter"} AOE vacation`,
+    packageId:dayTrip ? (details[0]?.id || "") : `aoe-${season}-vacation`,
+    customerName:guestInfo.name.trim().slice(0,300),customerEmail:guestInfo.email.trim().slice(0,300),
+    customerPhone:String(guestInfo.phone || "").slice(0,300),
+    tripStart:arrivalDate,tripEnd:lastBlockedDay,arrivalDate,departureDate,
+    rig:"Alaska Offroad Expedition Fleet",experienceType:expeditionStyle,
+    drivers:String(selectedExperiences.includes("winter-knik-glacier") ? Number(driverCount) : (season === "summer" && expeditionStyle === "selfDrive" ? 1 : 0)),
+    passengers:String(selectedExperiences.includes("winter-knik-glacier") ? guests - Number(driverCount) : Math.max(0,guests - 1)),
+    totalGuests:String(guests), lodgingPreference:dayTrip ? "Not included for standalone day trip" : "AOE lodging included",
+    lodgingNotes:dayTrip ? "No overnight stay" : "Included with AOE vacation rate",
+    lodgingNights:"0",lodgingTotal:"0.00",selectedExcursions:selectedNames.slice(0,450),
+    totalEstimate:(totalCents/100).toFixed(2),depositPaid:(amountDueCents/100).toFixed(2),paymentAmount:(amountDueCents/100).toFixed(2),
+    balanceDue:(remainingCents/100).toFixed(2),balanceDueDate:datePlusDays(arrivalDate,-14),
+    adventureTotal:(base/1).toFixed(2),extendedStayDiscount:(discountCents/100).toFixed(2),addOnTotal:(excursionTotal/1).toFixed(2),partnerTransportTotal:transferTotal.toFixed(2),
+    guestNotes:String(guestInfo.notes || "").slice(0,450),
+    selectedExperienceIds:selectedExperiences.join(",").slice(0,450),
+    // Both Stripe and Google require small metadata values; keep a readable itemized email summary.
+    excursionBreakdown:details.map(x=>`${x.name}: $${x.price} (${x.participants} guests)`).join("; ").slice(0,450),
+  };
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const siteUrl = process.env.SITE_URL || "http://localhost:5173";
+  const session = await stripe.checkout.sessions.create({
+    mode:"payment", customer_email:guestInfo.email.trim(),
+    client_reference_id:`aoe-${arrivalDate}-${departureDate}`,
+    line_items:[{quantity:1,price_data:{currency:"usd",unit_amount:amountDueCents,
+      product_data:{name:fullPaymentRequired ? `${metadata.packageName} — Full Payment` : `${metadata.packageName} — 25% Deposit`,
+        description:`Trip total $${(totalCents/100).toFixed(2)}; remaining $${(remainingCents/100).toFixed(2)}`}}}],
+    metadata,
+    success_url:`${siteUrl}/reservation-confirmed?booking=unified&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url:`${siteUrl}/plan-your-trip?checkout=cancelled`,
+  });
+  return res.status(200).json({url:session.url,pricing:{total:totalCents/100,amountDue:amountDueCents/100,
+    balanceDue:remainingCents/100,fullPaymentRequired,lineItems}});
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
@@ -137,6 +375,21 @@ export default async function handler(req, res) {
     });
   }
 
+  // Unified five-step Trip Builder checkout
+  if (req.body?.bookingType === "unified") {
+    try {
+      return await createUnifiedCheckout(req, res);
+    } catch (error) {
+      console.error("Unified checkout error:", error);
+
+      return res.status(500).json({
+        error:
+          error.message ||
+          "Unable to create checkout session.",
+      });
+    }
+  }
+  
   try {
     const stripe = new Stripe(
       process.env.STRIPE_SECRET_KEY

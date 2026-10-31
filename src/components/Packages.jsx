@@ -142,7 +142,7 @@ export default function Packages() {
           </div>
 
           <a
-            href="#trip-builder"
+            href="/plan-your-trip"
             className="mt-6 inline-flex shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white px-6 py-3 font-bold text-neutral-950 transition hover:bg-neutral-200 md:mt-0"
           >
             BUILD YOUR EXPEDITION

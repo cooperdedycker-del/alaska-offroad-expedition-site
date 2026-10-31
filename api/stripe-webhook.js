@@ -181,7 +181,7 @@ async function createCalendarReservation(
 
   const summary = packageBooking
     ? `PAID PACKAGE - ${packageName} - ${metadata.customerName}`
-    : `PAID RESERVATION - ${metadata.customerName}`;
+    : `${metadata.paymentType === "full" ? "PAID IN FULL" : "DEPOSIT PAID"} - ${metadata.customerName}`;
 
   /*
    * Package is one day.
@@ -223,13 +223,14 @@ Balance Due: $0.00
 `
     : `
 Pricing:
-Total Estimate: ${money(
-        metadata.totalEstimate
-      )}
+AOE Expedition Before Discount: ${money(metadata.adventureTotal)}
+Extended-Stay Discount (already included): -${money(metadata.extendedStayDiscount)}
+Partner Excursions (with 5% AOE markup): ${money(metadata.addOnTotal)}
+Partner Transportation: ${money(metadata.partnerTransportTotal)}
+Quoted Package Total: ${money(metadata.totalEstimate)}
+Payment Type: ${metadata.paymentType === "full" ? "Paid in full" : "Reservation deposit"}
 Amount Paid Today: ${money(amountCharged)}
-Remaining Balance: ${money(
-        metadata.balanceDue
-      )}
+Remaining Balance: ${money(metadata.balanceDue)}
 `;
 
   const description = `
@@ -493,7 +494,9 @@ ${contactBlock}
       : `
 Hi ${metadata.customerName},
 
-Your Alaska Offroad Expedition reservation is confirmed.
+Your Alaska Offroad Expedition reservation payment has been received.
+
+Your AOE expedition dates are reserved. Selected partner excursions are pending confirmation with the providers. If an excursion is unavailable, we will coordinate an alternative or adjust your remaining balance. We will never increase your quoted price without your approval.
 
 TRIP DATES
 ${metadata.tripStart} to ${metadata.tripEnd}
@@ -502,17 +505,18 @@ PARTICIPANTS
 ${formatParticipants(metadata)}
 
 PAYMENT
-Amount Paid Today: ${money(
-          amountCharged
-        )}
+Quoted Package Total: ${money(metadata.totalEstimate)}
+Extended-Stay Discount (included in quote): -${money(metadata.extendedStayDiscount)}
+${metadata.paymentType === "full" ? "Full Payment Received" : "Deposit Received"}: ${money(amountCharged)}
+Remaining Balance: ${money(metadata.balanceDue)}
 
-Estimated Remaining Balance:
-${money(metadata.balanceDue)}
+Selected Partner Excursions (pending provider confirmation):
+${metadata.excursionBreakdown || metadata.selectedExcursions || "None selected"}
 
-Selected Excursions:
-${metadata.selectedExcursions || "None selected"}
+Partner transportation: ${money(metadata.partnerTransportTotal)}
+Included lodging: ${metadata.lodgingPreference || "Not specified"}
 
-Your dates are now reserved.
+Your AOE dates are now reserved. Partner excursion availability will be confirmed separately.
 
 We'll follow up with your waiver, packing information, remaining balance details, and final itinerary planning.
 
@@ -585,19 +589,28 @@ ${
 ${metadata.lodgingPreference || ""}
 ${metadata.lodgingNotes || ""}
 
-EXCURSIONS
+PARTNER EXCURSIONS (PENDING PROVIDER CONFIRMATION)
 
-${metadata.selectedExcursions || "None selected"}
+${metadata.excursionBreakdown || metadata.selectedExcursions || "None selected"}
+
+PARTNER TRANSPORTATION
+${money(metadata.partnerTransportTotal)}
 
 `
     : ""
 }PAYMENT
 
-Total:
+Quoted Package Total:
 ${money(metadata.totalEstimate)}
 
-Discount:
+AOE Extended-Stay Discount (already included in quote):
+${money(metadata.extendedStayDiscount)}
+
+Stripe Promotion Discount (if any):
 ${money(discountAmount)}
+
+Payment Type:
+${metadata.paymentType === "full" ? "Paid in full" : "Deposit"}
 
 Amount Paid:
 ${money(amountCharged)}

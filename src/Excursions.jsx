@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { excursions } from "./data/excursions";
+import { experiences } from "./data/experiences";
 
 function AutoSlideshow({ images, alt }) {
   const [index, setIndex] = useState(0);
@@ -43,7 +43,15 @@ function AutoSlideshow({ images, alt }) {
 }
 
 export default function Excursions() {
-  const partners = excursions;
+  const partners = experiences.filter(
+  (experience) => experience.active === true
+).map((experience) => ({
+  ...experience,
+  key: experience.id,
+  type: experience.category,
+  desc: experience.description,
+  images: experience.images || (experience.image ? [experience.image] : []),
+}));
 
   return (
     <section id="excursions" className="mx-auto max-w-7xl px-4 py-16">
@@ -61,7 +69,7 @@ export default function Excursions() {
   </p>
 
   <a
-    href="#trip-builder"
+   href="/plan-your-trip"
     className="mt-5 inline-flex items-center gap-2 font-semibold text-orange-400 transition hover:text-orange-300"
   >
     Explore Add-Ons in the Trip Builder
@@ -98,8 +106,24 @@ export default function Excursions() {
                 {p.desc}
               </p>
 
-              <div className="mt-4 text-xs text-neutral-400">
-  Available as an add-on in our Trip Builder.
+              <div className="mt-4">
+  <a
+    href="/plan-your-trip"
+    className="
+      inline-flex w-full items-center justify-center gap-2
+      rounded-xl
+      bg-gradient-to-r from-orange-600 to-orange-500
+      px-5 py-3
+      text-sm font-bold text-white
+      shadow-[0_0_15px_rgba(249,115,22,0.25)]
+      transition duration-300
+      hover:brightness-110
+      hover:shadow-[0_0_22px_rgba(249,115,22,0.45)]
+    "
+  >
+    Book Now
+    <span aria-hidden="true">→</span>
+  </a>
 </div>
             </div>
           </div>

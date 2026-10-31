@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { excursions } from "./data/excursions";
+import { excursions } from "./data/experiences";
 import Packages from "./components/Packages";
 
 function calculateDiscountedDailyTotal(totalDays, dailyRate, passengerDailyTotal) {
@@ -60,7 +60,11 @@ function isExcursionInSeason(excursion, tripStart, tripEnd) {
   );
 }
 
-export default function TripBuilder() {
+export default function TripBuilder({
+  vacationArrival = "",
+  vacationDeparture = "",
+  initialGuests = 1,
+}) {
   const topRef = useRef(null);
   const PACKAGES = [
     {
@@ -119,10 +123,13 @@ export default function TripBuilder() {
 
 const [form, setForm] = useState({
   start: "",
-end: "",
-experienceType: "selfDrive", // selfDrive | rideAlong | tagAlong
-drivers: 1,
-passengers: 0,
+  end: "",
+  experienceType: "selfDrive",
+  drivers: 1,
+  passengers: Math.min(
+    6,
+    Math.max(0, Number(initialGuests || 1) - 1)
+  ),
 riders: 1,
 customerRigs: 1,
 dayLevel: "easy",
@@ -570,25 +577,78 @@ if (!r.ok || !data.url) {
   className="rounded-3xl border border-white/10 bg-neutral-900/50 p-8 md:p-12"
 >
 
-          <header className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold">Build Your Expedition</h2>
-              <p className="mt-2 text-neutral-300 max-w-3xl">
-                Select dates, overnight options, add experiences, and request an itinerary. Your expedition rig is our Jeep Gladiator Expedition Build.
-              </p>
-            </div>
-            <Stepper step={step} />
-          </header>
+          <header className="flex flex-wrap items-center justify-between gap-5">
+
+  <div>
+    <h2 className="text-3xl font-bold md:text-4xl">
+      Build Your Expedition
+    </h2>
+
+    <p className="mt-2 max-w-3xl text-neutral-300">
+      Choose your expedition dates, overnight accommodations,
+      and additional Alaska experiences.
+    </p>
+  </div>
+
+  <Stepper step={step} />
+
+</header>
+
+{/* Customer Vacation Information */}
+
+{vacationArrival && vacationDeparture && (
+  <div className="mt-6 rounded-2xl border border-orange-400/30 bg-orange-500/10 p-5">
+
+    <div className="text-sm font-bold uppercase tracking-wide text-orange-400">
+      Your Alaska Vacation
+    </div>
+
+    <div className="mt-3 flex flex-wrap gap-x-8 gap-y-3 text-sm text-white">
+
+      <div>
+        <span className="text-neutral-400">Arrival: </span>
+        <strong>{vacationArrival}</strong>
+      </div>
+
+      <div>
+        <span className="text-neutral-400">Departure: </span>
+        <strong>{vacationDeparture}</strong>
+      </div>
+
+      <div>
+        <span className="text-neutral-400">Travelers: </span>
+        <strong>{initialGuests}</strong>
+      </div>
+
+    </div>
+
+    <p className="mt-3 text-sm text-neutral-300">
+      Your expedition can be shorter than your vacation.
+      Choose the days you'd like to explore Alaska below.
+    </p>
+
+    {Number(initialGuests) > 7 && (
+      <p className="mt-3 text-sm font-semibold text-amber-300">
+        Your group may require additional expedition vehicles.
+        Contact your guide to arrange transportation and capacity
+        for all {initialGuests} travelers before booking.
+      </p>
+    )}
+
+  </div>
+)}
 
           <div className="mt-8 grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-6">
               {step === 1 && (
   <StepDates
-    form={form}
-    set={set}
-    nights={nights}
-    blockedRanges={blockedRanges}
-  />
+  form={form}
+  set={set}
+  nights={nights}
+  blockedRanges={blockedRanges}
+  vacationArrival={vacationArrival}
+  vacationDeparture={vacationDeparture}
+/>
 )}
               {step === 2 && <StepRigAndExtras form={form} set={set} nights={nights} />}
               {step === 3 && <StepAddOns form={form} set={set} />}
@@ -784,7 +844,26 @@ function StepPackage({ form, set }) {
 }
 
 
-function StepDates({ form, set, nights, blockedRanges = [] }) {
+function StepDates({
+  form,
+  set,
+  nights,
+  blockedRanges = [],
+  vacationArrival = "",
+  vacationDeparture = "",
+}) {
+    const vacationStartDate = vacationArrival
+    ? new Date(`${vacationArrival}T12:00:00`)
+    : null;
+
+  const vacationEndDate = vacationDeparture
+    ? new Date(`${vacationDeparture}T12:00:00`)
+    : null;
+
+  const earliestStartDate =
+    vacationStartDate && vacationStartDate > new Date()
+      ? vacationStartDate
+      : new Date();
   const isDayTrip = ["knik-glacier-winter", "offroad-day-levels"].includes(
     form.packageId
   );
@@ -914,7 +993,8 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
                 end: isDayTrip ? formatted : "",
               });
             }}
-            minDate={new Date()}
+           minDate={earliestStartDate}
+          maxDate={vacationEndDate || undefined}
             filterDate={(date) => !isDateBlocked(date)}
             placeholderText="Select start date"
             dateFormat="yyyy-MM-dd"
@@ -929,7 +1009,8 @@ function StepDates({ form, set, nights, blockedRanges = [] }) {
             onChange={(date) => {
               set({ end: formatDateForForm(date) });
             }}
-            minDate={startDate || new Date()}
+           minDate={startDate || earliestStartDate}
+            maxDate={vacationEndDate || undefined}
             placeholderText="Select end date"
             dateFormat="yyyy-MM-dd"
             className="mt-1 w-full rounded-xl bg-neutral-800 px-4 py-3 text-white"
