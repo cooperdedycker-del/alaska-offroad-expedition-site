@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { partnerExperienceTotalCents, extendedStayDiscountRate } from "../data/bookingPricing.mjs";
 import { expeditionPackages } from "../data/packages.js";
 import { useSearchParams } from "react-router-dom";
@@ -52,6 +52,62 @@ function formatDate(value) {
     day: "numeric",
     year: "numeric",
   });
+}
+
+
+// Google Calendar availability calendar; blocked dates cannot be selected.
+function AvailabilityDatePicker({label, value, minDate, blockedDates, loading, error, onSelect, today}) {
+  const initialMonth = (value || minDate || today).slice(0, 7);
+  const [month, setMonth] = useState(initialMonth);
+  const [year, monthNumber] = month.split('-').map(Number);
+  const first = new Date(Date.UTC(year, monthNumber - 1, 1));
+  const days = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+  const offset = first.getUTCDay();
+  const limit = new Date(`${today}T00:00:00Z`);
+  limit.setUTCMonth(limit.getUTCMonth() + 12);
+  const maxDate = limit.toISOString().slice(0,10);
+  const changeMonth = (delta) => {
+    const next = new Date(Date.UTC(year, monthNumber - 1 + delta, 1));
+    setMonth(next.toISOString().slice(0,7));
+  };
+  const title = first.toLocaleDateString('en-US', {timeZone:'UTC', month:'long', year:'numeric'});
+  return (
+    <div className="min-w-0">
+      <div className="mb-3 font-semibold">{label}</div>
+      <div className="rounded-xl border border-white/20 bg-neutral-800 p-3 sm:p-4">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <button type="button" aria-label={`Previous month for ${label}`} onClick={() => changeMonth(-1)} disabled={`${month}-01` < `${today.slice(0,7)}-01`} className="rounded-lg border border-white/20 px-3 py-2 font-bold disabled:opacity-30">‹</button>
+          <strong className="text-sm sm:text-base">{title}</strong>
+          <button type="button" aria-label={`Next month for ${label}`} onClick={() => changeMonth(1)} disabled={month >= maxDate.slice(0,7)} className="rounded-lg border border-white/20 px-3 py-2 font-bold disabled:opacity-30">›</button>
+        </div>
+        <div className="grid grid-cols-7 gap-1 text-center text-xs text-neutral-400">{['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => <span key={d}>{d}</span>)}</div>
+        <div className="mt-2 grid grid-cols-7 gap-1">
+          {Array.from({length:offset},(_,i)=><span key={`blank-${i}`} />)}
+          {Array.from({length:days},(_,i)=>{
+            const date = `${month}-${String(i+1).padStart(2,'0')}`;
+            const booked = blockedDates.has(date);
+            const disabled = loading || Boolean(error) || date < (minDate || today) || date > maxDate || booked;
+            return <button key={date} type="button" aria-label={`${date}${booked?' unavailable':''}`} title={booked?'Unavailable on Google Calendar':date} disabled={disabled} onClick={()=>onSelect(date)} className={`aspect-square rounded-md text-xs sm:text-sm transition ${value === date ? 'bg-orange-500 font-extrabold text-white' : booked ? 'bg-red-950/60 text-red-300 line-through' : disabled ? 'text-neutral-600' : 'bg-neutral-700 text-white hover:bg-orange-500/50'}`}>{i+1}</button>;
+          })}
+        </div>
+        <div className="mt-3 text-xs text-neutral-400">{value ? `Selected: ${formatDate(value)}` : 'Select an available date'} · <span className="text-red-300">Crossed-out dates are booked.</span></div>
+        {loading && <p className="mt-2 text-xs text-amber-300">Checking Google Calendar availability…</p>}
+        {error && <p role="alert" className="mt-2 text-xs text-red-300">{error}</p>}
+      </div>
+    </div>
+  );
+}
+
+function rangeIncludesBlockedDay(start, end, blockedDates) {
+  if (!start || !end) return false;
+  const cursor = parseDate(start);
+  const last = parseDate(end);
+  if (!cursor || !last) return true;
+  while (cursor <= last) {
+    if (blockedDates.has(cursor.toISOString().slice(0,10))) return true;
+    cursor.setUTCDate(cursor.getUTCDate()+1);
+  }
+  return false;
 }
 
 function getTodayLocal() {
@@ -560,6 +616,32 @@ const [guestInfo, setGuestInfo] = useState({
 const [alaskaResident, setAlaskaResident] = useState(false);
 
 
+  const [blockedDates, setBlockedDates] = useState(new Set());
+  const [availabilityLoading, setAvailabilityLoading] = useState(true);
+  const [availabilityError, setAvailabilityError] = useState("");
+  const [dateRangeError, setDateRangeError] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadAvailability() {
+      setAvailabilityLoading(true);
+      setAvailabilityError("");
+      try {
+        const response = await fetch('/api/calendar-availability', {signal:controller.signal, cache:'no-store'});
+        if (!response.ok) throw new Error('Unable to load Google Calendar availability.');
+        const data = await response.json();
+        if (!Array.isArray(data.blockedDates)) throw new Error('Calendar availability data is incomplete.');
+        setBlockedDates(new Set(data.blockedDates));
+      } catch (err) {
+        if (err.name !== 'AbortError') setAvailabilityError('Availability is unavailable right now. Please try refreshing before selecting dates.');
+      } finally {
+        if (!controller.signal.aborted) setAvailabilityLoading(false);
+      }
+    }
+    loadAvailability();
+    return () => controller.abort();
+  }, []);
+
   const [arrivalDate, setArrivalDate] = useState("");
   const [departureDate, setDepartureDate] = useState("");
   const [guestCount, setGuestCount] = useState(2);
@@ -673,7 +755,7 @@ const selectedAirbnbNights = 0;
 const airbnbTotal = 0;
 const partnerTransportationTotal = winterPartnerTransportationTotal;
 const winterActivityDays = winterExpeditionDays;
-const winterBookedExcursionDays = selectedExperiences.length;
+const winterBookedExcursionDays = selectedPartnerExperiences.length + (winterIsStandaloneDayTrip && hasKnik ? 1 : 0);
 const availableJeepRentalDays = 0;
 const billableJeepRentalDays = 0;
 const jeepRentalTotal = 0;
@@ -860,6 +942,11 @@ const availableAdventureDays =
     ? Math.max(1, nights)
     : Math.max(0, nights - 1);
 
+// AOE core expeditions (including Knik with a multi-day winter trip)
+// are included and DO NOT consume add-on excursion days.
+// A standalone Knik day trip uses one scheduled adventure day.
+const usedAdventureDays = partnerExperienceCount + (winterIsStandaloneDayTrip && hasKnik ? 1 : 0);
+
 // ==========================================
 // EXPERIENCE SELECTION
 // ==========================================
@@ -873,11 +960,9 @@ function toggleExperience(experienceId) {
     }
 
     // Don't allow more experiences than available adventure days.
-    if (current.length >= availableAdventureDays) {
-      return current;
-    }
-
     const candidate = experiences.find(ex => ex.id === experienceId);
+    const candidateUsesDay = candidate && (candidate.operator !== "AOE" || (winterIsStandaloneDayTrip && candidate.id === "winter-knik-glacier"));
+    if (candidateUsesDay && usedAdventureDays >= availableAdventureDays) return current;
     if (!candidate || !experienceAvailableDuringTrip(candidate, arrivalDate, departureDate)) return current;
     if (candidate.operator !== "AOE" && !partnerQuote(candidate, guestCount, experienceParticipants[experienceId])) return current;
     return [...current, experienceId];
@@ -889,7 +974,7 @@ function toggleExperience(experienceId) {
     !!departure &&
     arrivalDate >= today &&
     (nights >= 1 || (tripSeason === "winter" && nights === 0)) &&
-    nights <= 365;
+    nights <= 365 && !availabilityLoading && !availabilityError && !rangeIncludesBlockedDay(arrivalDate, departureDate, blockedDates);
 
   const guestsValid =
     Number.isInteger(Number(guestCount)) &&
@@ -936,7 +1021,7 @@ function toggleExperience(experienceId) {
       : step === 2
         ? true // Multi-day AOE stays can be booked without partner activities
         : step === 3
-          ? selectedExperiences.length <= availableAdventureDays &&
+          ? usedAdventureDays <= availableAdventureDays &&
             (!hasKnik || (
               driverCount >= 0 && driverCount <= 2 &&
               driverCount <= Number(guestCount) &&
@@ -1239,67 +1324,15 @@ if (step === 4) {
 
                 <div className="grid gap-6 md:grid-cols-2">
 
-                  {/* Arrival Date */}
-
-                  <div>
-                    <label
-                      htmlFor="arrival-date"
-                      className="mb-3 block font-semibold"
-                    >
-                      Arrival Date
-                    </label>
-
-                    <input
-                      id="arrival-date"
-                      type="date"
-                      min={today}
-                      value={arrivalDate}
-                      onChange={(event) => {
-                        const value = event.target.value;
-
-                        setArrivalDate(value);
-
-                        if (
-                          departureDate &&
-                          departureDate < value
-                        ) {
-                          setDepartureDate("");
-                        }
-                      }}
-                      className="w-full rounded-xl border border-white/20 bg-neutral-800 px-4 py-4 text-white [color-scheme:dark] outline-none focus:border-orange-400"
-                    />
-                  </div>
-
-                  {/* Departure Date */}
-
-                  <div>
-                    <label
-                      htmlFor="departure-date"
-                      className="mb-3 block font-semibold"
-                    >
-                      Departure Date
-                    </label>
-
-                    <input
-                      id="departure-date"
-                      type="date"
-                      min={
-                        arrival
-                          ? addDays(arrival, tripSeason === "winter" ? 0 : 1)
-                              .toISOString()
-                              .slice(0, 10)
-                          : today
-                      }
-                      value={departureDate}
-                      onChange={(event) =>
-                        setDepartureDate(event.target.value)
-                      }
-                      className="w-full rounded-xl border border-white/20 bg-neutral-800 px-4 py-4 text-white [color-scheme:dark] outline-none focus:border-orange-400"
-                    />
-                  </div>
-
+                  <AvailabilityDatePicker label="Arrival Date" value={arrivalDate} minDate={today} today={today} blockedDates={blockedDates} loading={availabilityLoading} error={availabilityError} onSelect={(date)=>{setArrivalDate(date);setDepartureDate('');setDateRangeError('');}} />
+                  <AvailabilityDatePicker label="Departure Date" value={departureDate} minDate={arrivalDate ? addDays(parseDate(arrivalDate),getOperatingSeason(arrivalDate)==='winter'?0:1).toISOString().slice(0,10) : today} today={today} blockedDates={blockedDates} loading={availabilityLoading} error={availabilityError} onSelect={(date)=>{
+                    if (!arrivalDate) {setDateRangeError('Select an arrival date first.');return;}
+                    if (rangeIncludesBlockedDay(arrivalDate,date,blockedDates)) {setDateRangeError('Your selected dates include a booked day. Choose a departure date before the booked day, or choose different arrival dates.');setDepartureDate('');return;}
+                    setDateRangeError('');setDepartureDate(date);
+                  }} />
                 </div>
 
+                {dateRangeError && <p role="alert" className="mt-4 text-sm text-red-300">{dateRangeError}</p>}
                 {/* Guests */}
 
                 <div className="mt-8">
@@ -1611,7 +1644,7 @@ if (step === 4) {
                   <div className="grid gap-4 sm:grid-cols-2">
                     {primaryAOEExperiences.map((experience) => {
                       const selected = selectedExperiences.includes(experience.id);
-                      const isFull = !selected && selectedExperiences.length >= availableAdventureDays;
+                      const isFull = !selected && winterIsStandaloneDayTrip && usedAdventureDays >= availableAdventureDays;
                       return (
                         <button key={experience.id} type="button" onClick={() => toggleExperience(experience.id)} disabled={isFull} aria-pressed={selected}
                           className={`overflow-hidden rounded-xl border text-left transition disabled:opacity-40 ${selected ? "border-orange-400 bg-orange-500/10" : "border-white/20 bg-neutral-900 hover:border-orange-400/70"}`}>
@@ -1650,17 +1683,17 @@ if (step === 4) {
 
     <div className="text-right">
       <div className="text-2xl font-extrabold text-orange-400">
-        {selectedExperiences.length} / {availableAdventureDays}
+        {usedAdventureDays} / {availableAdventureDays}
       </div>
 
       <div className="text-xs text-neutral-400">
-        Experiences selected
+        Add-on days used
       </div>
     </div>
 
   </div>
 
-  {selectedExperiences.length >= availableAdventureDays &&
+  {usedAdventureDays >= availableAdventureDays &&
     availableAdventureDays > 0 && (
 
     <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300">
@@ -1718,7 +1751,7 @@ if (step === 4) {
                       <div className="grid grid-cols-2 gap-3 border-t border-white/15 p-3 md:grid-cols-3 xl:grid-cols-4 sm:p-4">
                         {category.items.map((experience) => {
                           const selected = selectedExperiences.includes(experience.id);
-                          const isFull = !selected && selectedExperiences.length >= availableAdventureDays;
+                          const isFull = !selected && usedAdventureDays >= availableAdventureDays;
                           let priceLabel = "Price on request";
                            const quote = experience.operator !== "AOE"
                              ? partnerQuote(experience, guestCount, experienceParticipants[experience.id]) : null;
@@ -2026,7 +2059,7 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
   async function handleCheckout() {
     setCheckoutError("");
     if (!contactValid) {
-      setCheckoutError("Complete the primary guest's contact details and all additional guest fields."); return;
+      setCheckoutError(`Missing guest information: ${missingGuestFields.join("; ")}`); return;
     }
     setCheckoutLoading(true);
     try {
@@ -2051,8 +2084,20 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
     additionalGuests[index] = { ...(additionalGuests[index] || {}), [field]: value };
     return { ...current, additionalGuests };
   });
-  const contactValid = Boolean(guestInfo.name?.trim() && validEmail(guestInfo.email) && guestInfo.phone?.trim() && guestInfo.address?.trim() && guestInfo.shirtSize &&
-    extraGuests.every(g => g.name?.trim() && validEmail(g.email) && g.phone?.trim() && g.shirtSize));
+  const missingGuestFields = [
+    ...(!guestInfo.name?.trim() ? ["Primary guest: full name"] : []),
+    ...(!validEmail(guestInfo.email) ? ["Primary guest: valid email address"] : []),
+    ...(!guestInfo.phone?.trim() ? ["Primary guest: phone number"] : []),
+    ...(!guestInfo.address?.trim() ? ["Primary guest: mailing address"] : []),
+    ...(!guestInfo.shirtSize ? ["Primary guest: shirt size"] : []),
+    ...extraGuests.flatMap((g, index) => [
+      ...(!g.name?.trim() ? [`Additional guest ${index + 2}: full name`] : []),
+      ...(!validEmail(g.email) ? [`Additional guest ${index + 2}: valid email address`] : []),
+      ...(!g.phone?.trim() ? [`Additional guest ${index + 2}: phone number`] : []),
+      ...(!g.shirtSize ? [`Additional guest ${index + 2}: shirt size`] : []),
+    ]),
+  ];
+  const contactValid = missingGuestFields.length === 0;
   return (
     <main className="w-full min-w-0 px-4 pb-32 pt-10">
       <div className="mb-8 text-center">
@@ -2083,7 +2128,7 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
           </section>
         ))}
         <section className="rounded-3xl border border-white/10 bg-neutral-900 p-6">
-          <label className="text-lg font-bold">Any additional information to make your expedition perfect?<textarea rows={4} value={guestInfo.notes || ""} onChange={e=>updateField("notes",e.target.value)} className={fieldStyle}/></label>
+          <label className="text-lg font-bold">Please leave any comments to make your expedition perfect.<textarea rows={4} value={guestInfo.notes || ""} onChange={e=>updateField("notes",e.target.value)} className={fieldStyle}/></label>
         </section>
         <section className="rounded-3xl border border-orange-400/30 bg-orange-500/10 p-6">
           <h2 className="text-xl font-bold">Reservation Summary</h2>
@@ -2102,11 +2147,14 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
         <section className="rounded-3xl border border-amber-400/30 bg-amber-500/10 p-6">
           <h2 className="font-bold text-amber-300">Secure Reservation Checkout</h2>
           <p className="mt-2 text-sm text-neutral-300">Your final total will be recalculated by our server before Stripe checkout. Availability and partner schedules are subject to confirmation.</p>
-          <button type="button" onClick={handleCheckout} disabled={!contactValid || checkoutLoading} className={`${primaryButton} mt-5 w-full`}>
+          <button type="button" onClick={handleCheckout} disabled={checkoutLoading} className={`${primaryButton} mt-5 w-full`}>
             {checkoutLoading ? "Opening Secure Checkout..." : "Reserve Your Adventure →"}
           </button>
           {checkoutError && <p role="alert" className="mt-3 text-sm text-red-300">{checkoutError}</p>}
-          {!contactValid && <p className="mt-3 text-sm text-neutral-400">Please complete the primary guest and all additional guest contact details before reserving.</p>}
+          {!contactValid && <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-200" role="status">
+            <p className="font-semibold">Complete these fields to continue:</p>
+            <ul className="mt-2 list-inside list-disc">{missingGuestFields.map(field => <li key={field}>{field}</li>)}</ul>
+          </div>}
         </section>
       </div>
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-neutral-950/95 px-4 py-4 backdrop-blur">

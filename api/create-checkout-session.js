@@ -333,10 +333,20 @@ if (
   // Require complete contact details for each guest in the unified booking path.
   const emailOk = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
   const extraGuests = Array.isArray(guestInfo.additionalGuests) ? guestInfo.additionalGuests.slice(0, guests - 1) : [];
-  if (!guestInfo.phone?.trim() || !guestInfo.address?.trim() || !guestInfo.shirtSize ||
-      extraGuests.length !== guests - 1 ||
-      extraGuests.some(g => !g || !g.name?.trim() || !emailOk(g.email) || !g.phone?.trim() || !g.shirtSize)) {
-    return res.status(400).json({error:"Complete contact information for each guest before checkout."});
+  const missingContacts = [
+    ...(!guestInfo.phone?.trim() ? ["Primary guest phone number"] : []),
+    ...(!guestInfo.address?.trim() ? ["Primary guest mailing address"] : []),
+    ...(!guestInfo.shirtSize ? ["Primary guest shirt size"] : []),
+    ...(extraGuests.length !== guests - 1 ? [`Expected ${guests - 1} additional guest(s); received ${extraGuests.length}`] : []),
+    ...extraGuests.flatMap((g, i) => [
+      ...(!g?.name?.trim() ? [`Guest ${i + 2} full name`] : []),
+      ...(!emailOk(g?.email) ? [`Guest ${i + 2} valid email`] : []),
+      ...(!g?.phone?.trim() ? [`Guest ${i + 2} phone number`] : []),
+      ...(!g?.shirtSize ? [`Guest ${i + 2} shirt size`] : []),
+    ]),
+  ];
+  if (missingContacts.length) {
+    return res.status(400).json({error:`Missing guest information: ${missingContacts.join('; ')}`});
   }
   const allParticipants = [
     {name:guestInfo.name, email:guestInfo.email, phone:guestInfo.phone, shirtSize:guestInfo.shirtSize, address:guestInfo.address},

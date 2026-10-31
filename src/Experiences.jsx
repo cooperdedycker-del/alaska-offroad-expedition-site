@@ -1,4 +1,10 @@
+// Temporarily hide the homepage YouTube video section.
+// Change this to true when you're ready to show it again.
+const SHOW_EXPEDITION_VIDEO = false;
+
 export default function Experiences() {
+  if (!SHOW_EXPEDITION_VIDEO) return null;
+
   return (
     <section id="experiences" className="mx-auto max-w-7xl px-4 py-16">
       <div className="mb-8 text-center">

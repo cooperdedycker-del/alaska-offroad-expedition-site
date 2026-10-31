@@ -45,20 +45,35 @@ export default function HomepageExperienceCatalog() {
     <section id="excursions" className="mx-auto max-w-7xl scroll-mt-40 px-4 py-14">
       {/* Single outer boundary for the complete Add-On Experiences catalog. */}
       <div className="rounded-3xl border border-white/30 bg-neutral-900/30 p-5 shadow-xl sm:p-8 lg:p-10">
-        <section className="mb-12 rounded-3xl border border-orange-400/40 bg-orange-500/5 p-5 sm:p-7" aria-label="Primary Alaska Off-Road Expeditions">
+        <section className="mb-12 rounded-3xl border border-orange-400/40 bg-orange-500/5 p-5 sm:p-7" aria-label="Alaska Off-Road Expedition seasonal expeditions">
           <div className="mb-5 border-b border-orange-400/25 pb-4">
-            <p className="text-xs font-extrabold uppercase tracking-widest text-orange-300">Primary Trip Selection</p>
-            <h2 className="mt-2 text-3xl font-extrabold uppercase text-white md:text-4xl">ALASKA OFF-ROAD EXPEDITIONS</h2>
-            <p className="mt-2 text-sm text-neutral-300">Drive our expedition-ready Jeeps, explore remote Alaska trails, and enjoy guided overnight adventures. Start with an expedition, then personalize it with optional excursions.</p>
+            <p className="text-xs font-extrabold uppercase tracking-widest text-orange-300">Alaska Off-Road Expedition</p>
+            <h2 className="mt-2 text-3xl font-extrabold uppercase text-white md:text-4xl">CHOOSE YOUR ALASKA EXPEDITION</h2>
+            <p className="mt-2 text-sm text-neutral-300">Experience Alaska in any season. Choose a winter or summer off-road expedition, then personalize your trip with optional add-on excursions.</p>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {primary.map(item => <ExperienceCard key={item.id} item={item} />)}
-            {true && (
-              <article className="flex flex-col overflow-hidden rounded-xl border border-white/15 bg-neutral-900">
-                <img src="/images/expedition-summer-banner.png" alt="Summer Alaska off-road expedition" className="aspect-video w-full bg-black object-contain" loading="lazy" />
-                <div className="flex flex-1 flex-col p-4"><h3 className="font-extrabold text-white">Summer Guided Off-Road Expedition</h3><p className="mt-2 flex-1 text-sm text-neutral-300">Guided off-road driving, remote camping and incredible Alaska scenery.</p><a href="/plan-your-trip" className="mt-4 rounded-lg bg-orange-500 px-4 py-3 text-center text-sm font-bold text-white">Select Expedition →</a></div>
-              </article>
-            )}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <article className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-white/20 bg-neutral-900">
+              <div className="aspect-video w-full overflow-hidden bg-black">
+                <img src="/images/knik-winter-package.png" alt="Winter Alaska off-road expedition with Jeep Gladiators near Knik Glacier" className="h-full w-full object-contain" loading="lazy" />
+              </div>
+              <div className="flex flex-1 flex-col p-4">
+                <p className="text-xs font-extrabold uppercase tracking-wide text-orange-300">Winter Adventures</p>
+                <h3 className="mt-1 text-xl font-extrabold text-white">Winter Expeditions</h3>
+                <p className="mt-2 flex-1 text-sm text-neutral-300">Experience frozen glaciers and Alaska's winter backcountry. Drive one of our expedition-ready Jeeps or ride with your guide.</p>
+                <a href="/plan-your-trip?experience=winter-knik-glacier" className="mt-4 rounded-lg border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-4 py-3 text-center text-sm font-extrabold text-white shadow-[0_0_16px_rgba(249,115,22,0.4)] transition hover:brightness-110">Book Now →</a>
+              </div>
+            </article>
+            <article className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-white/20 bg-neutral-900">
+              <div className="aspect-video w-full overflow-hidden bg-black">
+                <img src="/images/alaska_off_road_sunset_expedition.png" alt="Summer Alaska off-road expedition with Jeeps, campfire and mountain scenery" className="h-full w-full object-contain" loading="lazy" />
+              </div>
+              <div className="flex flex-1 flex-col p-4">
+                <p className="text-xs font-extrabold uppercase tracking-wide text-orange-300">Summer Adventures</p>
+                <h3 className="mt-1 text-xl font-extrabold text-white">Summer Expeditions</h3>
+                <p className="mt-2 flex-1 text-sm text-neutral-300">Explore remote Alaska trails, mountain passes and scenic campsites on a fully guided off-road adventure.</p>
+                <a href="/plan-your-trip" className="mt-4 rounded-lg border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-4 py-3 text-center text-sm font-extrabold text-white shadow-[0_0_16px_rgba(249,115,22,0.4)] transition hover:brightness-110">Book Now →</a>
+              </div>
+            </article>
           </div>
         </section>
         <div className="mb-9 text-center">
