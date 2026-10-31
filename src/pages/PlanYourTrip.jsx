@@ -1012,8 +1012,7 @@ function toggleExperience(experienceId) {
     if (!experience.id || experience.category === "partner-information") return false;
     if (tripSeason === "summer" && experience.operator === "AOE") return false;
     if (experience.operator === "AOE" && experience.active !== true) return false;
-    // Show verified-price partner drafts in the builder, never unpriced drafts.
-    if (experience.operator !== "AOE" && !partnerQuote(experience, guestCount, experienceParticipants[experience.id])) return false;
+    // All partner trips are visible, including ones awaiting confirmed pricing.
     return experienceAvailableDuringTrip(experience, arrivalDate, departureDate);
   });
 
@@ -1121,12 +1120,15 @@ if (step === 4) {
             </span>
           </a>
 
+          <div className="flex items-center gap-2">
+            <a href="/#merch" className="rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/10">Merch</a>
           <a
             href="/"
             className="rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/10"
           >
             Home
           </a>
+          </div>
 
         </div>
       </header>
@@ -1763,9 +1765,10 @@ if (step === 4) {
                         {category.items.map((experience) => {
                           const selected = selectedExperiences.includes(experience.id);
                           const isFull = !selected && usedAdventureDays >= availableAdventureDays;
-                          let priceLabel = "Price on request";
+                          let priceLabel = "Price pending confirmation";
                            const quote = experience.operator !== "AOE"
                              ? partnerQuote(experience, guestCount, experienceParticipants[experience.id]) : null;
+                          const needsQuote = experience.operator !== "AOE" && !quote;
                            if (quote) {
                              const unit = experience.publishedPriceUnit;
                              const unitLabel = unit === "perPerson" ? "/person" : unit === "perVehicle" ? "/vehicle" : unit === "perCharter" ? "/charter" : "/night";
@@ -1780,11 +1783,11 @@ if (step === 4) {
                             <button
                               key={experience.id}
                               type="button"
-                              disabled={isFull}
+                              disabled={isFull || needsQuote}
                               onClick={() => toggleExperience(experience.id)}
                               aria-pressed={selected}
                               title={experience.name}
-                              className={`group flex min-w-0 flex-col overflow-hidden rounded-xl border text-left transition disabled:cursor-not-allowed disabled:opacity-40 ${selected ? "border-orange-400 bg-orange-500/10" : "border-white/15 bg-neutral-900 hover:border-orange-400/60 hover:bg-neutral-800"}`}
+                              className={`group flex min-w-0 flex-col overflow-hidden rounded-xl border text-left transition disabled:cursor-not-allowed ${isFull && !needsQuote ? "opacity-40" : ""} ${selected ? "border-orange-400 bg-orange-500/10" : "border-white/15 bg-neutral-900 hover:border-orange-400/60 hover:bg-neutral-800"}`}
                             >
                               <div className="relative aspect-video w-full overflow-hidden bg-black">
                                 {experience.image ? (
@@ -1793,7 +1796,7 @@ if (step === 4) {
                                   <div className="flex h-full items-center justify-center px-3 text-center text-xs text-neutral-500">Photo coming soon</div>
                                 )}
                                 <span className={`absolute right-2 top-2 rounded-full px-2 py-1 text-[10px] font-extrabold ${selected ? "bg-orange-500 text-black" : "bg-black/75 text-white"}`}>
-                                  {selected ? "✓ ADDED" : "+ ADD"}
+                                  {selected ? "✓ ADDED" : needsQuote ? "REVIEW" : "+ ADD"}
                                 </span>
                               </div>
                               <div className="flex flex-1 flex-col p-3">
@@ -1810,7 +1813,7 @@ if (step === 4) {
                                   {priceLabel}
                                 </div>
                                 <p className="mt-1 text-[11px] font-semibold text-orange-300">
-                                  {selected ? "Selected — remove" : isFull ? "Trip is full" : "Add to trip"}
+                                  {selected ? "Selected — remove" : needsQuote ? "Ask your guide for pricing" : isFull ? "Trip is full" : "Add to trip"}
                                 </p>
                               </div>
                             </button>

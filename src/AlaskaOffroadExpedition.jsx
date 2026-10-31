@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Experiences from "./Experiences";
 import HomepageExperienceCatalog from "./HomepageExperienceCatalog";
 import Sponsors from "./Sponsors";
@@ -9,6 +9,24 @@ import Merch from "./Merch";
 
 export default function AlaskaOffroadExpedition() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  useEffect(() => {
+    function refreshCartCount() {
+      try {
+        const items = JSON.parse(localStorage.getItem("aoe-merch-cart-v1") || "[]");
+        setCartCount(Array.isArray(items) ? items.reduce((sum, item) => sum + Number(item.quantity || 0), 0) : 0);
+      } catch {
+        setCartCount(0);
+      }
+    }
+    refreshCartCount();
+    window.addEventListener("aoe-merch-cart-updated", refreshCartCount);
+    window.addEventListener("storage", refreshCartCount);
+    return () => {
+      window.removeEventListener("aoe-merch-cart-updated", refreshCartCount);
+      window.removeEventListener("storage", refreshCartCount);
+    };
+  }, []);
   return (
       <div id="top" className="min-h-screen bg-neutral-950 text-neutral-100">
       <header className="sticky top-0 z-40 border-b border-orange-400/20 bg-neutral-950/95 backdrop-blur">
@@ -39,6 +57,19 @@ export default function AlaskaOffroadExpedition() {
               Chat With Your Guide <span aria-hidden="true" className="ml-1">→</span>
             </a>
           </div>
+
+          <a
+            href="#merch-cart"
+            aria-label={`View merchandise cart, ${cartCount} items`}
+            title="Merch Cart"
+            className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-400/50 bg-orange-500/10 text-orange-200 transition hover:bg-orange-500/20"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.4 12.3a2 2 0 0 0 2 1.7h9.8a2 2 0 0 0 2-1.6L23 6H6"/>
+            </svg>
+            {cartCount > 0 && <span className="absolute -right-2 -top-2 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-black text-white">{cartCount > 99 ? "99+" : cartCount}</span>}
+          </a>
 
           <button
             type="button"

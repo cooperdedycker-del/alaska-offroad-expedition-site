@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
 
+const CART_STORAGE_KEY = "aoe-merch-cart-v1";
+
+function loadSavedCart() {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(CART_STORAGE_KEY) || "[]");
+    return Array.isArray(stored) ? stored.filter(item => item && item.variantId && Number(item.quantity) > 0) : [];
+  } catch {
+    return [];
+  }
+}
+
 const SHOPIFY_DOMAIN = "26e0dd.myshopify.com";
 const STOREFRONT_TOKEN = "e1bdd61da97053ba0f106a420f798e71";
-const COLLECTION_ID = "gid://shopify/Collection/632194662511";
 
 async function shopifyFetch(query, variables = {}) {
   const res = await fetch(`https://${SHOPIFY_DOMAIN}/api/2024-07/graphql.json`, {
@@ -14,6 +24,7 @@ async function shopifyFetch(query, variables = {}) {
     body: JSON.stringify({ query, variables }),
   });
 
+  if (!res.ok) throw new Error(`Shopify request failed (${res.status}).`);
   const json = await res.json();
 
   if (json.errors) {
@@ -25,10 +36,21 @@ async function shopifyFetch(query, variables = {}) {
 
 export default function Merch() {
   const [products, setProducts] = useState([]);
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(loadSavedCart);
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      window.dispatchEvent(new CustomEvent("aoe-merch-cart-updated", {
+        detail: { count: cart.reduce((sum, item) => sum + Number(item.quantity || 0), 0) }
+      }));
+    } catch (error) {
+      console.warn("Merch cart could not be saved:", error);
+    }
+  }, [cart]);
 
   useEffect(() => {
     async function loadProducts() {
@@ -36,46 +58,30 @@ export default function Merch() {
         setLoading(true);
         setError("");
 
-        const data = await shopifyFetch(
-          `
-          query GetCollection($id: ID!) {
-            collection(id: $id) {
-              title
-              products(first: 50) {
-                edges {
-                  node {
-                    id
-                    title
-                    description
-                    handle
-                    availableForSale
-                    featuredImage {
-                      url
-                      altText
-                    }
-                    images(first: 5) {
-                      edges {
-                        node {
-                          url
-                          altText
-                        }
-                      }
-                    }
-                    variants(first: 50) {
-                      edges {
-                        node {
-                          id
-                          title
-                          availableForSale
-                          price {
-                            amount
-                            currencyCode
-                          }
-                          selectedOptions {
-                            name
-                            value
-                          }
-                        }
+        // Fetch every product published to the Storefront sales channel.
+        // Shopify returns products in pages, not as a single unbounded result.
+        const query = `
+          query GetAllStoreProducts($cursor: String) {
+            products(first: 100, after: $cursor) {
+              pageInfo { hasNextPage endCursor }
+              edges {
+                node {
+                  id
+                  title
+                  description
+                  handle
+                  availableForSale
+                  featuredImage { url altText }
+                  images(first: 5) { edges { node { url altText } } }
+                  variants(first: 100) {
+                    edges {
+                      node {
+                        id
+                        title
+                        availableForSale
+                        image { url altText }
+                        price { amount currencyCode }
+                        selectedOptions { name value }
                       }
                     }
                   }
@@ -83,14 +89,25 @@ export default function Merch() {
               }
             }
           }
-          `,
-          { id: COLLECTION_ID }
-        );
-
-        const loadedProducts =
-          data.collection?.products?.edges?.map((edge) => edge.node) || [];
-
-        setProducts(loadedProducts);
+        `;
+        const allProducts = [];
+        let cursor = null;
+        let hasNextPage = true;
+        const seenCursors = new Set();
+        while (hasNextPage) {
+          const data = await shopifyFetch(query, { cursor });
+          const connection = data?.products;
+          if (!connection) throw new Error("Shopify did not return products.");
+          allProducts.push(...connection.edges.map((edge) => edge.node));
+          hasNextPage = Boolean(connection.pageInfo?.hasNextPage);
+          const nextCursor = connection.pageInfo?.endCursor;
+          if (hasNextPage && (!nextCursor || seenCursors.has(nextCursor))) {
+            throw new Error("Shopify product pagination stopped unexpectedly.");
+          }
+          if (nextCursor) seenCursors.add(nextCursor);
+          cursor = nextCursor;
+        }
+        setProducts(allProducts);
       } catch (err) {
         console.error("Shopify product load error:", err);
         setError("Could not load merch right now.");
@@ -182,11 +199,10 @@ export default function Merch() {
   };
 
   return (
-    <section id="merch" className="mx-auto max-w-7xl scroll-mt-40 px-4 py-14">
-      <div className="rounded-3xl border border-white/25 bg-neutral-900/30 p-5 shadow-xl sm:p-8 lg:p-10">
+    <section id="merch" className="mx-auto max-w-7xl px-4 py-16">
       <div className="mb-10 text-center">
-        <h2 className="text-4xl font-extrabold uppercase tracking-wide text-white md:text-5xl lg:text-6xl">
-          MERCH
+        <h2 className="text-3xl md:text-4xl font-bold">
+          Alaska Offroad Expedition Merch
         </h2>
 
         <p className="mt-3 text-neutral-300 max-w-3xl mx-auto">
@@ -194,21 +210,7 @@ export default function Merch() {
   next adventure.
 </p>
 
-<a
-  href="https://26e0dd.myshopify.com/collections/all"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="
-    mt-6 inline-flex items-center justify-center gap-2
-    rounded-xl bg-gradient-to-r from-orange-600 to-orange-500
-    px-8 py-3 font-bold text-white
-    shadow-[0_0_20px_rgba(249,115,22,0.25)]
-    transition hover:brightness-110
-  "
->
-  Shop Our Full Store
-  <span aria-hidden="true">→</span>
-</a>
+
       </div>
 
       {error && (
@@ -233,7 +235,7 @@ export default function Merch() {
             ))}
           </div>
 
-          <div className="mt-10 rounded-3xl border border-white/10 bg-neutral-900/60 p-6">
+          <div id="merch-cart" className="mt-10 scroll-mt-32 rounded-3xl border border-white/10 bg-neutral-900/60 p-6">
             <h3 className="text-2xl font-bold">Cart</h3>
 
             {!cart.length ? (
@@ -298,7 +300,6 @@ export default function Merch() {
           </div>
         </>
       )}
-      </div>
     </section>
   );
 }
@@ -315,10 +316,10 @@ function ProductCard({ product, onAddToCart }) {
     variants.find((variant) => variant.id === selectedVariantId) ||
     firstAvailable;
 
-  const image =
-    product.featuredImage?.url ||
-    product.images?.edges?.[0]?.node?.url ||
-    "";
+  // A selected Shopify variant can have its own photo (for example, a color).
+  // Fall back to the product photo when Shopify has no variant-specific image.
+  const selectedImage = selectedVariant?.image || product.featuredImage || product.images?.edges?.[0]?.node;
+  const image = selectedImage?.url || "";
 
   const price = selectedVariant?.price?.amount
     ? Number(selectedVariant.price.amount).toFixed(2)
@@ -330,7 +331,7 @@ function ProductCard({ product, onAddToCart }) {
         {image ? (
           <img
             src={image}
-            alt={product.featuredImage?.altText || product.title}
+            alt={selectedImage?.altText || `${product.title} — ${selectedVariant?.title || "Product photo"}`}
             className="h-full w-full object-cover"
             loading="lazy"
           />

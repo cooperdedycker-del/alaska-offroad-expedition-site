@@ -519,7 +519,7 @@ export const experiences = [
     "operator": "AOE",
     "category": "partner-information",
     "season": "year-round",
-    "active": false,
+    "active": true,
     "requiresConfirmation": false,
     "image": "/images/excursions/Looking for1.png",
     "description": "We are always looking for businesses to add to our partner list. Contact us today!"
@@ -1425,10 +1425,10 @@ const VERIFIED_PUBLIC_LISTINGS = {
 };
 for (const entry of experiences) {
   if (entry.operator === "AOE") continue;
-  entry.active = false;
-  entry.tripBuilder = false;
+  entry.active = true;
+  entry.tripBuilder = true;
   entry.requiresConfirmation = true;
-  entry.catalogStatus = "draft-not-bookable";
+  entry.catalogStatus = "visible-for-review";
   entry.bookingMode = "inquiry";
   const published = VERIFIED_PUBLIC_LISTINGS[entry.id];
   if (published) {
@@ -1631,8 +1631,8 @@ const ADDITIONAL_PUBLIC_LISTINGS = [
 ];
 for (const entry of ADDITIONAL_PUBLIC_LISTINGS) {
   if (!experiences.some((e) => e.id === entry.id)) {
-    experiences.push({ ...entry, active: false, tripBuilder: false, requiresConfirmation: true,
-      bookingMode: "inquiry", catalogStatus: "draft-not-bookable", priceVerifiedOn: "2026-10-31",
+    experiences.push({ ...entry, active: true, tripBuilder: true, requiresConfirmation: true,
+      bookingMode: "inquiry", catalogStatus: "visible-for-review", priceVerifiedOn: "2026-10-31",
       displayPrice: getPartnerDisplayPrice(entry),
     });
   }
