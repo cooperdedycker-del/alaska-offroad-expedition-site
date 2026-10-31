@@ -710,6 +710,18 @@ const tripSeason = getOperatingSeason(arrivalDate);
         )
       : 0;
 
+  // A multi-day winter expedition includes a scheduled Knik Glacier day.
+  // Preselect it when dates qualify; do not add a separate charge for it.
+  useEffect(() => {
+    setSelectedExperiences((current) => {
+      const id = "winter-knik-glacier";
+      const included = tripSeason === "winter" && nights > 0;
+      if (included && !current.includes(id)) return [id, ...current];
+      if (!included && nights > 0 && current.includes(id)) return current.filter((value) => value !== id);
+      return current;
+    });
+  }, [tripSeason, nights]);
+
 // ==========================================
 // WINTER EXPEDITION PRICING
 // ==========================================
@@ -942,10 +954,9 @@ const availableAdventureDays =
     ? Math.max(1, nights)
     : Math.max(0, nights - 1);
 
-// AOE core expeditions (including Knik with a multi-day winter trip)
-// are included and DO NOT consume add-on excursion days.
-// A standalone Knik day trip uses one scheduled adventure day.
-const usedAdventureDays = partnerExperienceCount + (winterIsStandaloneDayTrip && hasKnik ? 1 : 0);
+// The included Knik tour is one scheduled winter activity, but it is not
+// charged twice. Count it against the available adventure-day schedule.
+const usedAdventureDays = partnerExperienceCount + (tripSeason === "winter" && hasKnik ? 1 : 0);
 
 // ==========================================
 // EXPERIENCE SELECTION
@@ -954,6 +965,8 @@ const usedAdventureDays = partnerExperienceCount + (winterIsStandaloneDayTrip &&
 function toggleExperience(experienceId) {
   setSelectedExperiences((current) => {
 
+    // Guests may deselect the included Knik day. The winter expedition price stays the same.
+
     // Clicking an already-selected experience removes it.
     if (current.includes(experienceId)) {
       return current.filter((id) => id !== experienceId);
@@ -961,7 +974,7 @@ function toggleExperience(experienceId) {
 
     // Don't allow more experiences than available adventure days.
     const candidate = experiences.find(ex => ex.id === experienceId);
-    const candidateUsesDay = candidate && (candidate.operator !== "AOE" || (winterIsStandaloneDayTrip && candidate.id === "winter-knik-glacier"));
+    const candidateUsesDay = candidate && (candidate.operator !== "AOE" || (tripSeason === "winter" && candidate.id === "winter-knik-glacier"));
     if (candidateUsesDay && usedAdventureDays >= availableAdventureDays) return current;
     if (!candidate || !experienceAvailableDuringTrip(candidate, arrivalDate, departureDate)) return current;
     if (candidate.operator !== "AOE" && !partnerQuote(candidate, guestCount, experienceParticipants[experienceId])) return current;
@@ -1635,7 +1648,7 @@ if (step === 4) {
               {tripSeason === "winter" && nights > 0 && (
                 <div className="mb-8 rounded-2xl border border-orange-400/40 bg-orange-500/10 p-5">
                   <div className="text-sm font-extrabold text-orange-300">✓ Winter Off-Road Expedition — Included</div>
-                  <p className="mt-2 text-sm text-neutral-300">Your multi-day winter vacation includes the primary AOE expedition. You can add the Knik Glacier experience below as a scheduled stop without paying for the included adventure twice.</p>
+                  <p className="mt-2 text-sm text-neutral-300">Your multi-day winter vacation includes the primary AOE expedition. Your Knik Glacier experience is automatically scheduled as one of your adventure days and is included at no additional cost.</p>
                 </div>
               )}
               {primaryAOEExperiences.length > 0 && (
@@ -1655,7 +1668,7 @@ if (step === 4) {
                             <h4 className="font-extrabold text-white">{getExperienceShortName(experience)}</h4>
                             <p className="mt-1 text-sm text-neutral-300">{getExperienceTeaser(experience)}</p>
                             <p className="mt-3 text-sm font-extrabold text-orange-300">{winterIsStandaloneDayTrip ? `From $${BOOKING_RATES.winterKnikPassenger}/passenger` : "Included with multi-day winter expedition"}</p>
-                            <p className="mt-1 text-xs text-orange-200">{selected ? "✓ Added to your itinerary" : "Select this AOE experience →"}</p>
+                            <p className="mt-1 text-xs text-orange-200">{selected ? (tripSeason === "winter" && nights > 0 ? "✓ Included and scheduled automatically" : "✓ Added to your itinerary") : "Select this AOE experience →"}</p>
                           </div>
                         </button>
                       );
@@ -1677,7 +1690,7 @@ if (step === 4) {
       </h3>
 
       <p className="mt-1 text-sm text-neutral-400">
-        Choose optional excursions for the adventure days available in your itinerary.
+        Your included Knik Glacier expedition uses one scheduled day. Add optional excursions on your remaining days.
       </p>
     </div>
 
@@ -1697,9 +1710,7 @@ if (step === 4) {
     availableAdventureDays > 0 && (
 
     <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300">
-      You've selected the maximum number of experiences
-      for your vacation. Remove an experience or extend
-      your stay to add another.
+      All available adventure days are scheduled. Remove an optional excursion or extend your stay to add another.
     </p>
 
   )}
