@@ -270,7 +270,7 @@ export const experiences = [
     "priceType": "perPerson",
     "transportationIncluded": false,
     "location": "Hatcher Pass, Alaska",
-    "image": "/images/excursions/HPATVT.jpg",
+    "image": "https://hatcherpasstour.com/wp-content/uploads/2026/01/Summer-UTV-Tour-Hatcher-Pass-Alaska.jpg",
     "description": "Explore Hatcher Pass and the Talkeetna Mountains on a guided ATV adventure.",
     "active": true,
     "requiresConfirmation": true,
@@ -278,7 +278,7 @@ export const experiences = [
     "type": "Alaska ATV and Snowmobile Tours",
     "desc": "Explore Alaska’s backcountry on a guided ride through the rugged Talkeetna Mountains of Hatcher Pass with unmatched panoramic views, creek crossings, and Denali views on clear days—without sacrificing comfort.",
     "images": [
-      "/images/excursions/HPATVT.jpg"
+      "https://hatcherpasstour.com/wp-content/uploads/2026/01/Summer-UTV-Tour-Hatcher-Pass-Alaska.jpg"
     ],
     "tripBuilder": true
   },
@@ -319,7 +319,7 @@ export const experiences = [
     "priceType": "perPerson",
     "transportationIncluded": false,
     "location": "McCarthy, Alaska",
-    "image": "/images/excursions/Iceclimbing1.jpg",
+    "image": "https://www.steliasguides.com/wp-content/uploads/2023/01/ice-climbing-gallery-1.webp",
     "description": "Explore Root Glacier with experienced guides and learn to climb its incredible ice formations.",
     "active": true,
     "requiresConfirmation": true,
@@ -338,7 +338,7 @@ export const experiences = [
     "type": "Guided Glacier Adventure",
     "sc": "Step onto the ancient blue ice of Root Glacier and experience the thrill of climbing frozen ice walls with professional guides. Learn basic climbing techniques, explore glacial features, and enjoy one of Alaska's most unforgettable adventures—all surrounded by breathtaking mountain scenery in Wrangell-St. Elias National Park.",
     "images": [
-      "/images/excursions/Iceclimbing1.jpg"
+      "https://www.steliasguides.com/wp-content/uploads/2023/01/ice-climbing-gallery-1.webp"
     ],
     "tripBuilder": true
   },
@@ -353,7 +353,7 @@ export const experiences = [
     "priceType": "perPerson",
     "transportationIncluded": false,
     "location": "Kennecott, Alaska",
-    "image": "/images/excursions/stellis1.jpg",
+    "image": "https://www.steliasguides.com/wp-content/uploads/2026/08/Mill-Tour-6.jpg",
     "description": "Discover the history of Kennecott's famous mining town on a guided historical tour.",
     "active": true,
     "requiresConfirmation": true,
@@ -370,7 +370,7 @@ export const experiences = [
     "type": "History tour",
     "desc": "Kennecott, Alaska is a ghost town frozen in time. When the Kennecott Copper Corporation abruptly abandoned the town in 1938, they left behind their equipment, buildings, and personal belongings; yet, their stories of discovery, perseverance, and ingenuity live on!",
     "images": [
-      "/images/excursions/stellis1.jpg"
+      "https://www.steliasguides.com/wp-content/uploads/2026/08/Mill-Tour-6.jpg"
     ],
     "tripBuilder": true
   },
@@ -543,9 +543,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/Iceclimbing1.jpg",
+    "image": "https://www.steliasguides.com/wp-content/uploads/2025/03/Getting-to-the-Root-Glacier.jpg",
     "images": [
-      "/images/excursions/Iceclimbing1.jpg"
+      "https://www.steliasguides.com/wp-content/uploads/2025/03/Getting-to-the-Root-Glacier.jpg"
     ],
     "description": "A guided hike from Kennecott toward the Root Glacier with time exploring the ice using appropriate glacier equipment.",
     "active": false,
@@ -573,9 +573,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/Iceclimbing1.jpg",
+    "image": "https://www.steliasguides.com/wp-content/uploads/2025/11/Full-Day-Glacier-Hike-Gallery-18.jpg",
     "images": [
-      "/images/excursions/Iceclimbing1.jpg"
+      "https://www.steliasguides.com/wp-content/uploads/2025/11/Full-Day-Glacier-Hike-Gallery-18.jpg"
     ],
     "description": "Spend a full day with a guide exploring the Root Glacier and the dramatic landscapes around Donoho Falls.",
     "active": false,
@@ -603,9 +603,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/Iceclimbing1.jpg",
+    "image": "https://www.steliasguides.com/wp-content/uploads/2023/01/ice-cave-gallery-7.webp",
     "images": [
-      "/images/excursions/Iceclimbing1.jpg"
+      "https://www.steliasguides.com/wp-content/uploads/2023/01/ice-cave-gallery-7.webp"
     ],
     "description": "A challenging guided exploration of glacier terrain and ice-cave features near Kennecott. Suitability and current cave conditions require guide confirmation.",
     "active": false,
@@ -633,9 +633,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/Iceclimbing1.jpg",
+    "image": "https://www.steliasguides.com/wp-content/uploads/2025/11/kennicott-lake-paddle-gallery-9.jpg",
     "images": [
-      "/images/excursions/Iceclimbing1.jpg"
+      "https://www.steliasguides.com/wp-content/uploads/2025/11/kennicott-lake-paddle-gallery-9.jpg"
     ],
     "description": "Explore the Kennicott glacial lake with a guide on a paddling-focused day adventure, subject to operating conditions.",
     "active": false,
@@ -693,9 +693,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/outbound1.jpg",
+    "image": "https://outboundheli.com/wp-content/uploads/2023/12/knikglacierhelicoptertour-5-1024x767.jpg",
     "images": [
-      "/images/excursions/outbound1.jpg"
+      "https://outboundheli.com/wp-content/uploads/2023/12/knikglacierhelicoptertour-5-1024x767.jpg"
     ],
     "description": "Helicopter flightseeing over Knik Glacier with an on-glacier landing and time to explore the ice with the pilot, subject to conditions.",
     "active": false,
@@ -717,9 +717,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/outbound1.jpg",
+    "image": "https://outboundheli.com/wp-content/uploads/2023/12/chugachmountainshelicoptertouralaska-alaska-16-682x1024.jpg",
     "images": [
-      "/images/excursions/outbound1.jpg"
+      "https://outboundheli.com/wp-content/uploads/2023/12/chugachmountainshelicoptertouralaska-alaska-16-682x1024.jpg"
     ],
     "description": "Explore the Chugach Mountains by helicopter with scenic landscapes and potential remote landings as conditions allow.",
     "active": false,
@@ -741,9 +741,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/outbound1.jpg",
+    "image": "https://outboundheli.com/wp-content/uploads/2023/12/alaskaflightseeingtours-3-768x1154.jpg",
     "images": [
-      "/images/excursions/outbound1.jpg"
+      "https://outboundheli.com/wp-content/uploads/2023/12/alaskaflightseeingtours-3-768x1154.jpg"
     ],
     "description": "A scenic helicopter tour highlighting Alaska mountain peaks, waterways, glacial terrain, and possible wildlife sightings.",
     "active": false,
@@ -765,9 +765,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/outbound1.jpg",
+    "image": "https://outboundheli.com/wp-content/uploads/2026/09/glacier-trekking-outbound-heli-adventures-jake-1024x683.jpg",
     "images": [
-      "/images/excursions/outbound1.jpg"
+      "https://outboundheli.com/wp-content/uploads/2026/09/glacier-trekking-outbound-heli-adventures-jake-1024x683.jpg"
     ],
     "description": "Fly to glacier terrain for a professionally guided trekking experience; required equipment and suitability are confirmed by the provider.",
     "active": false,
@@ -789,9 +789,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/outbound1.jpg",
+    "image": "https://outboundheli.com/wp-content/uploads/2023/12/knikglaciertrekking-2.jpg",
     "images": [
-      "/images/excursions/outbound1.jpg"
+      "https://outboundheli.com/wp-content/uploads/2023/12/knikglaciertrekking-2.jpg"
     ],
     "description": "Helicopter access to Knik Glacier for a guided ice-climbing adventure, subject to conditions and partner approval.",
     "active": false,
@@ -813,9 +813,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/HPATVT.jpg",
+    "image": "https://hatcherpasstour.com/wp-content/uploads/2026/01/Summer-UTV-Tour-Hatcher-Pass-Alaska.jpg",
     "images": [
-      "/images/excursions/HPATVT.jpg"
+      "https://hatcherpasstour.com/wp-content/uploads/2026/01/Summer-UTV-Tour-Hatcher-Pass-Alaska.jpg"
     ],
     "description": "Guided two-person UTV adventure through Hatcher Pass backcountry and scenic mountain terrain. Priced by vehicle; confirm current provider rate.",
     "active": false,
@@ -843,9 +843,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/HPATVT.jpg",
+    "image": "https://hatcherpasstour.com/wp-content/uploads/2024/05/blog-ATV-Adventures.jpg",
     "images": [
-      "/images/excursions/HPATVT.jpg"
+      "https://hatcherpasstour.com/wp-content/uploads/2024/05/blog-ATV-Adventures.jpg"
     ],
     "description": "A guided group or family UTV tour in the Hatcher Pass area; party size and vehicle-based pricing require confirmation.",
     "active": false,
@@ -873,9 +873,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/HPATVT.jpg",
+    "image": "https://hatcherpasstour.com/wp-content/uploads/2026/01/utv-tour-summer-full-day.jpg",
     "images": [
-      "/images/excursions/HPATVT.jpg"
+      "https://hatcherpasstour.com/wp-content/uploads/2026/01/utv-tour-summer-full-day.jpg"
     ],
     "description": "A longer guided UTV expedition exploring mountain scenery, backcountry trails, and the Hatcher Pass region.",
     "active": false,
@@ -903,9 +903,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/HPATVT.jpg",
+    "image": "https://hatcherpasstour.com/wp-content/uploads/2025/02/alaska-images-19.jpg",
     "images": [
-      "/images/excursions/HPATVT.jpg"
+      "https://hatcherpasstour.com/wp-content/uploads/2025/02/alaska-images-19.jpg"
     ],
     "description": "A guided snowmobile experience based around Hatcher Pass. Snowpack, weather, rider abilities and rate require confirmation.",
     "active": false,
@@ -937,9 +937,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/tririver.jpg",
+    "image": "https://phantomtririvercharters.com/wp-content/uploads/sites/6976/2025/02/Half-Day-Float-Trips-image-1.jpg",
     "images": [
-      "/images/excursions/tririver.jpg"
+      "https://phantomtririvercharters.com/wp-content/uploads/sites/6976/2025/02/Half-Day-Float-Trips-image-1.jpg"
     ],
     "description": "A guided half-day river float in the Talkeetna area, tailored to current conditions and the group’s interests.",
     "active": false,
@@ -967,9 +967,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/tririver.jpg",
+    "image": "https://phantomtririvercharters.com/wp-content/uploads/sites/6976/2025/02/Full-Day-Float-Trips-image-1.jpg",
     "images": [
-      "/images/excursions/tririver.jpg"
+      "https://phantomtririvercharters.com/wp-content/uploads/sites/6976/2025/02/Full-Day-Float-Trips-image-1.jpg"
     ],
     "description": "Spend a full day on a guided river float exploring the Talkeetna region and its fishing opportunities.",
     "active": false,
@@ -997,9 +997,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/tririver.jpg",
+    "image": "https://phantomtririvercharters.com/wp-content/uploads/sites/6976/2023/10/Spin-Fishing-Charter-image-1.jpg",
     "images": [
-      "/images/excursions/tririver.jpg"
+      "https://phantomtririvercharters.com/wp-content/uploads/sites/6976/2023/10/Spin-Fishing-Charter-image-1.jpg"
     ],
     "description": "Private guided spin fishing by jet boat, with fishing location and species dependent on season and conditions.",
     "active": false,
@@ -1027,9 +1027,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/tririver.jpg",
+    "image": "https://phantomtririvercharters.com/wp-content/uploads/sites/6976/2023/10/Fly-Fishing-Charter-image-1.jpg",
     "images": [
-      "/images/excursions/tririver.jpg"
+      "https://phantomtririvercharters.com/wp-content/uploads/sites/6976/2023/10/Fly-Fishing-Charter-image-1.jpg"
     ],
     "description": "Private guided fly fishing in the Talkeetna region with a local guide.",
     "active": false,
@@ -1087,9 +1087,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/fishandfloat.jpg",
+    "image": "https://akcharters.com/wp-content/uploads/elementor/thumbs/Frame-15-3-rmdvsnxuihyxh2tqmc9e6ncb2bk7kigy8k618guhzo.webp",
     "images": [
-      "/images/excursions/fishandfloat.jpg"
+      "https://akcharters.com/wp-content/uploads/elementor/thumbs/Frame-15-3-rmdvsnxuihyxh2tqmc9e6ncb2bk7kigy8k618guhzo.webp"
     ],
     "description": "Guided Gulkana River fishing and float opportunities arranged through the Copper Center operator.",
     "active": false,
@@ -1117,9 +1117,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/fishandfloat.jpg",
+    "image": "https://akcharters.com/wp-content/uploads/elementor/thumbs/Screenshot-2026-03-25-at-10.33.20-PM-rmdvsovopc07sosdguo0r53rnpfks7kokotipqt3tg.webp",
     "images": [
-      "/images/excursions/fishandfloat.jpg"
+      "https://akcharters.com/wp-content/uploads/elementor/thumbs/Screenshot-2026-03-25-at-10.33.20-PM-rmdvsovopc07sosdguo0r53rnpfks7kokotipqt3tg.webp"
     ],
     "description": "Relaxed guided river float designed for scenery and exploring Alaska’s waterways without a fishing-focused itinerary.",
     "active": false,
@@ -1147,9 +1147,9 @@ export const experiences = [
     "pricingType": "quote",
     "priceStatus": "partner-confirmation-required",
     "transportationIncluded": false,
-    "image": "/images/excursions/fishandfloat.jpg",
+    "image": "https://akcharters.com/wp-content/uploads/elementor/thumbs/Frame-2147224087-1-rmdvsovopc07sosdguo0r53rnpfks7kokotipqt3tg.webp",
     "images": [
-      "/images/excursions/fishandfloat.jpg"
+      "https://akcharters.com/wp-content/uploads/elementor/thumbs/Frame-2147224087-1-rmdvsovopc07sosdguo0r53rnpfks7kokotipqt3tg.webp"
     ],
     "description": "Explore the Copper Center backcountry on a guided ATV experience arranged by King for a Day.",
     "active": false,
@@ -1566,7 +1566,7 @@ const ADDITIONAL_PUBLIC_LISTINGS = [
       8,
       9
     ],
-    "image": "/images/excursions/Iceclimbing1.jpg",
+    "image": "https://www.steliasguides.com/wp-content/uploads/2023/09/Root-Overnight-Gallery-2.jpg",
     "description": "Two-day guided glacier adventure with overnight camping."
   },
   {
@@ -1603,7 +1603,7 @@ const ADDITIONAL_PUBLIC_LISTINGS = [
       8,
       9
     ],
-    "image": "/images/excursions/tririver.jpg",
+    "image": "https://phantomtririvercharters.com/wp-content/uploads/sites/6976/2023/10/Spin-Fishing-Charter-image-6-e1699636252429.jpg",
     "description": "Shared Talkeetna fishing charter."
   },
   {
@@ -1625,7 +1625,7 @@ const ADDITIONAL_PUBLIC_LISTINGS = [
       3,
       4
     ],
-    "image": "/images/excursions/HPATVT.jpg",
+    "image": "https://hatcherpasstour.com/wp-content/uploads/2024/12/13aurora-tour-photo.jpg",
     "description": "Late-night guided Northern Lights UTV outing, date dependent."
   }
 ];
