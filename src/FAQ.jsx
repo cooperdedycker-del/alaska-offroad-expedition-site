@@ -14,7 +14,7 @@ export default function FAQ() {
     },
     {
       q: "Can you pick us up at the airport?",
-      a: "Yes. Airport pickup and drop-off, as well as first and last night Alaska offroad expedition Air B&B is included in the pricing.",
+      a: "Yes. Airport pickup and drop-off is included in the pricing.",
     },
     {
       q: "What about weather & safety?",

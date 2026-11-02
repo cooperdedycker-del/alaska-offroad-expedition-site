@@ -221,10 +221,10 @@ function partnerQuote(ex, guests, participants) {
   const count = unit === "perPerson" ? Number(participants ?? guests) : 1;
   if (!Number.isInteger(count) || count < 1 || (unit === "perPerson" && count > Number(guests))) return null;
   const cents = partnerExperienceTotalCents({ providerUnitPriceDollars: base, quantity: count });
-  const label = unit === "perPerson" ? `${count} participant(s) · estimated price incl. AOE 5%`
-    : unit === "perVehicle" ? "1 vehicle · estimated price incl. AOE 5%"
-    : unit === "perCharter" ? "1 private charter · estimated price incl. AOE 5%"
-    : "1 night · estimated price incl. AOE 5%";
+  const label = unit === "perPerson" ? `${count} participant(s) · listed excursion price`
+    : unit === "perVehicle" ? "1 vehicle · listed excursion price"
+    : unit === "perCharter" ? "1 private charter · listed excursion price"
+    : "1 night · listed excursion price";
   return { price: cents / 100, label };
 }
 
@@ -256,32 +256,41 @@ const secondaryButton = `
   hover:bg-white/10
 `;
 
-// Step 2 categories. Keep these independent of partner names and prices.
+// Keep Trip Builder categories identical to homepage activity groupings.
+// Group the homepage add-ons by the experience itself, never by provider.
+// This uses the master catalog category and title so new offerings are included automatically.
 const EXPERIENCE_CATEGORIES = [
-  { id: "offroad", title: "4x4, ATV & Dirt Bike Adventures", description: "Explore Alaska's backcountry by Jeep, ATV, UTV, or dirt bike." },
-  { id: "snow", title: "Snowmachine & Winter Adventures", description: "Snowmachine rides, winter trails, and ice-fishing outings." },
-  { id: "fishing", title: "Fishing & River Adventures", description: "Guided fishing, river trips, and on-the-water experiences." },
-  { id: "glacier", title: "Glaciers, Hiking & Ice Climbing", description: "Guided glacier walks, hiking, and ice climbing." },
-  { id: "helicopter", title: "Helicopter & Flightseeing", description: "Scenic flights, glacier landings, and helicopter-assisted adventures." },
-  { id: "sightseeing", title: "Sightseeing, Culture & History", description: "Alaska's stories, landmarks, and historic places." },
-  { id: "water", title: "Hovercraft & Water Adventures", description: "See remote scenery from Alaska's waterways." },
-  { id: "lodging", title: "Lodging & Overnight Stays", description: "Partner lodges and overnight options, subject to confirmation." },
-  { id: "other", title: "More Alaska Experiences", description: "Additional experiences tailored to your vacation." },
+  { id: "snow", title: "Snowmachine & Winter Tours", subtitle: "Guided snowmachine rides, winter trails, and frozen-lake adventures." },
+  { id: "helicopter", title: "Helicopter & Flightseeing Tours", subtitle: "Scenic flights, glacier landings, and helicopter exploration." },
+  { id: "glacier", title: "Ice Climbing, Glacier Hikes & Adventures", subtitle: "Glacier walks, ice climbing, hiking, and backcountry adventures." },
+  { id: "atv", title: "ATV, Side-by-Side & Dirt Bike Tours", subtitle: "Off-road ATV, UTV, side-by-side, and motorcycle experiences." },
+  { id: "fishing", title: "Fishing Tours", subtitle: "Guided fishing trips, river fishing, and ice fishing experiences." },
+  { id: "water", title: "Boat, River & Hovercraft Tours", subtitle: "River floats, boat trips, paddling, and SeaCraft hovercraft tours." },
+  { id: "lodging", title: "Lodging & Overnight Stays", subtitle: "Cabins, lodges, camping, and overnight accommodations." },
+  { id: "sightseeing", title: "Sightseeing & Historic Tours", subtitle: "Historic sites, cultural tours, and scenic experiences." },
+  { id: "other", title: "More Alaska Adventures", subtitle: "More guided experiences and unique Alaska activities." },
 ];
 
-function getExperienceCategory(experience) {
-  const category = String(experience.category || "").toLowerCase();
-  const name = String(experience.name || "").toLowerCase();
-  if (["offroad", "atv", "utv", "motorsports", "dirtbike", "dirt-bike"].includes(category)) return "offroad";
-  if (["snowmachine", "snowmobile", "winter"].includes(category) || name.includes("snowmachine")) return "snow";
-  if (["fishing", "river", "rafting", "float", "kayaking"].includes(category)) return "fishing";
-  if (["glacier", "hiking", "ice-climbing", "iceclimbing", "climbing"].includes(category)) return "glacier";
-  if (["helicopter", "flightseeing", "aviation"].includes(category)) return "helicopter";
+function getExperienceCategory(item) {
+  const category = String(item.category || "").toLowerCase();
+  const name = String(item.name || "").toLowerCase();
+  // Accommodation and fishing should not be misfiled as general winter adventures.
+  if (["lodging", "camping", "accommodation"].includes(category) || /\b(cabin|lodging|campground|overnight stay|rv spot)\b/.test(name)) return "lodging";
+  if (["fishing"].includes(category) || /\b(fishing|angling)\b/.test(name)) {
+    // River floats without fishing are water tours; ice fishing belongs with winter tours.
+    if (/\b(ice fishing|snowmachine|snowmobile)\b/.test(name)) return "snow";
+    if (/\b(float|raft|boat|paddle)\b/.test(name) && !/\bfish/.test(name)) return "water";
+    return "fishing";
+  }
+  if (["snowmachine", "snowmobile", "winter"].includes(category) || /\b(snowmachine|snowmobile|northern lights utv)\b/.test(name)) return "snow";
+  if (["helicopter", "flightseeing", "aviation"].includes(category) || /\b(helicopter|heli|flightseeing)\b/.test(name)) return "helicopter";
+  if (["glacier", "hiking", "ice-climbing", "iceclimbing", "climbing", "multi-day"].includes(category) || /\b(ice climbing|glacier hike|glacier trekking|ice cave|hike)\b/.test(name)) return "glacier";
+  if (["atv", "utv", "motorsports", "dirtbike", "dirt-bike", "offroad"].includes(category) || /\b(atv|utv|side.by.side|dirt bike)\b/.test(name)) return "atv";
+  if (["hovercraft", "water", "boating", "paddling", "river", "rafting", "float", "kayaking"].includes(category) || /\b(hovercraft|river float|boat tour|lake paddle)\b/.test(name)) return "water";
   if (["history", "sightseeing", "culture"].includes(category)) return "sightseeing";
-  if (["hovercraft", "water", "boating"].includes(category)) return "water";
-  if (["lodging", "camping", "accommodation"].includes(category)) return "lodging";
   return "other";
 }
+
 
 // Short display labels are presentation-only; booking IDs remain unchanged.
 const EXPERIENCE_SHORT_NAMES = {
@@ -611,7 +620,6 @@ const [guestInfo, setGuestInfo] = useState({
   email: "",
   phone: "",
   address: "",
-  shirtSize: "",
   additionalGuests: [],
   notes: "",
 });
@@ -654,6 +662,7 @@ const [alaskaResident, setAlaskaResident] = useState(false);
     return () => controller.abort();
   }, []);
 
+  const [dayTripOnly, setDayTripOnly] = useState(false);
   const [arrivalDate, setArrivalDate] = useState("");
   const [departureDate, setDepartureDate] = useState("");
   const [guestCount, setGuestCount] = useState(2);
@@ -727,12 +736,12 @@ const tripSeason = getOperatingSeason(arrivalDate);
   useEffect(() => {
     setSelectedExperiences((current) => {
       const id = "winter-knik-glacier";
-      const included = tripSeason === "winter" && nights > 0;
+      const included = dayTripOnly || (tripSeason === "winter" && nights >= 2);
       if (included && !current.includes(id)) return [id, ...current];
-      if (!included && nights > 0 && current.includes(id)) return current.filter((value) => value !== id);
+      if (!included && current.includes(id)) return current.filter((value) => value !== id);
       return current;
     });
-  }, [tripSeason, nights]);
+  }, [tripSeason, nights, dayTripOnly]);
 
 // ==========================================
 // WINTER EXPEDITION PRICING
@@ -887,8 +896,7 @@ const experiencePriceItems = selectedExperienceDetails.map(
         : `Included in winter expedition (${drivers} driver(s), ${passengers} passenger(s))`;
     }
 
-    // External partner quotes: provider's published price plus 5% on the
-    // complete line total. No unverified placeholder prices are used.
+    // Partner prices are quoted exactly as configured in experiences.js; no markup.
     else if (experience.operator !== "AOE") {
       const quoted = partnerQuote(experience, guestCount, experienceParticipants[experience.id]);
       price = quoted?.price ?? 0;
@@ -946,8 +954,8 @@ const estimatedBalance =
   totalTripEstimate - estimatedDeposit;
 
 
-const hasUnpricedExperiences = experiencePriceItems.some(
-  (item) => (item.label === "Pricing confirmed by your guide" || item.label.startsWith("Listed estimate"))
+const hasUnpricedExperiences = selectedPartnerExperiences.some(
+  (experience) => !partnerQuote(experience, guestCount, experienceParticipants[experience.id])
 );
 
 
@@ -958,13 +966,11 @@ const hasUnpricedExperiences = experiencePriceItems.some(
 // ==========================================
 
 // Winter single-day trips allow one experience.
-// Multi-day winter trips allow one experience per expedition day.
-// Summer retains its existing arrival/departure travel-day rules.
-
+// Arrival and departure are travel days, not scheduled adventure days.
+// Example: arrival 18th, departure 22nd => activities on 19th, 20th, 21st.
+// Standalone same-day winter excursions are a separate booking type.
 const availableAdventureDays =
-  tripSeason === "winter"
-    ? Math.max(1, nights)
-    : Math.max(0, nights - 1);
+  winterIsStandaloneDayTrip ? 1 : Math.max(0, nights - 1);
 
 // The included Knik tour is one scheduled winter activity, but it is not
 // charged twice. Count it against the available adventure-day schedule.
@@ -978,7 +984,8 @@ function toggleExperience(experienceId) {
   setSelectedExperiences((current) => {
 
     // Multi-day winter Knik is included and cannot be removed.
-    if (experienceId === "winter-knik-glacier" && tripSeason === "winter" && nights > 0) return current;
+    if (experienceId === "winter-knik-glacier" && (dayTripOnly || (tripSeason === "winter" && nights > 0))) return current;
+    if (dayTripOnly) return current;
 
     // Clicking an already-selected experience removes it.
     if (current.includes(experienceId)) {
@@ -1005,7 +1012,7 @@ function toggleExperience(experienceId) {
     !!arrival &&
     !!departure &&
     arrivalDate >= today &&
-    (nights >= 1 || (tripSeason === "winter" && nights === 0)) &&
+    (dayTripOnly ? (tripSeason === "winter" && nights === 0) : (tripSeason === "winter" ? nights >= 2 : nights >= 1)) &&
     nights <= 365 && !availabilityLoading && !availabilityError && !rangeIncludesBlockedDay(arrivalDate, departureDate, blockedDates);
 
   const guestsValid =
@@ -1037,7 +1044,10 @@ function toggleExperience(experienceId) {
 
   const primaryAOEExperiences = visibleExperiences.filter((experience) => experience.operator === "AOE");
 
-  const partnerAddOns = visibleExperiences.filter((experience) => experience.operator !== "AOE");
+  const partnerAddOns = dayTripOnly ? [] : visibleExperiences.filter((experience) => experience.operator !== "AOE");
+  const categorizedAddOns = EXPERIENCE_CATEGORIES.map((group) => ({
+    ...group, items: partnerAddOns.filter((item) => getExperienceCategory(item) === group.id),
+  })).filter((group) => group.items.length > 0);
 
   const selectedPackage = availablePackages.find(
     (pkg) => pkg.slug === selectedExperience
@@ -1359,10 +1369,11 @@ if (step === 4) {
                 </h1>
 
                 <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-300">
-                  Tell us when you're coming and who's joining you.
-                  We'll show you adventures available during your stay.
+                  {dayTripOnly
+                    ? "Choose your Knik Glacier adventure date and how many guests are coming. No overnight stay required."
+                    : "Tell us when you're coming and who's joining you. We'll show you adventures available during your stay."}
                 </p>
-                {requestedExperience && <p className="mx-auto mt-4 max-w-2xl rounded-xl border border-orange-400/40 bg-orange-500/10 p-3 text-sm text-orange-100">
+                {!dayTripOnly && requestedExperience && <p className="mx-auto mt-4 max-w-2xl rounded-xl border border-orange-400/40 bg-orange-500/10 p-3 text-sm text-orange-100">
                   Interested in: <strong>{requestedExperience.name}</strong>. {requestedExperienceHasPrice ? "This experience is already selected for your trip, subject to your travel dates and provider confirmation." : "Its price has not been finalized. You can plan your trip, but this activity cannot be charged until its price is approved."}
                 </p>}
 
@@ -1370,6 +1381,19 @@ if (step === 4) {
 
               <div className="rounded-3xl border border-white/10 bg-neutral-900 p-6 md:p-10">
 
+                <div className="mb-6 rounded-2xl border border-orange-400/30 bg-orange-500/10 p-4">
+                  <label className="flex cursor-pointer items-center justify-between gap-4">
+                    <span><span className="block font-extrabold text-white">Day Trip Only — Knik Glacier</span><span className="mt-1 block text-sm text-neutral-300">Choose one winter date. No overnight stay or add-on excursions.</span></span>
+                    <input type="checkbox" role="switch" aria-label="Day Trip Only — Knik Glacier" checked={dayTripOnly}
+                      onChange={(event) => {
+                        const enabled = event.target.checked;
+                        setDayTripOnly(enabled);
+                        setArrivalDate(""); setDepartureDate(""); setDateRangeError("");
+                        setSelectedExperiences(enabled ? ["winter-knik-glacier"] : []);
+                        setExperienceParticipants({});
+                      }} className="h-6 w-6 shrink-0 accent-orange-500" />
+                  </label>
+                </div>
                 <div className="grid gap-6 md:grid-cols-2">
 
                   {import.meta.env.DEV && (
@@ -1377,15 +1401,20 @@ if (step === 4) {
                       LOCAL PREVIEW ONLY — Google Calendar reservations may not be loaded. You can test the Trip Builder, but selected dates are not confirmed and checkout is disabled.
                     </p>
                   )}
-                  <AvailabilityDatePicker label="Arrival Date" value={arrivalDate} minDate={today} today={today} blockedDates={blockedDates} loading={availabilityLoading} error={availabilityError} onSelect={(date)=>{setArrivalDate(date);setDepartureDate('');setDateRangeError('');}} />
-                  <AvailabilityDatePicker label="Departure Date" value={departureDate} minDate={arrivalDate ? addDays(parseDate(arrivalDate),getOperatingSeason(arrivalDate)==='winter'?0:1).toISOString().slice(0,10) : today} today={today} blockedDates={blockedDates} loading={availabilityLoading} error={availabilityError} onSelect={(date)=>{
+                  <AvailabilityDatePicker label={dayTripOnly ? "Knik Glacier Trip Date" : "Arrival Date"} value={arrivalDate} minDate={today} today={today} blockedDates={blockedDates} loading={availabilityLoading} error={availabilityError} onSelect={(date)=>{setArrivalDate(date);setDepartureDate(dayTripOnly ? date : '');setDateRangeError('');}} />
+                  {!dayTripOnly && <AvailabilityDatePicker label="Departure Date" value={departureDate} minDate={arrivalDate ? addDays(parseDate(arrivalDate),getOperatingSeason(arrivalDate)==='winter'?0:1).toISOString().slice(0,10) : today} today={today} blockedDates={blockedDates} loading={availabilityLoading} error={availabilityError} onSelect={(date)=>{
                     if (!arrivalDate) {setDateRangeError('Select an arrival date first.');return;}
                     if (rangeIncludesBlockedDay(arrivalDate,date,blockedDates)) {setDateRangeError('Your selected dates include a booked day. Choose a departure date before the booked day, or choose different arrival dates.');setDepartureDate('');return;}
                     setDateRangeError('');setDepartureDate(date);
-                  }} />
+                  }} />}
                 </div>
 
                 {dateRangeError && <p role="alert" className="mt-4 text-sm text-red-300">{dateRangeError}</p>}
+                {!dayTripOnly && tripSeason === "winter" && nights === 1 && arrivalDate && departureDate && (
+                  <p className="mt-4 rounded-xl border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+                    An overnight stay with only one night has no adventure days between arrival and departure. Choose at least two nights for a winter expedition, or select the same date for a standalone winter day trip.
+                  </p>
+                )}
                 {/* Guests */}
 
                 <div className="mt-8">
@@ -1644,7 +1673,7 @@ if (step === 4) {
                   {tripSeason === "winter" && nights > 0
                     ? "Your winter expedition is already included, with Knik Glacier scheduled as one of your adventure days. Review what's included, then select any optional add-on excursions below."
                     : winterIsStandaloneDayTrip
-                      ? "Choose the Knik Glacier day trip or another available winter experience, then explore optional excursions below."
+                      ? "Your Knik Glacier day trip is already selected. No other add-ons are available for a day trip."
                       : "Your guided summer expedition is already included with your dates. Review what's included, then select any optional add-on excursions below."}
                 </p>
 
@@ -1690,7 +1719,7 @@ if (step === 4) {
 
   </div>
 
-  {usedAdventureDays >= availableAdventureDays && availableAdventureDays > 0 && (
+  {!dayTripOnly && usedAdventureDays >= availableAdventureDays && availableAdventureDays > 0 && (
     <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300">
       All available adventure days are scheduled. Remove an optional excursion or extend your trip to add another.
     </p>
@@ -1702,7 +1731,7 @@ if (step === 4) {
               <section className="mb-8 rounded-3xl border border-orange-400/35 bg-neutral-900/40 p-4 sm:p-6" aria-label="Your expedition inclusions">
                 <div className="mb-5">
                   <h2 className="text-2xl font-extrabold text-white sm:text-3xl">
-                    {tripSeason === "winter" && nights > 0 ? "YOUR KNIK GLACIER ADVENTURE" : winterIsStandaloneDayTrip ? "CHOOSE YOUR WINTER ADVENTURE" : "YOUR EXPEDITION — ALREADY INCLUDED"}
+                    {dayTripOnly ? "YOUR KNIK GLACIER DAY TRIP" : tripSeason === "winter" && nights > 0 ? "YOUR KNIK GLACIER ADVENTURE" : winterIsStandaloneDayTrip ? "CHOOSE YOUR WINTER ADVENTURE" : "YOUR EXPEDITION — ALREADY INCLUDED"}
                   </h2>
                   <p className="mt-2 text-sm text-neutral-300">
                     {tripSeason === "winter" && nights > 0
@@ -1724,6 +1753,17 @@ if (step === 4) {
                       <p className="mt-3 text-sm font-semibold text-orange-300">✓ Automatically selected · 1 adventure day · Cannot be removed</p>
                     </div>
                   </div>
+                ) : dayTripOnly ? (
+                  <div className="overflow-hidden rounded-2xl border border-orange-400/70 bg-orange-500/10 sm:flex sm:items-center">
+                    <div className="relative aspect-video w-full bg-black sm:aspect-square sm:w-56 sm:shrink-0">
+                      <img src="/images/knik-winter-package.png" alt="Winter Knik Glacier Jeep expedition" className="h-full w-full object-contain" />
+                      <span className="absolute right-2 top-2 rounded-full bg-orange-500 px-3 py-1 text-xs font-extrabold text-black">✓ SELECTED</span>
+                    </div>
+                    <div className="p-5"><h3 className="text-xl font-extrabold">Knik Glacier 4x4 Day Trip</h3>
+                      <p className="mt-2 text-sm text-neutral-300">One day at Knik Glacier with guided Jeep travel, glacier exploration, a hot lunch, and warm drinks. Choose how many guests will drive or ride in the next step.</p>
+                      <p className="mt-3 text-sm font-semibold text-orange-300">$695 per driver · $395 per passenger · No add-ons</p>
+                    </div>
+                  </div>
                 ) : winterIsStandaloneDayTrip ? (
                   <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
                     {primaryAOEExperiences.map((experience) => {
@@ -1742,13 +1782,34 @@ if (step === 4) {
                   </div>
                 )}
               </section>
-              <div className="mb-5">
+              {!dayTripOnly && <><div className="mb-5">
                 <h2 className="text-2xl font-extrabold text-white sm:text-3xl">SELECT YOUR ADD-ON EXCURSIONS</h2>
-                <p className="mt-1 text-sm text-neutral-400">Browse all available partner excursions. Select an activity to add it to your itinerary.</p>
+                <p className="mt-1 text-sm text-neutral-400">Open a category to browse available excursions. Select an activity to add it to your itinerary.</p>
               </div>
-              {/* FLAT, RESPONSIVE ADD-ON GRID: 2 mobile, up to 5 desktop. */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                        {partnerAddOns.map((experience) => {
+              {/* Category dropdowns match the homepage; cards retain the existing booking behavior. */}
+              <div className="space-y-3">
+                {categorizedAddOns.map((group) => (
+                  <details key={group.id} className="group min-w-0 overflow-hidden rounded-2xl border border-white/20 bg-neutral-900/70">
+                    <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-3 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-400 sm:gap-4 sm:px-5 [&::-webkit-details-marker]:hidden">
+                      <div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg border border-white/20 bg-black sm:h-[72px] sm:w-24">
+                        {(group.items[0]?.image || group.items[0]?.images?.[0]) ? (
+                          <img src={group.items[0].image || group.items[0].images[0]} alt="" loading="lazy" className="h-full w-full object-contain" />
+                        ) : <div className="grid h-full place-items-center p-2 text-xs text-neutral-400">Photo coming soon</div>}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base font-extrabold text-white sm:text-xl">{group.title}</h3>
+                        <p className="mt-1 hidden text-xs text-neutral-400 sm:block sm:text-sm">{group.subtitle}</p>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
+                        <span className="text-[10px] font-bold text-orange-300 sm:text-xs">{group.items.length} excursions</span>
+                        <span className="inline-flex items-center gap-2 rounded-lg border border-orange-400/60 bg-orange-500/15 px-3 py-2 text-xs font-extrabold text-orange-200">
+                          <span className="group-open:hidden">OPEN</span><span className="hidden group-open:inline">CLOSE</span>
+                          <svg className="h-4 w-4 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="m4 7 6 6 6-6" /></svg>
+                        </span>
+                      </div>
+                    </summary>
+                    <div className="grid grid-cols-2 gap-3 border-t border-white/15 p-3 sm:gap-4 sm:p-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                        {group.items.map((experience) => {
                           const selected = selectedExperiences.includes(experience.id);
                           let priceLabel = "Price available upon request";
                            const quote = experience.operator !== "AOE"
@@ -1805,7 +1866,11 @@ if (step === 4) {
                             </article>
                           );
                         })}
+                    </div>
+                  </details>
+                ))}
               </div>
+              </>}
               {/* NO EXPERIENCES AVAILABLE */}
 
 {visibleExperiences.length === 0 && (
@@ -1976,7 +2041,7 @@ function StepTripReview({arrivalDate, departureDate, guestCount, tripSeason,
               {experiencePriceItems.map(item => (
                 <div key={item.id} className="flex justify-between gap-4 border-b border-white/10 pb-3 text-sm">
                   <span>{item.name}<span className="block text-neutral-400">{item.label}</span></span>
-                  <strong>{item.price > 0 ? `$${item.price.toLocaleString()}` : item.label.startsWith("Included") ? "Included" : "Quote required"}</strong>
+                  <strong>{item.price > 0 ? `$${item.price.toLocaleString()}` : item.label.startsWith("Included") ? "Included" : "TBD"}</strong>
                 </div>
               ))}
             </div>
@@ -2025,7 +2090,7 @@ function StepTripReview({arrivalDate, departureDate, guestCount, tripSeason,
           <h2 className="text-xl font-bold">Estimated Trip Cost</h2>
           <div className="mt-3 text-3xl font-extrabold text-orange-300">${totalTripEstimate.toLocaleString()}</div>
           <p className="mt-2 text-sm text-neutral-300">Estimated payment due now: ${estimatedDeposit.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
-          <p className="mt-2 text-xs text-neutral-400">Quote includes the 5% partner markup and any extended-stay savings. Partner activities are subject to confirmation; a lower final price reduces the remaining balance.</p>
+          <p className="mt-2 text-xs text-neutral-400">Quote uses listed excursion prices and any extended-stay savings. Partner activities are subject to confirmation; a lower final price reduces the remaining balance.</p>
         </section>
       </div>
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-neutral-950/95 px-4 py-4 backdrop-blur">
@@ -2057,8 +2122,8 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
       return;
     }
     setCheckoutError("");
-    if (hasUnpricedExperiences || hasSchedulingConflict) {
-      setCheckoutError("Complete partner pricing and resolve extra adventure days before checkout.");
+    if (hasSchedulingConflict) {
+      setCheckoutError("Your selected activities exceed the available adventure days. Adjust the itinerary before checkout.");
       return;
     }
     if (!contactValid) {
@@ -2092,12 +2157,10 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
     ...(!validEmail(guestInfo.email) ? ["Primary guest: valid email address"] : []),
     ...(!guestInfo.phone?.trim() ? ["Primary guest: phone number"] : []),
     ...(!guestInfo.address?.trim() ? ["Primary guest: mailing address"] : []),
-    ...(!guestInfo.shirtSize ? ["Primary guest: shirt size"] : []),
     ...extraGuests.flatMap((g, index) => [
       ...(!g.name?.trim() ? [`Additional guest ${index + 2}: full name`] : []),
       ...(!validEmail(g.email) ? [`Additional guest ${index + 2}: valid email address`] : []),
       ...(!g.phone?.trim() ? [`Additional guest ${index + 2}: phone number`] : []),
-      ...(!g.shirtSize ? [`Additional guest ${index + 2}: shirt size`] : []),
     ]),
   ];
   const contactValid = missingGuestFields.length === 0;
@@ -2115,7 +2178,6 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
             <label className="text-sm font-semibold">Full name<input type="text" autoComplete="name" value={guestInfo.name} onChange={e=>updateField("name",e.target.value)} className={fieldStyle}/></label>
             <label className="text-sm font-semibold">Email address<input type="email" autoComplete="email" value={guestInfo.email} onChange={e=>updateField("email",e.target.value)} className={fieldStyle}/></label>
             <label className="text-sm font-semibold">Phone number<input type="tel" autoComplete="tel" value={guestInfo.phone} onChange={e=>updateField("phone",e.target.value)} className={fieldStyle}/></label>
-            <label className="text-sm font-semibold">Shirt size<select value={guestInfo.shirtSize || ""} onChange={e=>updateField("shirtSize",e.target.value)} className={fieldStyle}><option value="">Select shirt size</option>{["XS","S","M","L","XL","2XL","3XL","4XL"].map(x=><option key={x} value={x}>{x}</option>)}</select></label>
             <label className="text-sm font-semibold sm:col-span-2">Mailing address<input type="text" autoComplete="street-address" value={guestInfo.address || ""} onChange={e=>updateField("address",e.target.value)} className={fieldStyle} placeholder="Street, city, state, ZIP"/></label>
           </div>
         </section>
@@ -2126,7 +2188,6 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
               <label className="text-sm font-semibold">Full name<input type="text" value={guest.name || ""} onChange={e=>setExtraGuest(index,"name",e.target.value)} className={fieldStyle}/></label>
               <label className="text-sm font-semibold">Email address<input type="email" value={guest.email || ""} onChange={e=>setExtraGuest(index,"email",e.target.value)} className={fieldStyle}/></label>
               <label className="text-sm font-semibold">Phone number<input type="tel" value={guest.phone || ""} onChange={e=>setExtraGuest(index,"phone",e.target.value)} className={fieldStyle}/></label>
-              <label className="text-sm font-semibold">Shirt size<select value={guest.shirtSize || ""} onChange={e=>setExtraGuest(index,"shirtSize",e.target.value)} className={fieldStyle}><option value="">Select shirt size</option>{["XS","S","M","L","XL","2XL","3XL","4XL"].map(x=><option key={x} value={x}>{x}</option>)}</select></label>
             </div>
           </section>
         ))}
@@ -2136,23 +2197,24 @@ function StepGuestReview({arrivalDate, departureDate, guestCount, tripSeason,
         <section className="rounded-3xl border border-orange-400/30 bg-orange-500/10 p-6">
           <h2 className="text-xl font-bold">Reservation Summary</h2>
           <p className="mt-3 text-sm text-neutral-300">{formatDate(arrivalDate)} – {formatDate(departureDate)} · {guestCount} guest(s) · {tripSeason === "summer" ? "Summer expedition" : "Winter adventure"}</p>
-          <div className="mt-4 space-y-2">{experiencePriceItems.map(item=><div key={item.id} className="flex justify-between gap-3 text-sm"><span>{item.name}</span><span>{item.price > 0 ? `$${item.price.toLocaleString()}` : item.label.startsWith("Included") ? "Included" : "Quote required"}</span></div>)}</div>
+          <div className="mt-4 space-y-2">{experiencePriceItems.map(item=><div key={item.id} className="flex justify-between gap-3 text-sm"><span>{item.name}</span><span>{item.price > 0 ? `$${item.price.toLocaleString()}` : item.label.startsWith("Included") ? "Included" : "TBD"}</span></div>)}</div>
           {tripSeason === "winter" && (
             <div className="mt-4 space-y-2 text-sm text-neutral-300">
               {winterBaseTotal > 0 && <p>AOE winter: {winterExpeditionDays} day(s) × ($600 first guest + $300 per additional guest) = ${winterBaseTotal.toLocaleString()}</p>}
               <p>AOE Jeep + Airbnb lodging: included with multi-day winter expedition</p>
             </div>
           )}
-          <div className="mt-4 border-t border-white/10 pt-4 text-2xl font-bold text-orange-300">Estimated total: ${totalTripEstimate.toLocaleString()}</div>
+          <div className="mt-4 border-t border-white/10 pt-4 text-2xl font-bold text-orange-300">Estimated total{hasUnpricedExperiences ? " (excluding TBD excursions)" : ""}: ${totalTripEstimate.toLocaleString()}</div>
           <p className="mt-2 text-sm text-neutral-300">Estimated payment due now: ${estimatedDeposit.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
           <p className="mt-1 text-sm text-neutral-400">Estimated balance: ${estimatedBalance.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
         </section>
         <section className="rounded-3xl border border-amber-400/30 bg-amber-500/10 p-6">
           <h2 className="font-bold text-amber-300">Secure Reservation Checkout</h2>
           <p className="mt-2 text-sm text-neutral-300">Your final total will be recalculated by our server before Stripe checkout. Availability and partner schedules are subject to confirmation.</p>
-          {(hasUnpricedExperiences || hasSchedulingConflict) && <p role="status" className="mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 p-3 text-sm text-amber-200">Your itinerary selections are saved on this page, but paid checkout requires confirmed prices and enough adventure days. {hasUnpricedExperiences ? "One or more partner excursions still need a confirmed price. " : ""}{hasSchedulingConflict ? "Your selected excursions exceed your available adventure days. " : ""}Contact your guide or adjust your selection before reserving.</p>}
-          <button type="button" onClick={handleCheckout} disabled={checkoutLoading || import.meta.env.DEV || hasUnpricedExperiences || hasSchedulingConflict} className={`${primaryButton} mt-5 w-full`}>
-            {import.meta.env.DEV ? "Checkout Disabled — Local Preview" : hasUnpricedExperiences || hasSchedulingConflict ? "Review Itinerary Before Checkout" : checkoutLoading ? "Opening Secure Checkout..." : "Reserve Your Adventure →"}
+          {hasUnpricedExperiences && <p role="status" className="mt-3 rounded-xl border border-orange-400/40 bg-orange-500/10 p-4 text-sm text-orange-100"><strong>TBD excursion pricing:</strong> You can reserve your expedition today. Excursions marked TBD are not included in the total or deposit shown. Your guide will confirm their pricing and availability while building your itinerary with you. Any agreed additional charges will be reflected in your remaining balance; you will be notified before any change is finalized. No additional payment will be collected automatically.</p>}
+          {hasSchedulingConflict && <p role="status" className="mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 p-3 text-sm text-amber-200">Your selected excursions exceed the available adventure days. Please adjust your selections before reserving.</p>}
+          <button type="button" onClick={handleCheckout} disabled={checkoutLoading || import.meta.env.DEV || hasSchedulingConflict} className={`${primaryButton} mt-5 w-full`}>
+            {import.meta.env.DEV ? "Checkout Disabled — Local Preview" : hasSchedulingConflict ? "Review Adventure Days" : checkoutLoading ? "Opening Secure Checkout..." : "Reserve Your Adventure →"}
           </button>
           {checkoutError && <p role="alert" className="mt-3 text-sm text-red-300">{checkoutError}</p>}
           {!contactValid && <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-200" role="status">

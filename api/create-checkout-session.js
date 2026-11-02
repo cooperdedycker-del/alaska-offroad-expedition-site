@@ -188,12 +188,10 @@ async function createUnifiedCheckout(req, res) {
   if (!season) return res.status(400).json({error:"Operating season is unavailable."});
   // Allow one experience per winter expedition day.
 // Standalone day trips may select one experience.
-const maximumExperiences =
-  season === "winter"
-    ? Math.max(1, nights)
-    : Math.max(1, nights - 1);
+const maximumExperiences = dayTrip ? 1 : Math.max(0, nights - 1);
 
-if (selectedExperiences.length > maximumExperiences) {
+const scheduledExperienceCount = selectedExperiences.filter(id => id !== "custom-offroad-expedition").length;
+if (scheduledExperienceCount > maximumExperiences) {
   return res.status(400).json({
     error: "Too many selected excursions for your vacation.",
   });
@@ -229,7 +227,7 @@ const dailyExpeditionDays = nights;
   const details = [];
   for (const id of selectedExperiences) {
     if (id === "custom-offroad-expedition") continue;
-    const ex = experiences.find(x => x.id === id && (x.operator === "AOE" ? x.active === true : Number(x.publishedBasePrice) > 0));
+    const ex = experiences.find(x => x.id === id && (x.operator === "AOE" ? x.active === true : true));
     if (!ex) return res.status(400).json({error:`Unknown experience: ${id}`});
     // Check every selected date, including arrival and departure.
 // Supports standalone day trips and multi-day bookings.
@@ -277,12 +275,14 @@ if (
        // Published provider rates are server-owned. Draft card visibility does
        // not authorize arbitrary checkout amounts supplied by the browser.
        const unit = ex.publishedPriceUnit;
-       if (!["perPerson", "perVehicle", "perCharter", "perNight"].includes(unit) || !(Number(ex.publishedBasePrice) > 0))
-         return res.status(400).json({error:`Price confirmation required for ${ex.name}.`});
+       const isConfirmedPrice = ["perPerson", "perVehicle", "perCharter", "perNight"].includes(unit) && Number(ex.publishedBasePrice) > 0;
+       // An unpriced experience is reserved as TBD, not charged at an invented price.
        participants = unit === "perPerson" ? Number(experienceParticipants[id] ?? guests) : 1;
        if (!Number.isInteger(participants) || participants < 1 || (unit === "perPerson" && participants > guests))
          return res.status(400).json({error:`Invalid quantity for ${ex.name}.`});
-       price = partnerExperienceTotalCents({providerUnitPriceDollars:Number(ex.publishedBasePrice),quantity:participants}) / 100;
+       price = isConfirmedPrice
+         ? partnerExperienceTotalCents({providerUnitPriceDollars:Number(ex.publishedBasePrice),quantity:participants}) / 100
+         : 0;
      } else {
        return res.status(400).json({error:`Experience cannot be priced: ${ex.name}.`});
      }
@@ -298,13 +298,14 @@ if (
 
     transferTotal += transfer;
 
-    details.push({ id, name: ex.name, price, participants, transfer });
+    const pricingTBD = ex.operator !== "AOE" && !(Number(ex.publishedBasePrice) > 0 && ["perPerson", "perVehicle", "perCharter", "perNight"].includes(ex.publishedPriceUnit));
+    details.push({ id, name: ex.name, price, participants, transfer, pricingTBD });
 
     lineItems.push({
       name:
         price === 0 && id === "winter-knik-glacier"
           ? `${ex.name} (included)`
-          : ex.name,
+          : pricingTBD ? `${ex.name} (price TBD — excluded from deposit)` : ex.name,
       amount: price,
     });
   }
@@ -336,21 +337,19 @@ if (
   const missingContacts = [
     ...(!guestInfo.phone?.trim() ? ["Primary guest phone number"] : []),
     ...(!guestInfo.address?.trim() ? ["Primary guest mailing address"] : []),
-    ...(!guestInfo.shirtSize ? ["Primary guest shirt size"] : []),
     ...(extraGuests.length !== guests - 1 ? [`Expected ${guests - 1} additional guest(s); received ${extraGuests.length}`] : []),
     ...extraGuests.flatMap((g, i) => [
       ...(!g?.name?.trim() ? [`Guest ${i + 2} full name`] : []),
       ...(!emailOk(g?.email) ? [`Guest ${i + 2} valid email`] : []),
       ...(!g?.phone?.trim() ? [`Guest ${i + 2} phone number`] : []),
-      ...(!g?.shirtSize ? [`Guest ${i + 2} shirt size`] : []),
     ]),
   ];
   if (missingContacts.length) {
     return res.status(400).json({error:`Missing guest information: ${missingContacts.join('; ')}`});
   }
   const allParticipants = [
-    {name:guestInfo.name, email:guestInfo.email, phone:guestInfo.phone, shirtSize:guestInfo.shirtSize, address:guestInfo.address},
-    ...extraGuests.map(g=>({name:g.name,email:g.email,phone:g.phone,shirtSize:g.shirtSize})),
+    {name:guestInfo.name, email:guestInfo.email, phone:guestInfo.phone, address:guestInfo.address},
+    ...extraGuests.map(g=>({name:g.name,email:g.email,phone:g.phone})),
   ];
   // Stripe metadata values are limited; chunk participant JSON and validate the count.
   const participantChunks = splitMetadataValue(JSON.stringify(allParticipants));
@@ -359,7 +358,7 @@ if (
   const selectedNames = details.map(item => item.name).join(", ");
   const metadata = {
     ...participantMetadata, primaryGuestAddress:String(guestInfo.address).slice(0,450),
-    bookingType:"unified", pricingVersion:"partner-markup-v4-extended-stay", paymentType:fullPaymentRequired ? "full":"deposit",
+    bookingType:"unified", pricingVersion:"listed-prices-with-tbd-v1", paymentType:fullPaymentRequired ? "full":"deposit",
     packageName:dayTrip ? (details[0]?.name || "Winter day trip") : `${season === "summer" ? "Summer" : "Winter"} AOE vacation`,
     packageId:dayTrip ? (details[0]?.id || "") : `aoe-${season}-vacation`,
     customerName:guestInfo.name.trim().slice(0,300),customerEmail:guestInfo.email.trim().slice(0,300),
@@ -377,7 +376,9 @@ if (
     guestNotes:String(guestInfo.notes || "").slice(0,450),
     selectedExperienceIds:selectedExperiences.join(",").slice(0,450),
     // Both Stripe and Google require small metadata values; keep a readable itemized email summary.
-    excursionBreakdown:details.map(x=>`${x.name}: $${x.price} (${x.participants} guests)`).join("; ").slice(0,450),
+    excursionBreakdown:details.map(x=>`${x.name}: ${x.pricingTBD ? "TBD (excluded from deposit)" : "$" + x.price} (${x.participants} guests)`).join("; ").slice(0,450),
+    tbdExcursions:details.filter(x=>x.pricingTBD).map(x=>x.name).join(", ").slice(0,450),
+    pricingDisclosure: "TBD excursion prices excluded from amount charged; confirm with customer before updating remaining balance",
   };
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   const siteUrl = process.env.SITE_URL || "http://localhost:5173";
@@ -386,7 +387,7 @@ if (
     client_reference_id:`aoe-${arrivalDate}-${departureDate}`,
     line_items:[{quantity:1,price_data:{currency:"usd",unit_amount:amountDueCents,
       product_data:{name:fullPaymentRequired ? `${metadata.packageName} — Full Payment` : `${metadata.packageName} — 25% Deposit`,
-        description:`Trip total $${(totalCents/100).toFixed(2)}; remaining $${(remainingCents/100).toFixed(2)}`}}}],
+        description:`Priced trip total $${(totalCents/100).toFixed(2)}; balance $${(remainingCents/100).toFixed(2)}${details.some(x=>x.pricingTBD) ? "; TBD excursions excluded" : ""}`}}}],
     metadata,
     success_url:`${siteUrl}/reservation-confirmed?booking=unified&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url:`${siteUrl}/plan-your-trip?checkout=cancelled`,

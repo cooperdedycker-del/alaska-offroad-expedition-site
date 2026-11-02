@@ -454,29 +454,7 @@ export const experiences = [
     ],
     "tripBuilder": true
   },
-  {
-    "id": "gunsightLodge",
-    "key": "gunsightLodge",
-    "name": "Gunsight Mountain Lodge",
-    "operator": "Partner",
-    "category": "lodging",
-    "season": "year-round",
-    "price": 200,
-    "priceType": "perPerson",
-    "transportationIncluded": false,
-    "location": "Gunsight Mountain, Alaska",
-    "image": "/images/excursions/GSML1.jpg",
-    "description": "Stay near Alaska's backcountry trail systems at Gunsight Mountain Lodge.",
-    "active": true,
-    "requiresConfirmation": true,
-    "website": "https://www.facebook.com/gunsight.mtn.lodge/",
-    "type": "Lodging",
-    "desc": "Gun Sight Mountain Lodge offers comfortable, welcoming accommodations at the base of one of Alaska’s most accessible and diverse off-road trail systems. Hosted by Hap, the lodge serves as an ideal home base for summer and winter adventures, providing easy access to trail riding, overland routes, snowmachine terrain, and backcountry exploration—all while offering a warm, relaxed place to recharge after a day in the outdoors.",
-    "images": [
-      "/images/excursions/GSML1.jpg"
-    ],
-    "tripBuilder": true
-  },
+  
   {
     "id": "seacraftHover",
     "key": "seacraftHover",
@@ -1195,30 +1173,7 @@ export const experiences = [
       9
     ]
   },
-  {
-    "id": "gunsight-cabin-stay",
-    "key": "gunsight-cabin-stay",
-    "name": "Gunsight Mountain Lodge Cabin Stay",
-    "operator": "Gunsight Mountain Lodge",
-    "category": "lodging",
-    "season": "year-round",
-    "price": null,
-    "priceType": "quote",
-    "pricingType": "quote",
-    "priceStatus": "partner-confirmation-required",
-    "transportationIncluded": false,
-    "image": "/images/excursions/GSML1.jpg",
-    "images": [
-      "/images/excursions/GSML1.jpg"
-    ],
-    "description": "Rustic cabin lodging at Gunsight Mountain Lodge near Eureka, suited to a separate lodging inquiry rather than per-person activity checkout.",
-    "active": false,
-    "tripBuilder": false,
-    "requiresConfirmation": true,
-    "website": "https://www.gunsightmountainlodge.com/",
-    "sourceUrl": "https://www.gunsightmountainlodge.com/",
-    "catalogStatus": "draft-not-bookable"
-  },
+  
   {
     "id": "gunsight-snowmachine-fishing",
     "key": "gunsight-snowmachine-fishing",
@@ -1256,10 +1211,10 @@ export const experiences = [
 
 
 // PUBLIC PARTNER PRICE RESEARCH (October 2026). No price here is automatically chargeable.
-// `publishedBasePrice` = provider's advertised starting rate before AOE markup.
-// `displayPrice` = provider rate + 5% AOE partner markup (rounded UP to nearest cent).
+// `publishedBasePrice` = customer-facing excursion price (no automatic markup).
+// `displayPrice` = the configured excursion price, unchanged.
 // AOE-owned experiences do not receive the partner markup.
-export const PARTNER_MARKUP_RATE = 0.05;
+export const PARTNER_MARKUP_RATE = 0;
 export const EXTENDED_STAY_DISCOUNTS = Object.freeze({ fourToSixDays: 0.05, sevenPlusDays: 0.10 });
 export function getExtendedStayDiscountRate(days) {
   return days >= 7 ? EXTENDED_STAY_DISCOUNTS.sevenPlusDays : days >= 4 ? EXTENDED_STAY_DISCOUNTS.fourToSixDays : 0;
@@ -1280,7 +1235,7 @@ export function getPartnerPriceInfo(experience) {
   const unit = verified ? publishedUnit : legacyUnit;
   return {
     base, unit, chargeable: verified, source: verified ? "published" : "legacy",
-    customerPrice: Math.ceil((Math.round(base * 100) * 1.05) - 0.0000001) / 100,
+    customerPrice: Math.round(base * 100) / 100,
   };
 }
 
@@ -1456,119 +1411,30 @@ for (const entry of experiences) {
     entry.displayPrice = getPartnerDisplayPrice(entry);
     entry.priceVerifiedOn = "2026-10-31"; // public listing, NOT partner-negotiated rate
   } else {
-    // Prevent older placeholder prices from showing as verified quotes.
-    // Retain legacy price for a visible estimate; do not mark it verified for Stripe.
-    entry.publishedBasePrice = null;
+    // Existing catalog prices are the user-editable customer rates.
+    // Do not discard them solely because a separate published-price entry is absent.
+    const legacyPrice = Number(entry.price);
+    const validUnits = ["perPerson", "perVehicle", "perCharter", "perNight"];
+    if (Number.isFinite(legacyPrice) && legacyPrice > 0 && validUnits.includes(entry.priceType)) {
+      entry.publishedBasePrice = legacyPrice;
+      entry.publishedPriceUnit = entry.priceType;
+    } else if (!(Number(entry.publishedBasePrice) > 0)) {
+      entry.publishedBasePrice = null;
+    }
+    entry.displayPrice = getPartnerDisplayPrice(entry);
+  }
+  // A hand-edited price in an existing experience always takes precedence.
+  // This makes the thumbnail, itinerary quote, and server checkout use the same amount.
+  if (Number(entry.price) > 0 && ["perPerson", "perVehicle", "perCharter", "perNight"].includes(entry.priceType)) {
+    entry.publishedBasePrice = Number(entry.price);
+    entry.publishedPriceUnit = entry.priceType;
     entry.displayPrice = getPartnerDisplayPrice(entry);
   }
 }
 
 // Additional published distinct provider offerings, visible as inquiry cards.
 const ADDITIONAL_PUBLIC_LISTINGS = [
-  {
-    "id": "gunsight-cabin-1",
-    "name": "Gunsight Dry Cabin #1",
-    "operator": "Gunsight Mountain Lodge",
-    "category": "lodging",
-    "season": "year-round",
-    "publishedBasePrice": 169,
-    "publishedPriceUnit": "perNight",
-    "publishedSource": "https://www.gunsightmountainlodge.com/book-online",
-    "availableMonths": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12
-    ],
-    "image": "/images/excursions/GSML1.jpg",
-    "description": "Historic dry cabin lodging at Gunsight Mountain."
-  },
-  {
-    "id": "gunsight-cabin-2",
-    "name": "Gunsight Dry Cabin #2",
-    "operator": "Gunsight Mountain Lodge",
-    "category": "lodging",
-    "season": "year-round",
-    "publishedBasePrice": 169,
-    "publishedPriceUnit": "perNight",
-    "publishedSource": "https://www.gunsightmountainlodge.com/book-online",
-    "availableMonths": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12
-    ],
-    "image": "/images/excursions/GSML1.jpg",
-    "description": "Dry cabin lodging at Gunsight Mountain."
-  },
-  {
-    "id": "gunsight-cabin-3",
-    "name": "Gunsight Dry Cabin #3",
-    "operator": "Gunsight Mountain Lodge",
-    "category": "lodging",
-    "season": "year-round",
-    "publishedBasePrice": 159,
-    "publishedPriceUnit": "perNight",
-    "publishedSource": "https://www.gunsightmountainlodge.com/book-online",
-    "availableMonths": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12
-    ],
-    "image": "/images/excursions/GSML1.jpg",
-    "description": "Rustic dry cabin stay."
-  },
-  {
-    "id": "gunsight-camping",
-    "name": "Gunsight Dry Camping / RV Spot",
-    "operator": "Gunsight Mountain Lodge",
-    "category": "lodging",
-    "season": "year-round",
-    "publishedBasePrice": 35,
-    "publishedPriceUnit": "perNight",
-    "publishedSource": "https://www.gunsightmountainlodge.com/book-online",
-    "availableMonths": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12
-    ],
-    "image": "/images/excursions/GSML1.jpg",
-    "description": "Dry camping and gravel RV parking."
-  },
+  
   {
     "id": "stelias-root-overnight",
     "name": "Root Glacier Overnight Adventure",
