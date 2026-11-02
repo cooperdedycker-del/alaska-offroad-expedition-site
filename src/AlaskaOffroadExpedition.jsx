@@ -104,6 +104,8 @@ export default function AlaskaOffroadExpedition() {
 
 <Hero />
 
+<WelcomeIntro />
+
 <div className="mx-auto max-w-7xl px-4 py-4">
   <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 </div>
@@ -127,6 +129,35 @@ export default function AlaskaOffroadExpedition() {
   );
 }
 
+
+/* ---------------- Welcome / What We Do ---------------- */
+
+function WelcomeIntro() {
+  return (
+    <section aria-labelledby="welcome-intro-title" className="mx-auto max-w-7xl px-4 py-8 sm:py-10">
+      <div className="rounded-3xl border border-orange-400/30 bg-neutral-900/50 px-5 py-8 text-center shadow-xl sm:px-10 sm:py-10">
+        <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-orange-400">Welcome to Alaska Off-Road Expedition</p>
+        <h2 id="welcome-intro-title" className="mt-3 text-2xl font-extrabold uppercase tracking-wide text-white sm:text-3xl lg:text-4xl">
+          Your Alaska Adventure, Your Way
+        </h2>
+        <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-neutral-300 sm:text-base">
+          Build a custom Alaska adventure around what you want to experience. Drive one of our expedition-ready Jeeps or ride with your guide, explore incredible off-road trails, and add unforgettable excursions along the way.
+        </p>
+        <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-neutral-300 sm:text-base">
+          From airport pickup and lodging to guided adventures and coordinating your excursions, we handle the details. One trip, one itinerary, and one place to plan it all.
+        </p>
+        <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center justify-center gap-x-3 gap-y-2 text-xs font-semibold text-orange-200 sm:text-sm">
+          <span>Pick Your Dates</span><span className="text-orange-400" aria-hidden="true">→</span>
+          <span>Choose Your Adventures</span><span className="text-orange-400" aria-hidden="true">→</span>
+          <span>We Handle the Rest</span>
+        </div>
+        <a href="/plan-your-trip" className="mt-7 inline-flex items-center justify-center rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-7 py-3 text-sm font-extrabold text-white shadow-[0_0_20px_rgba(249,115,22,0.4)] transition hover:brightness-110 sm:text-base">
+          Start Here - Build Your Alaska Expedition <span aria-hidden="true" className="ml-2">→</span>
+        </a>
+      </div>
+    </section>
+  );
+}
 
 /* ---------------- Components ---------------- */
 

@@ -1264,11 +1264,28 @@ export const EXTENDED_STAY_DISCOUNTS = Object.freeze({ fourToSixDays: 0.05, seve
 export function getExtendedStayDiscountRate(days) {
   return days >= 7 ? EXTENDED_STAY_DISCOUNTS.sevenPlusDays : days >= 4 ? EXTENDED_STAY_DISCOUNTS.fourToSixDays : 0;
 }
-export function getPartnerDisplayPrice(experience) {
+// Shared display model. Published catalog rates can be used for existing server-side
+// checkout validation; legacy `price` values are REVIEW estimates only.
+export function getPartnerPriceInfo(experience) {
   if (!experience || experience.operator === "AOE") return null;
-  const base = Number(experience.publishedBasePrice);
-  if (!Number.isFinite(base) || base <= 0) return null;
-  return Math.ceil((Math.round(base * 100) * 1.05) - 0.0000001) / 100;
+  const published = Number(experience.publishedBasePrice);
+  const publishedUnit = experience.publishedPriceUnit;
+  const legacy = Number(experience.price);
+  const legacyUnit = experience.priceType;
+  const units = ["perPerson", "perVehicle", "perCharter", "perNight"];
+  const verified = Number.isFinite(published) && published > 0 && units.includes(publishedUnit);
+  const estimated = !verified && Number.isFinite(legacy) && legacy > 0 && units.includes(legacyUnit);
+  if (!verified && !estimated) return null;
+  const base = verified ? published : legacy;
+  const unit = verified ? publishedUnit : legacyUnit;
+  return {
+    base, unit, chargeable: verified, source: verified ? "published" : "legacy",
+    customerPrice: Math.ceil((Math.round(base * 100) * 1.05) - 0.0000001) / 100,
+  };
+}
+
+export function getPartnerDisplayPrice(experience) {
+  return getPartnerPriceInfo(experience)?.customerPrice ?? null;
 }
 
 // Catalog publication != confirmed checkout inventory. All external tours
@@ -1428,7 +1445,7 @@ for (const entry of experiences) {
   entry.active = true;
   entry.tripBuilder = true;
   entry.requiresConfirmation = true;
-  entry.catalogStatus = "visible-for-review";
+  entry.catalogStatus = "draft-not-bookable";
   entry.bookingMode = "inquiry";
   const published = VERIFIED_PUBLIC_LISTINGS[entry.id];
   if (published) {
@@ -1440,8 +1457,9 @@ for (const entry of experiences) {
     entry.priceVerifiedOn = "2026-10-31"; // public listing, NOT partner-negotiated rate
   } else {
     // Prevent older placeholder prices from showing as verified quotes.
+    // Retain legacy price for a visible estimate; do not mark it verified for Stripe.
     entry.publishedBasePrice = null;
-    entry.displayPrice = null;
+    entry.displayPrice = getPartnerDisplayPrice(entry);
   }
 }
 
@@ -1632,7 +1650,7 @@ const ADDITIONAL_PUBLIC_LISTINGS = [
 for (const entry of ADDITIONAL_PUBLIC_LISTINGS) {
   if (!experiences.some((e) => e.id === entry.id)) {
     experiences.push({ ...entry, active: true, tripBuilder: true, requiresConfirmation: true,
-      bookingMode: "inquiry", catalogStatus: "visible-for-review", priceVerifiedOn: "2026-10-31",
+      bookingMode: "inquiry", catalogStatus: "draft-not-bookable", priceVerifiedOn: "2026-10-31",
       displayPrice: getPartnerDisplayPrice(entry),
     });
   }
