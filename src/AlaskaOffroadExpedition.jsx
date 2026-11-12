@@ -7,7 +7,7 @@ import Merch from "./Merch";
 
 
 
-export default function AlaskaOffroadExpedition() {
+export default function AlaskaOffroadExpedition({ shopOnly = false }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   useEffect(() => {
@@ -32,36 +32,36 @@ export default function AlaskaOffroadExpedition() {
       <header className="sticky top-0 z-40 border-b border-orange-400/20 bg-neutral-950/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">
-            <a href="#top" className="h-9 w-9 shrink-0 overflow-hidden rounded-lg">
+            <a href="/" className="h-9 w-9 shrink-0 overflow-hidden rounded-lg">
               <img src="/images/Newlogo.png" alt="Alaska Offroad Expedition logo" className="h-full w-full object-contain" />
             </a>
-            <a href="#top" className="truncate text-sm font-semibold tracking-wide transition hover:text-white/80 sm:text-lg">
+            <a href="/" className="truncate text-sm font-semibold tracking-wide transition hover:text-white/80 sm:text-lg">
               Alaska Offroad Expedition
             </a>
           </div>
 
           <nav className="hidden items-center gap-3 text-xs text-neutral-300 lg:flex xl:gap-5 xl:text-sm" aria-label="Main navigation">
             <a href="/plan-your-trip" className="whitespace-nowrap hover:text-white">Plan Your Trip</a>
-            <a href="#excursions" className="whitespace-nowrap hover:text-white">Add on Excursions</a>
-            <a href="#merch" className="hover:text-white">Merch</a>
-            <a href="#faq" className="hover:text-white">FAQ</a>
-            <a href="#sponsors" className="hover:text-white">Sponsors</a>
-            <a href="#contact" className="hover:text-white">Contact</a>
+            <a href="/#excursions" className="whitespace-nowrap hover:text-white">Add on Excursions</a>
+            <a href="/shop" className="hover:text-white">Shop</a>
+            <a href="/#faq" className="hover:text-white">FAQ</a>
+            <a href="/#sponsors" className="hover:text-white">Sponsors</a>
+            <a href="/#contact" className="hover:text-white">Contact</a>
           </nav>
 
           <div className="hidden shrink-0 items-center gap-2 lg:flex">
             <a href="/plan-your-trip" className="inline-flex items-center justify-center whitespace-nowrap rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-3 py-2 text-xs font-extrabold text-white shadow-[0_0_16px_rgba(249,115,22,0.4)] transition hover:brightness-110 xl:px-4 xl:text-sm">
               Book an Expedition <span aria-hidden="true" className="ml-1">→</span>
             </a>
-            <a href="#contact" className="inline-flex items-center justify-center whitespace-nowrap rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-3 py-2 text-xs font-extrabold text-white shadow-[0_0_16px_rgba(249,115,22,0.4)] transition hover:brightness-110 xl:px-4 xl:text-sm">
+            <a href="/#contact" className="inline-flex items-center justify-center whitespace-nowrap rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-3 py-2 text-xs font-extrabold text-white shadow-[0_0_16px_rgba(249,115,22,0.4)] transition hover:brightness-110 xl:px-4 xl:text-sm">
               Chat With Your Guide <span aria-hidden="true" className="ml-1">→</span>
             </a>
           </div>
 
           <a
-            href="#merch-cart"
-            aria-label={`View merchandise cart, ${cartCount} items`}
-            title="Merch Cart"
+            href="/shop#merch-cart"
+            aria-label={`View shop cart, ${cartCount} items`}
+            title="Shop Cart"
             className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-400/50 bg-orange-500/10 text-orange-200 transition hover:bg-orange-500/20"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
@@ -85,16 +85,16 @@ export default function AlaskaOffroadExpedition() {
         {mobileNavOpen && (
           <nav className="flex flex-col items-stretch gap-3 border-t border-white/10 px-4 py-4 text-sm text-neutral-300 lg:hidden" aria-label="Mobile navigation">
             <a href="/plan-your-trip" onClick={() => setMobileNavOpen(false)}>Plan Your Trip</a>
-            <a href="#excursions" onClick={() => setMobileNavOpen(false)}>Add on Excursions</a>
-            <a href="#merch" onClick={() => setMobileNavOpen(false)}>Merch</a>
-            <a href="#faq" onClick={() => setMobileNavOpen(false)}>FAQ</a>
-            <a href="#sponsors" onClick={() => setMobileNavOpen(false)}>Sponsors</a>
-            <a href="#contact" onClick={() => setMobileNavOpen(false)}>Contact</a>
+            <a href="/#excursions" onClick={() => setMobileNavOpen(false)}>Add on Excursions</a>
+            <a href="/shop" onClick={() => setMobileNavOpen(false)}>Shop</a>
+            <a href="/#faq" onClick={() => setMobileNavOpen(false)}>FAQ</a>
+            <a href="/#sponsors" onClick={() => setMobileNavOpen(false)}>Sponsors</a>
+            <a href="/#contact" onClick={() => setMobileNavOpen(false)}>Contact</a>
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
               <a href="/plan-your-trip" onClick={() => setMobileNavOpen(false)} className="rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-4 py-3 text-center font-extrabold text-white shadow-[0_0_16px_rgba(249,115,22,0.4)]">
                 Book an Expedition →
               </a>
-              <a href="#contact" onClick={() => setMobileNavOpen(false)} className="rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-4 py-3 text-center font-extrabold text-white shadow-[0_0_16px_rgba(249,115,22,0.4)]">
+              <a href="/#contact" onClick={() => setMobileNavOpen(false)} className="rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-4 py-3 text-center font-extrabold text-white shadow-[0_0_16px_rgba(249,115,22,0.4)]">
                 Chat With Your Guide →
               </a>
             </div>
@@ -102,28 +102,25 @@ export default function AlaskaOffroadExpedition() {
         )}
       </header>
 
-<Hero />
 
-<WelcomeIntro />
-
-<div className="mx-auto max-w-7xl px-4 py-4">
-  <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-</div>
-
-<Experiences />
-
-<HomepageExperienceCatalog />
-
-
-
-<Merch />
-
-
-
-<FAQ />
-<Sponsors />
-
-<Contact />
+{shopOnly ? (
+  <main>
+    <Merch />
+  </main>
+) : (
+  <main>
+    <Hero />
+    <WelcomeIntro />
+    <div className="mx-auto max-w-7xl px-4 py-4">
+      <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+    </div>
+    <Experiences />
+    <HomepageExperienceCatalog />
+    <FAQ />
+    <Sponsors />
+    <Contact />
+  </main>
+)}
 <Footer />
     </div>
   );
@@ -152,7 +149,7 @@ function WelcomeIntro() {
           <span>We Handle the Rest</span>
         </div>
         <a href="/plan-your-trip" className="mt-7 inline-flex items-center justify-center rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-7 py-3 text-sm font-extrabold text-white shadow-[0_0_20px_rgba(249,115,22,0.4)] transition hover:brightness-110 sm:text-base">
-          Start Here - Build Your Alaska Expedition <span aria-hidden="true" className="ml-2">→</span>
+          Build Your Alaska Expedition <span aria-hidden="true" className="ml-2">→</span>
         </a>
       </div>
     </section>
@@ -226,7 +223,7 @@ function Hero() {
 
         {/* Chat With Your Guide */}
         <a
-          href="#contact"
+          href="/#contact"
           className={actionButtonStyle}
         >
           <svg
@@ -556,12 +553,13 @@ function Footer() {
           <p className="mt-2">Built for the Wild.</p>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <a href="#experiences" className="hover:text-neutral-200">Experiences</a>
-          <a href="#fleet" className="hover:text-neutral-200">Fleet</a>
+          <a href="/#experiences" className="hover:text-neutral-200">Experiences</a>
+          <a href="/#fleet" className="hover:text-neutral-200">Fleet</a>
           <a href="/plan-your-trip" className="hover:text-neutral-200">Plan Your Trip</a>
-          <a href="#faq" className="hover:text-neutral-200">FAQ</a>
-          <a href="#about" className="hover:text-neutral-200">About</a>
-          <a href="#contact" className="hover:text-neutral-200">Contact</a>
+          <a href="/shop" className="hover:text-neutral-200">Shop</a>
+          <a href="/#faq" className="hover:text-neutral-200">FAQ</a>
+          <a href="/#about" className="hover:text-neutral-200">About</a>
+          <a href="/#contact" className="hover:text-neutral-200">Contact</a>
         </div>
         <div className="text-neutral-500">
           © {new Date().getFullYear()} Alaska Offroad Expedition. All rights reserved.
