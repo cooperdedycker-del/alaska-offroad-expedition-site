@@ -4,18 +4,22 @@ import { Resend } from "resend";
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
-    return res.status(405).json({ ok: false, error: "Method Not Allowed" });
+    return res.status(405).json({
+      ok: false,
+      error: "Method Not Allowed",
+    });
   }
 
   try {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error("Missing RESEND_API_KEY.");
+    }
+
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     const raw = req.body || {};
 
-    // Support both flat and nested shapes:
-    // { name, email, phone, dates, message }
-    // { contact: { name, email, phone }, message, dates }
-    // { form: { ... } }
+    // Support both flat and nested form structures.
     const form = raw.form || raw;
 
     const contact = {
@@ -25,12 +29,14 @@ export default async function handler(req, res) {
         raw?.contact?.name ??
         raw?.name ??
         "",
+
       email:
         form?.contact?.email ??
         form?.email ??
         raw?.contact?.email ??
         raw?.email ??
         "",
+
       phone:
         form?.contact?.phone ??
         form?.phone ??
@@ -47,7 +53,6 @@ export default async function handler(req, res) {
       raw?.message ??
       "";
 
-    // ✅ NEW: capture requested dates
     const dates =
       form?.dates ??
       form?.tripDates ??
@@ -57,83 +62,354 @@ export default async function handler(req, res) {
     const source =
       form?.source ??
       raw?.source ??
-      "Website contact form (bottom of page)";
+      "Website contact form";
 
-    const subjectInternal = "New Contact Form Submission";
+    const subjectInternal =
+      "New Contact Form Submission";
+
     const subjectCustomer =
       "Thanks for reaching out to Alaska Offroad Expedition";
 
+    // ============================================================
+    // EMAIL ADDRESSES
+    // ============================================================
+
     const from =
-      "Alaska Offroad Expedition <cooper@alaskaoffroadexpedition.com>";
+      process.env.EMAIL_FROM ||
+      "Alaska Offroad Expedition <noreply@alaskaoffroadexpedition.com>";
 
-    const safe = (v) => (v && String(v).trim().length > 0 ? v : "N/A");
+    const internalTo =
+      process.env.SALES_INBOX_EMAIL ||
+      "cooper@alaskaoffroadexpedition.com";
 
-    const html = `
-      <div style="
-        max-width: 640px;
-        margin: 0 auto;
-        background: #020617;
-        color: #e5e7eb;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        padding: 24px;
-        border-radius: 16px;
-        border: 1px solid rgba(148,163,184,0.35);
-      ">
-        <div style="border-bottom: 1px solid rgba(148,163,184,0.35); padding-bottom: 16px; margin-bottom: 20px;">
-          <h1 style="font-size: 20px; margin: 0 0 4px 0;">Alaska Offroad Expedition</h1>
-          <p style="margin: 0; font-size: 13px; color: #9ca3af;">
-            New contact form submission from your website.
-          </p>
-        </div>
+    // ============================================================
+    // HELPERS
+    // ============================================================
 
-        <h2 style="font-size: 16px; margin: 0 0 8px 0;">Contact Info</h2>
-        <div style="
-          background: rgba(15,23,42,0.9);
-          border-radius: 12px;
-          padding: 12px 14px;
-          border: 1px solid rgba(148,163,184,0.35);
-          margin-bottom: 16px;
-          font-size: 13px;
-        ">
-          <div><strong>Name:</strong> ${safe(contact.name)}</div>
-          <div><strong>Email:</strong> ${safe(contact.email)}</div>
-          <div><strong>Phone:</strong> ${safe(contact.phone)}</div>
-          <div><strong>Source:</strong> ${safe(source)}</div>
-        </div>
+    const safe = (value) => {
+      if (
+        value === null ||
+        value === undefined ||
+        String(value).trim().length === 0
+      ) {
+        return "N/A";
+      }
 
-        <h2 style="font-size: 16px; margin: 0 0 8px 0;">Trip / Date Info</h2>
-        <div style="
-          background: rgba(15,23,42,0.9);
-          border-radius: 12px;
-          padding: 12px 14px;
-          border: 1px solid rgba(148,163,184,0.35);
-          margin-bottom: 16px;
-          font-size: 13px;
-        ">
-          ${safe(dates)}
-        </div>
+      return String(value).trim();
+    };
 
-        <h2 style="font-size: 16px; margin: 0 0 8px 0;">Message</h2>
-        <div style="
-          background: rgba(15,23,42,0.9);
-          border-radius: 12px;
-          padding: 12px 14px;
-          border: 1px solid rgba(148,163,184,0.35);
-          margin-bottom: 16px;
-          font-size: 13px;
-          white-space: pre-wrap;
-        ">
-          ${safe(message)}
-        </div>
+    // Prevent customer-entered text from breaking HTML emails.
+    const escapeHtml = (value) => {
+      return safe(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    };
 
-        <div style="font-size: 12px; color: #9ca3af; margin-top: 16px; border-top: 1px solid rgba(148,163,184,0.35); padding-top: 10px;">
-          Questions? Call or text <strong>907-406-7901</strong><br/>
-          This email was generated from the Alaska Offroad Expedition website contact form.
-        </div>
-      </div>
-    `;
+    // Preserve line breaks in Outlook/Gmail without relying on
+    // CSS white-space support.
+    const formatMultiline = (value) => {
+      return escapeHtml(value).replace(/\r?\n/g, "<br>");
+    };
 
-    const text = `
+    const nameHtml = escapeHtml(contact.name);
+    const emailHtml = escapeHtml(contact.email);
+    const phoneHtml = escapeHtml(contact.phone);
+    const sourceHtml = escapeHtml(source);
+    const datesHtml = formatMultiline(dates);
+    const messageHtml = formatMultiline(message);
+
+    // ============================================================
+    // INTERNAL EMAIL
+    // Outlook-safe table layout
+    // ============================================================
+
+    const internalHtml = `
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f3f4f6;
+      font-family: Arial, Helvetica, sans-serif;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      border="0"
+      cellspacing="0"
+      cellpadding="0"
+      bgcolor="#f3f4f6"
+      style="
+        width: 100%;
+        background-color: #f3f4f6;
+        margin: 0;
+        padding: 0;
+      "
+    >
+      <tr>
+        <td
+          align="center"
+          style="padding: 28px 12px;"
+        >
+
+          <table
+            role="presentation"
+            width="640"
+            border="0"
+            cellspacing="0"
+            cellpadding="0"
+            bgcolor="#020617"
+            style="
+              width: 100%;
+              max-width: 640px;
+              background-color: #020617;
+              border: 1px solid #334155;
+              border-radius: 16px;
+            "
+          >
+
+            <!-- HEADER -->
+            <tr>
+              <td
+                style="
+                  padding: 24px 24px 8px 24px;
+                  color: #f8fafc;
+                  font-size: 22px;
+                  font-weight: 700;
+                  line-height: 28px;
+                "
+              >
+                Alaska Offroad Expedition
+              </td>
+            </tr>
+
+            <tr>
+              <td
+                style="
+                  padding: 0 24px 20px 24px;
+                  color: #94a3b8;
+                  font-size: 13px;
+                  line-height: 20px;
+                  border-bottom: 1px solid #334155;
+                "
+              >
+                New contact form submission from your website.
+              </td>
+            </tr>
+
+            <!-- CONTACT TITLE -->
+            <tr>
+              <td
+                style="
+                  padding: 22px 24px 8px 24px;
+                  color: #f8fafc;
+                  font-size: 16px;
+                  font-weight: 700;
+                  line-height: 22px;
+                "
+              >
+                Contact Info
+              </td>
+            </tr>
+
+            <!-- CONTACT BOX -->
+            <tr>
+              <td style="padding: 0 24px 18px 24px;">
+                <table
+                  role="presentation"
+                  width="100%"
+                  border="0"
+                  cellspacing="0"
+                  cellpadding="0"
+                  bgcolor="#0f172a"
+                  style="
+                    width: 100%;
+                    background-color: #0f172a;
+                    border: 1px solid #334155;
+                    border-radius: 10px;
+                  "
+                >
+                  <tr>
+                    <td
+                      style="
+                        padding: 14px 16px;
+                        color: #e5e7eb;
+                        font-size: 14px;
+                        line-height: 22px;
+                      "
+                    >
+                      <strong style="color: #ffffff;">Name:</strong>
+                      ${nameHtml}
+                      <br>
+
+                      <strong style="color: #ffffff;">Email:</strong>
+                      <a
+                        href="mailto:${emailHtml}"
+                        style="
+                          color: #60a5fa;
+                          text-decoration: underline;
+                        "
+                      >
+                        ${emailHtml}
+                      </a>
+                      <br>
+
+                      <strong style="color: #ffffff;">Phone:</strong>
+                      ${phoneHtml}
+                      <br>
+
+                      <strong style="color: #ffffff;">Source:</strong>
+                      ${sourceHtml}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- DATE TITLE -->
+            <tr>
+              <td
+                style="
+                  padding: 0 24px 8px 24px;
+                  color: #f8fafc;
+                  font-size: 16px;
+                  font-weight: 700;
+                  line-height: 22px;
+                "
+              >
+                Trip / Date Info
+              </td>
+            </tr>
+
+            <!-- DATE BOX -->
+            <tr>
+              <td style="padding: 0 24px 18px 24px;">
+                <table
+                  role="presentation"
+                  width="100%"
+                  border="0"
+                  cellspacing="0"
+                  cellpadding="0"
+                  bgcolor="#0f172a"
+                  style="
+                    width: 100%;
+                    background-color: #0f172a;
+                    border: 1px solid #334155;
+                    border-radius: 10px;
+                  "
+                >
+                  <tr>
+                    <td
+                      style="
+                        padding: 14px 16px;
+                        color: #e5e7eb;
+                        font-size: 14px;
+                        line-height: 22px;
+                      "
+                    >
+                      ${datesHtml}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- MESSAGE TITLE -->
+            <tr>
+              <td
+                style="
+                  padding: 0 24px 8px 24px;
+                  color: #f8fafc;
+                  font-size: 16px;
+                  font-weight: 700;
+                  line-height: 22px;
+                "
+              >
+                Message
+              </td>
+            </tr>
+
+            <!-- MESSAGE BOX -->
+            <tr>
+              <td style="padding: 0 24px 22px 24px;">
+                <table
+                  role="presentation"
+                  width="100%"
+                  border="0"
+                  cellspacing="0"
+                  cellpadding="0"
+                  bgcolor="#0f172a"
+                  style="
+                    width: 100%;
+                    background-color: #0f172a;
+                    border: 1px solid #334155;
+                    border-radius: 10px;
+                  "
+                >
+                  <tr>
+                    <td
+                      style="
+                        padding: 16px;
+                        color: #e5e7eb;
+                        font-size: 14px;
+                        line-height: 22px;
+                      "
+                    >
+                      ${messageHtml}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- FOOTER -->
+            <tr>
+              <td
+                style="
+                  padding: 16px 24px 24px 24px;
+                  color: #94a3b8;
+                  font-size: 12px;
+                  line-height: 18px;
+                  border-top: 1px solid #334155;
+                "
+              >
+                Questions? Call or text
+                <a
+                  href="tel:9074067901"
+                  style="
+                    color: #60a5fa;
+                    text-decoration: underline;
+                  "
+                >
+                  907-406-7901
+                </a>
+                <br>
+
+                This email was generated from the Alaska Offroad Expedition
+                website contact form.
+              </td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+    `.trim();
+
+    const internalText = `
 Alaska Offroad Expedition - Contact Form
 
 Contact Info
@@ -154,82 +430,289 @@ ${safe(message)}
 Questions? Call or text 907-406-7901.
     `.trim();
 
-    // 1) Internal email to you
-    const internalResult = await resend.emails.send({
-      from,
-      to: "cooper@alaskaoffroadexpedition.com",
-      subject: subjectInternal,
-      html,
-      text,
-    });
+    // ============================================================
+    // SEND INTERNAL NOTIFICATION
+    // ============================================================
 
-    if (internalResult?.error) {
-      console.error("RESEND contact (internal) error:", internalResult.error);
-      return res
-        .status(500)
-        .json({ ok: false, error: "Failed to send internal email." });
+    const internalPayload = {
+      from,
+      to: internalTo,
+      subject: subjectInternal,
+      html: internalHtml,
+      text: internalText,
+    };
+
+    // Clicking Reply on the internal notification replies
+    // directly to the customer.
+    if (contact.email) {
+      internalPayload.replyTo = contact.email;
     }
 
-    // 2) Auto-response to customer (if email present)
+    const internalResult =
+      await resend.emails.send(internalPayload);
+
+    if (internalResult?.error) {
+      console.error(
+        "RESEND contact (internal) error:",
+        internalResult.error
+      );
+
+      return res.status(500).json({
+        ok: false,
+        error: "Failed to send internal email.",
+      });
+    }
+
+    // ============================================================
+    // CUSTOMER AUTO-RESPONSE
+    // ============================================================
+
     let customerError = null;
+
     if (contact.email) {
       const customerHtml = `
-        <div style="
-          max-width: 640px;
-          margin: 0 auto;
-          background: #020617;
-          color: #e5e7eb;
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          padding: 24px;
-          border-radius: 16px;
-          border: 1px solid rgba(148,163,184,0.35);
-        ">
-          <div style="border-bottom: 1px solid rgba(148,163,184,0.35); padding-bottom: 16px; margin-bottom: 20px;">
-            <h1 style="font-size: 20px; margin: 0 0 4px 0;">Alaska Offroad Expedition</h1>
-            <p style="margin: 0; font-size: 13px; color: #9ca3af;">
-              Thanks for reaching out!
-            </p>
-          </div>
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    >
+  </head>
 
-          <p style="font-size: 14px; margin-bottom: 12px;">
-            Hi ${safe(contact.name)},
-          </p>
-          <p style="font-size: 14px; margin-bottom: 12px;">
-            We’ve received your message and will get back to you as soon as possible
-            about your Alaska off-road adventure.
-          </p>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f3f4f6;
+      font-family: Arial, Helvetica, sans-serif;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      border="0"
+      cellspacing="0"
+      cellpadding="0"
+      bgcolor="#f3f4f6"
+      style="
+        width: 100%;
+        background-color: #f3f4f6;
+        margin: 0;
+        padding: 0;
+      "
+    >
+      <tr>
+        <td
+          align="center"
+          style="padding: 28px 12px;"
+        >
 
-          <h2 style="font-size: 15px; margin: 16px 0 8px 0;">Requested dates / trip info</h2>
-          <div style="
-            background: rgba(15,23,42,0.9);
-            border-radius: 12px;
-            padding: 12px 14px;
-            border: 1px solid rgba(148,163,184,0.35);
-            margin-bottom: 16px;
-            font-size: 13px;
-          ">
-            ${safe(dates)}
-          </div>
+          <table
+            role="presentation"
+            width="640"
+            border="0"
+            cellspacing="0"
+            cellpadding="0"
+            bgcolor="#020617"
+            style="
+              width: 100%;
+              max-width: 640px;
+              background-color: #020617;
+              border: 1px solid #334155;
+              border-radius: 16px;
+            "
+          >
 
-          <h2 style="font-size: 15px; margin: 16px 0 8px 0;">What you sent</h2>
-          <div style="
-            background: rgba(15,23,42,0.9);
-            border-radius: 12px;
-            padding: 12px 14px;
-            border: 1px solid rgba(148,163,184,0.35);
-            margin-bottom: 16px;
-            font-size: 13px;
-            white-space: pre-wrap;
-          ">
-            ${safe(message)}
-          </div>
+            <!-- HEADER -->
+            <tr>
+              <td
+                style="
+                  padding: 24px 24px 8px 24px;
+                  color: #f8fafc;
+                  font-size: 22px;
+                  font-weight: 700;
+                  line-height: 28px;
+                "
+              >
+                Alaska Offroad Expedition
+              </td>
+            </tr>
 
-          <div style="font-size: 12px; color: #9ca3af; margin-top: 16px; border-top: 1px solid rgba(148,163,184,0.35); padding-top: 10px;">
-            If you need to reach us sooner, you can call or text <strong>907-406-7901</strong>.<br/>
-            We’re excited to help plan your Alaska adventure.
-          </div>
-        </div>
-      `;
+            <tr>
+              <td
+                style="
+                  padding: 0 24px 20px 24px;
+                  color: #94a3b8;
+                  font-size: 13px;
+                  line-height: 20px;
+                  border-bottom: 1px solid #334155;
+                "
+              >
+                Thanks for reaching out!
+              </td>
+            </tr>
+
+            <!-- INTRO -->
+            <tr>
+              <td
+                style="
+                  padding: 22px 24px 8px 24px;
+                  color: #e5e7eb;
+                  font-size: 14px;
+                  line-height: 22px;
+                "
+              >
+                Hi ${nameHtml},
+              </td>
+            </tr>
+
+            <tr>
+              <td
+                style="
+                  padding: 0 24px 20px 24px;
+                  color: #e5e7eb;
+                  font-size: 14px;
+                  line-height: 22px;
+                "
+              >
+                We’ve received your message and will get back to you
+                as soon as possible about your Alaska off-road adventure.
+              </td>
+            </tr>
+
+            <!-- DATES TITLE -->
+            <tr>
+              <td
+                style="
+                  padding: 0 24px 8px 24px;
+                  color: #f8fafc;
+                  font-size: 16px;
+                  font-weight: 700;
+                  line-height: 22px;
+                "
+              >
+                Requested dates / trip info
+              </td>
+            </tr>
+
+            <!-- DATES BOX -->
+            <tr>
+              <td style="padding: 0 24px 20px 24px;">
+                <table
+                  role="presentation"
+                  width="100%"
+                  border="0"
+                  cellspacing="0"
+                  cellpadding="0"
+                  bgcolor="#0f172a"
+                  style="
+                    width: 100%;
+                    background-color: #0f172a;
+                    border: 1px solid #334155;
+                    border-radius: 10px;
+                  "
+                >
+                  <tr>
+                    <td
+                      style="
+                        padding: 14px 16px;
+                        color: #e5e7eb;
+                        font-size: 14px;
+                        line-height: 22px;
+                      "
+                    >
+                      ${datesHtml}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- MESSAGE TITLE -->
+            <tr>
+              <td
+                style="
+                  padding: 0 24px 8px 24px;
+                  color: #f8fafc;
+                  font-size: 16px;
+                  font-weight: 700;
+                  line-height: 22px;
+                "
+              >
+                What you sent
+              </td>
+            </tr>
+
+            <!-- MESSAGE BOX -->
+            <tr>
+              <td style="padding: 0 24px 22px 24px;">
+                <table
+                  role="presentation"
+                  width="100%"
+                  border="0"
+                  cellspacing="0"
+                  cellpadding="0"
+                  bgcolor="#0f172a"
+                  style="
+                    width: 100%;
+                    background-color: #0f172a;
+                    border: 1px solid #334155;
+                    border-radius: 10px;
+                  "
+                >
+                  <tr>
+                    <td
+                      style="
+                        padding: 16px;
+                        color: #e5e7eb;
+                        font-size: 14px;
+                        line-height: 22px;
+                      "
+                    >
+                      ${messageHtml}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- FOOTER -->
+            <tr>
+              <td
+                style="
+                  padding: 16px 24px 24px 24px;
+                  color: #94a3b8;
+                  font-size: 12px;
+                  line-height: 18px;
+                  border-top: 1px solid #334155;
+                "
+              >
+                If you need to reach us sooner, call or text
+                <a
+                  href="tel:9074067901"
+                  style="
+                    color: #60a5fa;
+                    text-decoration: underline;
+                  "
+                >
+                  907-406-7901
+                </a>.
+                <br>
+
+                We’re excited to help plan your Alaska adventure.
+              </td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+      `.trim();
 
       const customerText = `
 Hi ${safe(contact.name)},
@@ -244,33 +727,54 @@ What you sent
 -------------
 ${safe(message)}
 
-If you need to reach us sooner, you can call or text 907-406-7901.
+If you need to reach us sooner, call or text 907-406-7901.
+
+We’re excited to help plan your Alaska adventure.
 
 Alaska Offroad Expedition
       `.trim();
 
-      const customerResult = await resend.emails.send({
-        from,
-        to: contact.email,
-        subject: subjectCustomer,
-        html: customerHtml,
-        text: customerText,
-      });
+      const customerResult =
+        await resend.emails.send({
+          from,
+          to: contact.email,
+
+          // If the customer hits Reply, it comes to you
+          // instead of the noreply address.
+          replyTo: internalTo,
+
+          subject: subjectCustomer,
+          html: customerHtml,
+          text: customerText,
+        });
 
       if (customerResult?.error) {
         customerError = customerResult.error;
-        console.error("RESEND contact (customer) error:", customerError);
+
+        console.error(
+          "RESEND contact (customer) error:",
+          customerError
+        );
       }
     }
+
+    // ============================================================
+    // SUCCESS
+    // ============================================================
 
     return res.status(200).json({
       ok: true,
       customerEmailSent: !customerError,
     });
   } catch (err) {
-    console.error("QUOTE / CONTACT API ERROR:", err);
-    return res
-      .status(500)
-      .json({ ok: false, error: "Internal Server Error" });
+    console.error(
+      "QUOTE / CONTACT API ERROR:",
+      err
+    );
+
+    return res.status(500).json({
+      ok: false,
+      error: "Internal Server Error",
+    });
   }
 }
