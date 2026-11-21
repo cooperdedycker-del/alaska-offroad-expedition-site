@@ -18,8 +18,8 @@ export default function ExperienceDetailsModal({ experience, onClose }) {
   const photos = [...new Set([experience.image, ...(Array.isArray(experience.images) ? experience.images : [])].filter(Boolean))];
   const source = experience.website || experience.sourceUrl || experience.publishedSource;
   const priceInfo = getPartnerPriceInfo(experience);
-  const unitName = { perPerson: "person", perVehicle: "vehicle", perCharter: "charter", perNight: "night" }[priceInfo?.unit];
-  const price = priceInfo ? `From $${priceInfo.customerPrice.toFixed(2)} per ${unitName} · estimated` : "Price available upon request";
+  const unitName = priceInfo?.unitLabel ?? { perPerson: "person", perVehicle: "vehicle", perCharter: "charter", perNight: "night" }[priceInfo?.unit];
+  const price = priceInfo ? `From $${priceInfo.customerPrice.toLocaleString("en-US")} per ${unitName} · estimated` : "Price available upon request";
   const season = experience.season === "year-round" ? "Year-round" : experience.season === "winter" ? "Winter" : experience.season === "summer" ? "Summer" : "Season varies";
   const details = experience.sc || experience.desc || experience.description || "Contact us for more information about this experience.";
   return (

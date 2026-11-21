@@ -1,6 +1,7 @@
 import ExperienceDetailsModal from "../components/ExperienceDetailsModal";
 import { useState, useEffect } from "react";
 import { partnerExperienceTotalCents, extendedStayDiscountRate } from "../data/bookingPricing.mjs";
+import { ADD_ON_CATEGORIES, getAddOnCategoryIds } from "../data/addOnCategories";
 import { expeditionPackages } from "../data/packages.js";
 import { useSearchParams } from "react-router-dom";
 import { getVacationPackageById } from "../data/packages";
@@ -9,7 +10,6 @@ import {
   BOOKING_RATES,
   SEASONAL_RATES,
   getOperatingSeason,
-  getPartnerDisplayPrice,
   getPartnerPriceInfo,
 } from "../data/experiences";
 
@@ -222,7 +222,7 @@ function partnerQuote(ex, guests, participants) {
   if (!Number.isInteger(count) || count < 1 || (unit === "perPerson" && count > Number(guests))) return null;
   const cents = partnerExperienceTotalCents({ providerUnitPriceDollars: base, quantity: count });
   const label = unit === "perPerson" ? `${count} participant(s) · listed excursion price`
-    : unit === "perVehicle" ? "1 vehicle · listed excursion price"
+    : unit === "perVehicle" ? `1 ${ex.priceUnitLabel || "vehicle"} · listed excursion price`
     : unit === "perCharter" ? "1 private charter · listed excursion price"
     : "1 night · listed excursion price";
   return { price: cents / 100, label };
@@ -256,42 +256,6 @@ const secondaryButton = `
   hover:bg-white/10
 `;
 
-// Keep Trip Builder categories identical to homepage activity groupings.
-// Group the homepage add-ons by the experience itself, never by provider.
-// This uses the master catalog category and title so new offerings are included automatically.
-const EXPERIENCE_CATEGORIES = [
-  { id: "snow", title: "Snowmachine & Winter Tours", subtitle: "Guided snowmachine rides, winter trails, and frozen-lake adventures." },
-  { id: "helicopter", title: "Helicopter & Flightseeing Tours", subtitle: "Scenic flights, glacier landings, and helicopter exploration." },
-  { id: "glacier", title: "Ice Climbing, Glacier Hikes & Adventures", subtitle: "Glacier walks, ice climbing, hiking, and backcountry adventures." },
-  { id: "atv", title: "ATV, Side-by-Side & Dirt Bike Tours", subtitle: "Off-road ATV, UTV, side-by-side, and motorcycle experiences." },
-  { id: "fishing", title: "Fishing Tours", subtitle: "Guided fishing trips, river fishing, and ice fishing experiences." },
-  { id: "water", title: "Boat, River & Hovercraft Tours", subtitle: "River floats, boat trips, paddling, and SeaCraft hovercraft tours." },
-  { id: "lodging", title: "Lodging & Overnight Stays", subtitle: "Cabins, lodges, camping, and overnight accommodations." },
-  { id: "sightseeing", title: "Sightseeing & Historic Tours", subtitle: "Historic sites, cultural tours, and scenic experiences." },
-  { id: "other", title: "More Alaska Adventures", subtitle: "More guided experiences and unique Alaska activities." },
-];
-
-function getExperienceCategory(item) {
-  const category = String(item.category || "").toLowerCase();
-  const name = String(item.name || "").toLowerCase();
-  // Accommodation and fishing should not be misfiled as general winter adventures.
-  if (["lodging", "camping", "accommodation"].includes(category) || /\b(cabin|lodging|campground|overnight stay|rv spot)\b/.test(name)) return "lodging";
-  if (["fishing"].includes(category) || /\b(fishing|angling)\b/.test(name)) {
-    // River floats without fishing are water tours; ice fishing belongs with winter tours.
-    if (/\b(ice fishing|snowmachine|snowmobile)\b/.test(name)) return "snow";
-    if (/\b(float|raft|boat|paddle)\b/.test(name) && !/\bfish/.test(name)) return "water";
-    return "fishing";
-  }
-  if (["snowmachine", "snowmobile", "winter"].includes(category) || /\b(snowmachine|snowmobile|northern lights utv)\b/.test(name)) return "snow";
-  if (["helicopter", "flightseeing", "aviation"].includes(category) || /\b(helicopter|heli|flightseeing)\b/.test(name)) return "helicopter";
-  if (["glacier", "hiking", "ice-climbing", "iceclimbing", "climbing", "multi-day"].includes(category) || /\b(ice climbing|glacier hike|glacier trekking|ice cave|hike)\b/.test(name)) return "glacier";
-  if (["atv", "utv", "motorsports", "dirtbike", "dirt-bike", "offroad"].includes(category) || /\b(atv|utv|side.by.side|dirt bike)\b/.test(name)) return "atv";
-  if (["hovercraft", "water", "boating", "paddling", "river", "rafting", "float", "kayaking"].includes(category) || /\b(hovercraft|river float|boat tour|lake paddle)\b/.test(name)) return "water";
-  if (["history", "sightseeing", "culture"].includes(category)) return "sightseeing";
-  return "other";
-}
-
-
 // Short display labels are presentation-only; booking IDs remain unchanged.
 const EXPERIENCE_SHORT_NAMES = {
   "winter-knik-glacier": "Knik Glacier 4x4",
@@ -299,7 +263,6 @@ const EXPERIENCE_SHORT_NAMES = {
   "gunsight-frozen-waters": "Snowmachine & Ice Fishing",
   "gunsight-full-day": "Full-Day Snowmachine",
   "gunsight-twilight-ridge": "Twilight Ridge Ride",
-  "hatcherPassAtv": "Hatcher Pass ATV",
   "outboundHeli": "Helicopter Adventures",
   "Ice Climbing Root Glacier!": "Root Glacier Ice Climbing",
   "Mill Tour": "Kennecott Mill Tour",
@@ -731,6 +694,20 @@ const tripSeason = getOperatingSeason(arrivalDate);
         )
       : 0;
 
+  // A preselected Hatcher Pass tour must not carry into a different season.
+  useEffect(() => {
+    if (!arrivalDate || !departureDate || departureDate < arrivalDate) return;
+    setSelectedExperiences((current) => {
+      const next = current.filter((id) => {
+        const experience = experiences.find((item) => item.id === id);
+        return experience?.operator !== "Hatcher Pass ATV Tours" ||
+          experience?.priceUnitLabel !== "UTV" ||
+          experienceAvailableDuringTrip(experience, arrivalDate, departureDate);
+      });
+      return next.length === current.length ? current : next;
+    });
+  }, [arrivalDate, departureDate]);
+
   // A multi-day winter expedition includes a scheduled Knik Glacier day.
   // Preselect it when dates qualify; do not add a separate charge for it.
   useEffect(() => {
@@ -896,7 +873,7 @@ const experiencePriceItems = selectedExperienceDetails.map(
         : `Included in winter expedition (${drivers} driver(s), ${passengers} passenger(s))`;
     }
 
-    // Partner prices are quoted exactly as configured in experiences.js; no markup.
+    // Use the same partner markup and rounding as checkout.
     else if (experience.operator !== "AOE") {
       const quoted = partnerQuote(experience, guestCount, experienceParticipants[experience.id]);
       price = quoted?.price ?? 0;
@@ -1045,8 +1022,8 @@ function toggleExperience(experienceId) {
   const primaryAOEExperiences = visibleExperiences.filter((experience) => experience.operator === "AOE");
 
   const partnerAddOns = dayTripOnly ? [] : visibleExperiences.filter((experience) => experience.operator !== "AOE");
-  const categorizedAddOns = EXPERIENCE_CATEGORIES.map((group) => ({
-    ...group, items: partnerAddOns.filter((item) => getExperienceCategory(item) === group.id),
+  const categorizedAddOns = ADD_ON_CATEGORIES.map((group) => ({
+    ...group, items: partnerAddOns.filter((item) => getAddOnCategoryIds(item, tripSeason).includes(group.id)),
   })).filter((group) => group.items.length > 0);
 
   const selectedPackage = availablePackages.find(
@@ -1374,7 +1351,14 @@ if (step === 4) {
                     : "Tell us when you're coming and who's joining you. We'll show you adventures available during your stay."}
                 </p>
                 {!dayTripOnly && requestedExperience && <p className="mx-auto mt-4 max-w-2xl rounded-xl border border-orange-400/40 bg-orange-500/10 p-3 text-sm text-orange-100">
-                  Interested in: <strong>{requestedExperience.name}</strong>. {requestedExperienceHasPrice ? "This experience is already selected for your trip, subject to your travel dates and provider confirmation." : "Its price has not been finalized. You can plan your trip, but this activity cannot be charged until its price is approved."}
+                  Interested in: <strong>{requestedExperience.name}</strong>. {requestedExperienceHasPrice
+                    ? requestedExperience.priceUnitLabel === "UTV" && arrivalDate && departureDate &&
+                      !experienceAvailableDuringTrip(requestedExperience, arrivalDate, departureDate)
+                        ? "This tour is outside the season for your dates. Look for the matching seasonal option in the next step."
+                        : selectedExperiences.includes(requestedExperienceId)
+                          ? "This experience is selected for your trip, subject to your travel dates and provider confirmation."
+                          : "If it matches your dates, you can add this experience in the next step."
+                    : "Its price has not been finalized. You can plan your trip, but this activity cannot be charged until its price is approved."}
                 </p>}
 
               </div>
@@ -1816,13 +1800,9 @@ if (step === 4) {
                              ? partnerQuote(experience, guestCount, experienceParticipants[experience.id]) : null;
                           const priceInfo = getPartnerPriceInfo(experience);
                           const needsQuote = experience.operator !== "AOE" && !quote;
-                           if (quote) {
-                             const unit = experience.publishedPriceUnit;
-                             const unitLabel = unit === "perPerson" ? "/person" : unit === "perVehicle" ? "/vehicle" : unit === "perCharter" ? "/charter" : "/night";
-                             priceLabel = `From $${getPartnerDisplayPrice(experience)?.toFixed(2)}${unitLabel} · estimated`;
-                           } else if (priceInfo) {
-                             const unitLabel = {perPerson:"/person",perVehicle:"/vehicle",perCharter:"/charter",perNight:"/night"}[priceInfo.unit];
-                             priceLabel = `From $${priceInfo.customerPrice.toFixed(2)}${unitLabel} · estimated · confirm before checkout`;
+                           if (priceInfo) {
+                             const unitLabel = priceInfo.unitLabel ? `/${priceInfo.unitLabel}` : {perPerson:"/person",perVehicle:"/vehicle",perCharter:"/charter",perNight:"/night"}[priceInfo.unit];
+                             priceLabel = `From $${priceInfo.customerPrice.toLocaleString("en-US")}${unitLabel} · estimated${quote ? "" : " · confirm before checkout"}`;
                            } else if (experience.pricingType === "driverPassenger") {
                              priceLabel = winterIsStandaloneDayTrip
                                ? `From $${Number(experience.passengerPrice).toLocaleString()}/person`

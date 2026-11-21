@@ -38,7 +38,62 @@ function getMonthDay(dateString) {
   return `${month}-${day}`;
 }
 
+function getMonthsInDateRange(startDate, endDate) {
+  if (!startDate) return [];
+
+  const start = new Date(`${startDate}T12:00:00`);
+  const end = endDate
+    ? new Date(`${endDate}T12:00:00`)
+    : start;
+
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime())
+  ) {
+    return [];
+  }
+
+  const months = new Set();
+
+  const cursor = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    1
+  );
+
+  const last = new Date(
+    end.getFullYear(),
+    end.getMonth(),
+    1
+  );
+
+  while (cursor <= last) {
+    months.add(cursor.getMonth() + 1);
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  return [...months];
+}
+
 function isExcursionInSeason(excursion, tripStart, tripEnd) {
+  // Preferred season check:
+  // Uses the availableMonths array from experiences.js.
+  if (
+    Array.isArray(excursion.availableMonths) &&
+    excursion.availableMonths.length > 0 &&
+    tripStart
+  ) {
+    const tripMonths = getMonthsInDateRange(
+      tripStart,
+      tripEnd
+    );
+
+    return tripMonths.every((month) =>
+      excursion.availableMonths.includes(month)
+    );
+  }
+
+  // Legacy seasonStart / seasonEnd support.
   if (!excursion.seasonStart || !excursion.seasonEnd) {
     return true;
   }
@@ -1396,9 +1451,19 @@ function StepAddOns({ form, set }) {
                   )}
 
                   <div className="text-xs text-neutral-500 mt-3">
-                    Cost: ${Number(x.price || 0).toLocaleString()}
-                    {x.priceType === "perPerson" ? " per person" : ""}
-                  </div>
+  Cost: $
+  {Number(x.price || 0).toLocaleString(undefined, {
+    minimumFractionDigits:
+      Number(x.price || 0) % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}
+
+  {x.priceType === "perPerson"
+    ? " per person"
+    : x.priceType === "perVehicle"
+    ? " per UTV"
+    : ""}
+</div>
                 </div>
               </div>
 

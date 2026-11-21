@@ -1,3 +1,5 @@
+import { partnerMarkedUpUnitCents } from "./bookingPricing.mjs";
+
 /*
  * ALASKA OFFROAD EXPEDITION
  * MASTER EXPERIENCE CATALOG
@@ -258,29 +260,6 @@ export const experiences = [
     "description": "Explore Alaska's snowy valleys and mountain ridges during the afternoon and evening. Enjoy scenic viewpoints and hot beverages before returning by dusk.",
     "active": true,
     "requiresConfirmation": true
-  },
-  {
-    "id": "hatcherPassAtv",
-    "key": "hatcherPassAtv",
-    "name": "Hatcher Pass ATV Tours",
-    "operator": "Partner",
-    "category": "atv",
-    "season": "summer",
-    "price": 500,
-    "priceType": "perPerson",
-    "transportationIncluded": false,
-    "location": "Hatcher Pass, Alaska",
-    "image": "https://hatcherpasstour.com/wp-content/uploads/2026/01/Summer-UTV-Tour-Hatcher-Pass-Alaska.jpg",
-    "description": "Explore Hatcher Pass and the Talkeetna Mountains on a guided ATV adventure.",
-    "active": true,
-    "requiresConfirmation": true,
-    "website": "https://hatcherpasstour.com/",
-    "type": "Alaska ATV and Snowmobile Tours",
-    "desc": "Explore Alaska’s backcountry on a guided ride through the rugged Talkeetna Mountains of Hatcher Pass with unmatched panoramic views, creek crossings, and Denali views on clear days—without sacrificing comfort.",
-    "images": [
-      "https://hatcherpasstour.com/wp-content/uploads/2026/01/Summer-UTV-Tour-Hatcher-Pass-Alaska.jpg"
-    ],
-    "tripBuilder": true
   },
   {
     "id": "outboundHeli",
@@ -782,62 +761,169 @@ export const experiences = [
   {
     "id": "hatcher-two-person-utv",
     "key": "hatcher-two-person-utv",
-    "name": "Hatcher Pass Two-Person UTV Tour",
+    "name": "Hatcher Pass Summer UTV (2 Guests)",
     "operator": "Hatcher Pass ATV Tours",
     "category": "atv",
     "season": "summer",
-    "price": null,
-    "priceType": "quote",
-    "pricingType": "quote",
-    "priceStatus": "partner-confirmation-required",
+    "publishedBasePrice": 299,
+    "publishedPriceUnit": "perVehicle",
+    "priceUnitLabel": "UTV",
+    "publishedSource": "https://hatcherpasstour.com/tours/two-people-utv-tour/",
+    "durationHours": 3,
+    "location": "Hatcher Pass / Willow, Alaska",
     "transportationIncluded": false,
-    "image": "https://hatcherpasstour.com/wp-content/uploads/2026/01/Summer-UTV-Tour-Hatcher-Pass-Alaska.jpg",
-    "images": [
-      "https://hatcherpasstour.com/wp-content/uploads/2026/01/Summer-UTV-Tour-Hatcher-Pass-Alaska.jpg"
-    ],
-    "description": "Guided two-person UTV adventure through Hatcher Pass backcountry and scenic mountain terrain. Priced by vehicle; confirm current provider rate.",
-    "active": false,
-    "tripBuilder": false,
-    "requiresConfirmation": true,
-    "website": "https://hatcherpasstour.com/tours/two-people-utv-tour/",
-    "sourceUrl": "https://hatcherpasstour.com/tours/two-people-utv-tour/",
-    "catalogStatus": "draft-not-bookable",
     "availableMonths": [
+      5,
       6,
       7,
       8,
-      9
-    ]
+      9,
+      10
+    ],
+    "availability": "May–October",
+    "image": "https://i0.wp.com/hatcherpasstour.com/wp-content/uploads/2025/01/img-g-18.jpg?fit=1400%2C1050&ssl=1",
+    "images": [
+      "https://i0.wp.com/hatcherpasstour.com/wp-content/uploads/2025/01/img-g-18.jpg?fit=1400%2C1050&ssl=1",
+      "https://i0.wp.com/hatcherpasstour.com/wp-content/uploads/2025/01/img-g-20.jpg?fit=1400%2C933&ssl=1"
+    ],
+    "description": "Follow a local guide through Hatcher Pass on a side-by-side tour with mountain views and scenic stops.",
+    "features": [
+      "One private UTV for two guests",
+      "Depart from the Willow side of Hatcher Pass"
+    ],
+    "active": true,
+    "tripBuilder": true,
+    "requiresConfirmation": true,
+    "bookingMode": "inquiry",
+    "website": "https://hatcherpasstour.com/tours/two-people-utv-tour/",
+    "sourceUrl": "https://hatcherpasstour.com/tours/two-people-utv-tour/",
+    "priceVerifiedOn": "2026-11-19"
   },
   {
     "id": "hatcher-group-utv",
     "key": "hatcher-group-utv",
-    "name": "Hatcher Pass Family & Group UTV Tour",
+    "name": "Hatcher Pass Summer UTV (Up to 5)",
     "operator": "Hatcher Pass ATV Tours",
     "category": "atv",
     "season": "summer",
-    "price": null,
-    "priceType": "quote",
-    "pricingType": "quote",
-    "priceStatus": "partner-confirmation-required",
+    "publishedBasePrice": 365,
+    "publishedPriceUnit": "perVehicle",
+    "priceUnitLabel": "UTV",
+    "publishedSource": "https://hatcherpasstour.com/tours/family-utv-tour-up-to-5-people/",
+    "durationHours": 3,
+    "location": "Hatcher Pass / Willow, Alaska",
     "transportationIncluded": false,
-    "image": "https://hatcherpasstour.com/wp-content/uploads/2024/05/blog-ATV-Adventures.jpg",
-    "images": [
-      "https://hatcherpasstour.com/wp-content/uploads/2024/05/blog-ATV-Adventures.jpg"
-    ],
-    "description": "A guided group or family UTV tour in the Hatcher Pass area; party size and vehicle-based pricing require confirmation.",
-    "active": false,
-    "tripBuilder": false,
-    "requiresConfirmation": true,
-    "website": "https://hatcherpasstour.com/tours/family-utv-tour-up-to-5-people/",
-    "sourceUrl": "https://hatcherpasstour.com/tours/family-utv-tour-up-to-5-people/",
-    "catalogStatus": "draft-not-bookable",
     "availableMonths": [
+      5,
       6,
       7,
       8,
-      9
-    ]
+      9,
+      10
+    ],
+    "availability": "May–October",
+    "image": "https://i0.wp.com/hatcherpasstour.com/wp-content/uploads/2025/01/img-g-20.jpg?fit=1400%2C933&ssl=1",
+    "images": [
+      "https://i0.wp.com/hatcherpasstour.com/wp-content/uploads/2025/01/img-g-20.jpg?fit=1400%2C933&ssl=1",
+      "https://i0.wp.com/hatcherpasstour.com/wp-content/uploads/2025/01/img-g-18.jpg?fit=1400%2C1050&ssl=1"
+    ],
+    "description": "Follow a local guide through Hatcher Pass on a side-by-side tour with mountain views and scenic stops.",
+    "features": [
+      "One private UTV for up to five guests. Four adults maximum and a 700 lb combined limit. A fifth guest must be a child under 80 lb.",
+      "Depart from the Willow side of Hatcher Pass"
+    ],
+    "active": true,
+    "tripBuilder": true,
+    "requiresConfirmation": true,
+    "bookingMode": "inquiry",
+    "website": "https://hatcherpasstour.com/tours/family-utv-tour-up-to-5-people/",
+    "sourceUrl": "https://hatcherpasstour.com/tours/family-utv-tour-up-to-5-people/",
+    "priceVerifiedOn": "2026-11-19"
+  },
+  {
+    "id": "hatcher-winter-two-person-utv",
+    "key": "hatcher-winter-two-person-utv",
+    "name": "Hatcher Pass Winter UTV (2 Guests)",
+    "operator": "Hatcher Pass ATV Tours",
+    "category": "atv",
+    "season": "winter",
+    "publishedBasePrice": 299,
+    "publishedPriceUnit": "perVehicle",
+    "priceUnitLabel": "UTV",
+    "publishedSource": "https://hatcherpasstour.com/tours/two-guests-heated-enclosed-utv-tour-winter/",
+    "durationHours": 3,
+    "location": "Hatcher Pass / Willow, Alaska",
+    "transportationIncluded": false,
+    "availableMonths": [
+      11,
+      12,
+      1,
+      2,
+      3,
+      4
+    ],
+    "availability": "November–April",
+    "image": "https://i0.wp.com/hatcherpasstour.com/wp-content/uploads/2024/11/Guests-UTV-Tour-Winter.jpg?fit=2048%2C1536&ssl=1",
+    "images": [
+      "https://i0.wp.com/hatcherpasstour.com/wp-content/uploads/2024/11/Guests-UTV-Tour-Winter.jpg?fit=2048%2C1536&ssl=1",
+      "https://cloudinary.poladv.com/dnmadhbfi/image/fetch/f_auto/q_auto/dpr_2/c_fit%2Cw_1700/https%3A//assets.poladv.com/landingHeroImage.url/utvtourswinterwithhatcherpassatvtours.jpg-c4cf6484-f345-437b-8e0f-d7ac6ac43fed"
+    ],
+    "description": "Follow a local guide through snow-covered Hatcher Pass in a heated, enclosed side-by-side.",
+    "features": [
+      "One private UTV for two guests",
+      "Heated, enclosed side-by-side for winter trails",
+      "Depart from the Willow side of Hatcher Pass"
+    ],
+    "active": true,
+    "tripBuilder": true,
+    "requiresConfirmation": true,
+    "bookingMode": "inquiry",
+    "website": "https://hatcherpasstour.com/tours/two-guests-heated-enclosed-utv-tour-winter/",
+    "sourceUrl": "https://hatcherpasstour.com/tours/two-guests-heated-enclosed-utv-tour-winter/",
+    "priceVerifiedOn": "2026-11-19"
+  },
+  {
+    "id": "hatcher-winter-five-person-utv",
+    "key": "hatcher-winter-five-person-utv",
+    "name": "Hatcher Pass Winter UTV (Up to 5)",
+    "operator": "Hatcher Pass ATV Tours",
+    "category": "atv",
+    "season": "winter",
+    "publishedBasePrice": 365,
+    "publishedPriceUnit": "perVehicle",
+    "priceUnitLabel": "UTV",
+    "publishedSource": "https://hatcherpasstour.com/tours/family-utv-tour-up-to-5-people-winter/",
+    "durationHours": 3,
+    "location": "Hatcher Pass / Willow, Alaska",
+    "transportationIncluded": false,
+    "availableMonths": [
+      11,
+      12,
+      1,
+      2,
+      3,
+      4
+    ],
+    "availability": "November–April",
+    "image": "https://i0.wp.com/hatcherpasstour.com/wp-content/uploads/2024/11/Up-to-6-guests.jpg?fit=2048%2C1397&ssl=1",
+    "images": [
+      "https://i0.wp.com/hatcherpasstour.com/wp-content/uploads/2024/11/Up-to-6-guests.jpg?fit=2048%2C1397&ssl=1",
+      "https://cloudinary.poladv.com/dnmadhbfi/image/fetch/f_auto/q_auto/dpr_2/c_fit%2Cw_1700/https%3A//assets.poladv.com/landingHeroImage.url/utvtourswinterwithhatcherpassatvtours.jpg-c4cf6484-f345-437b-8e0f-d7ac6ac43fed",
+      "https://i0.wp.com/hatcherpasstour.com/wp-content/uploads/2024/11/Guests-UTV-Tour-Winter.jpg?fit=2048%2C1536&ssl=1"
+    ],
+    "description": "Follow a local guide through snow-covered Hatcher Pass in a heated, enclosed side-by-side.",
+    "features": [
+      "One private UTV for up to five guests. Four adults maximum and a 700 lb combined limit. A fifth guest must be a child under 80 lb.",
+      "Heated, enclosed side-by-side for winter trails",
+      "Depart from the Willow side of Hatcher Pass"
+    ],
+    "active": true,
+    "tripBuilder": true,
+    "requiresConfirmation": true,
+    "bookingMode": "inquiry",
+    "website": "https://hatcherpasstour.com/tours/family-utv-tour-up-to-5-people-winter/",
+    "sourceUrl": "https://adventures.polaris.com/w/adventure/guided-off-road-tours-willow-alaska-P-BW9-7GJ",
+    "priceVerifiedOn": "2026-11-19"
   },
   {
     "id": "hatcher-full-day-utv",
@@ -1210,11 +1296,9 @@ export const experiences = [
 ];
 
 
-// PUBLIC PARTNER PRICE RESEARCH (October 2026). No price here is automatically chargeable.
-// `publishedBasePrice` = customer-facing excursion price (no automatic markup).
-// `displayPrice` = the configured excursion price, unchanged.
-// AOE-owned experiences do not receive the partner markup.
-export const PARTNER_MARKUP_RATE = 0;
+// Keep provider base rates in the catalog. Display and checkout apply the
+// shared markup and $5 rounding. AOE-operated trips keep their own rates.
+export { PARTNER_MARKUP_RATE } from "./bookingPricing.mjs";
 export const EXTENDED_STAY_DISCOUNTS = Object.freeze({ fourToSixDays: 0.05, sevenPlusDays: 0.10 });
 export function getExtendedStayDiscountRate(days) {
   return days >= 7 ? EXTENDED_STAY_DISCOUNTS.sevenPlusDays : days >= 4 ? EXTENDED_STAY_DISCOUNTS.fourToSixDays : 0;
@@ -1235,7 +1319,8 @@ export function getPartnerPriceInfo(experience) {
   const unit = verified ? publishedUnit : legacyUnit;
   return {
     base, unit, chargeable: verified, source: verified ? "published" : "legacy",
-    customerPrice: Math.round(base * 100) / 100,
+    unitLabel: experience.priceUnitLabel,
+    customerPrice: partnerMarkedUpUnitCents(base) / 100,
   };
 }
 
@@ -1288,28 +1373,6 @@ const VERIFIED_PUBLIC_LISTINGS = {
     "source": "https://www.steliasguides.com/trips/alaska-glacier-activities/",
     "months": [
       5,
-      6,
-      7,
-      8,
-      9
-    ]
-  },
-  "hatcher-two-person-utv": {
-    "base": 299,
-    "unit": "perVehicle",
-    "source": "https://hatcherpasstour.com/summer-tours/",
-    "months": [
-      6,
-      7,
-      8,
-      9
-    ]
-  },
-  "hatcher-group-utv": {
-    "base": 365,
-    "unit": "perVehicle",
-    "source": "https://hatcherpasstour.com/summer-tours/",
-    "months": [
       6,
       7,
       8,
@@ -1489,28 +1552,6 @@ const ADDITIONAL_PUBLIC_LISTINGS = [
     ],
     "image": "https://phantomtririvercharters.com/wp-content/uploads/sites/6976/2023/10/Spin-Fishing-Charter-image-6-e1699636252429.jpg",
     "description": "Shared Talkeetna fishing charter."
-  },
-  {
-    "id": "hatcher-northern-lights-utv",
-    "name": "Hatcher Pass Northern Lights UTV Tour",
-    "operator": "Hatcher Pass ATV Tours",
-    "category": "atv",
-    "season": "winter",
-    "publishedBasePrice": 485,
-    "publishedPriceUnit": "perVehicle",
-    "publishedSource": "https://hatcherpasstour.com/anchorage-alaska-northern-lights-tour/",
-    "availableMonths": [
-      9,
-      10,
-      11,
-      12,
-      1,
-      2,
-      3,
-      4
-    ],
-    "image": "https://hatcherpasstour.com/wp-content/uploads/2024/12/13aurora-tour-photo.jpg",
-    "description": "Late-night guided Northern Lights UTV outing, date dependent."
   }
 ];
 for (const entry of ADDITIONAL_PUBLIC_LISTINGS) {
